@@ -1,0 +1,42 @@
+#!/bin/bash
+
+## Job Name
+#PBS -N Transformer
+
+## Project Funding Code E,g. your Project Code
+#PBS -P as_spms_cheongsa 
+
+## Queue  Name
+#PBS -q qamd_wfly
+
+##By default error and output files are in format <job_name>.e<JOB_ID> and <job_name>.o<JOB_ID>
+## If you don't want in this format, you can change it as follow:
+#PBS -o transformer.out
+#PBS -e transformer.err
+
+## Specify walltime in HH:MM:SS
+#PBS -l walltime=12:00:00
+
+## Select 1 AMD EPYC 7702 "64-Core" Processors Node with max 160 cores, 500GB memory
+##PBS -l select=1:ncpus=1:ngpus=1
+#PBS -l select=1:ncpus=20:mpiprocs=20:mem=150gb 
+##for qamd_wfly
+##host=hpc-wfly-r002
+
+##Load Application
+#module load anaconda2025/2025
+#eval "$(/usr/local/anaconda2025/bin/conda shell.bash hook)"
+#activate my-own-conda-env
+
+## Capture Number of Cores
+nprocs=`cat $PBS_NODEFILE|wc -l`
+
+## pre-processing script
+echo $PBS_O_WORKDIR
+cd $PBS_O_WORKDIR
+
+##Run mpi program
+#nvidia-smi
+pyenv global 3.13
+poetry env use 3.13
+poetry run python main.py

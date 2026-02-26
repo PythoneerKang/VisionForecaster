@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/home/s230047/Downloads/Transformer/main.py", line 43, in <module>
+    model_path, all_fold_history = diff_model_multi_fold_cv_train_test(train_loaders, test_loaders) #
+                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/s230047/Downloads/Transformer/training_and_validation_functions.py", line 150, in diff_model_multi_fold_cv_train_test
+    path, train_mse, val_mse, train_r2, val_r2, fold_history = train_with_validation(model, trainloader, val_loader,fold, epochs=p.num_epochs)
+                                                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/s230047/Downloads/Transformer/training_and_validation_functions.py", line 98, in train_with_validation
+    val_predictions.append(outputs.cpu())
+                           ^^^^^^^
+NameError: name 'outputs' is not defined
