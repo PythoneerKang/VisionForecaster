@@ -59,7 +59,7 @@ def train_with_validation(model, train_loader, val_loader,fold, epochs=100):
     
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-2)
     criterion = nn.MSELoss()
-    stopper = EarlyStopping(patience=1) #Change to 10
+    stopper = EarlyStopping(patience=5) #Change to 10
 
     fold_history = {'train_mse': [], 'val_mse': [], 'train_r2': [], 'val_r2': []}
 
@@ -155,8 +155,8 @@ def diff_model_multi_fold_cv_train_test(trainloaders, testloaders): #
         #Instantiate the transformer model for each fold
         model = SmallDataDecoderViT(
         in_channels=1,
-        embed_dim=64, depth=8, num_heads=8,
-        proj_drop=0.1, drop_path_rate=0.1)
+        embed_dim=64, depth=6, num_heads=8,
+        proj_drop=0.1, drop_path_rate=0.05)
 
         #This is the original Decoder-only ViT without SPT and LSA
         # model = DecoderOnlyViT(
@@ -170,8 +170,8 @@ def diff_model_multi_fold_cv_train_test(trainloaders, testloaders): #
         path, train_mse, val_mse, train_r2, val_r2, fold_history = train_with_validation(model, trainloader, val_loader,fold, epochs=p.num_epochs)
         fold_models.append(path)
         fold_result[fold-1] = np.array([
-                                train_mse.detach().cpu().numpy(), 
-                                val_mse.detach().cpu().numpy(), 
+                                train_mse, 
+                                val_mse, 
                                 train_r2.detach().cpu().numpy(), 
                                 val_r2.detach().cpu().numpy()
                                 ])

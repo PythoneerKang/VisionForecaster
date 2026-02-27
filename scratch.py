@@ -89,20 +89,4 @@ model = DecoderViT().to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 criterion = nn.MSELoss()
 
-def train_step(img_in, img_tgt):
-    model.train()
-    optimizer.zero_grad()
-    output = model(img_in.to(device))
-    loss = criterion(output, img_tgt.to(device))
-    loss.backward()
-    optimizer.step()
-    return loss.item()
-
-def test_step(img_in, img_tgt):
-    model.eval()
-    with torch.no_grad():
-        output = model(img_in.to(device))
-        loss = criterion(output, img_tgt.to(device))
-    return loss.item()
-
 #test_loss = test_step()

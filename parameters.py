@@ -8,7 +8,7 @@ repo_name = "VisionForecaster"
 save_loaders = False
 
 #Number of training epochs
-num_epochs = 50
+num_epochs = 2
 
 # Hyperparameters
 IMG_SIZE = 457

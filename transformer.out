@@ -1,48 +1,18 @@
 /home/s230047/Downloads/VisionForecaster
 Using virtualenv: /home/s230047/.cache/pypoetry/virtualenvs/transformer-D-LRPITk-py3.13
-Check for NAN values in distance matrices, (False -> no NAN, True otherwise.):  False
-Distance matrix shape: (num_of_trading_days, num_of_stocks, num_of_stocks):  (1575, 457, 457)
-Fold 1:
-Training set shape: ((440, 1, 457, 457), (440, 1, 457, 457))
-Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
-Fold 2:
-Training set shape: ((504, 1, 457, 457), (504, 1, 457, 457))
-Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
-Fold 3:
-Training set shape: ((504, 1, 457, 457), (504, 1, 457, 457))
-Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
-Fold 4:
-Training set shape: ((504, 1, 457, 457), (504, 1, 457, 457))
-Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
-Fold 5:
-Training set shape: ((504, 1, 457, 457), (504, 1, 457, 457))
-Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
-Fold 6:
-Training set shape: ((504, 1, 457, 457), (504, 1, 457, 457))
-Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
-Fold 7:
-Training set shape: ((504, 1, 457, 457), (504, 1, 457, 457))
-Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
-Fold 8:
-Training set shape: ((504, 1, 457, 457), (504, 1, 457, 457))
-Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
-Fold 9:
-Training set shape: ((504, 1, 457, 457), (504, 1, 457, 457))
-Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
-========== Fold=1 ==========
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-			Resource Usage on 2026-02-27 18:57:40.893705:
+			Resource Usage on 2026-02-28 00:02:06.364263:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	JobId: 3095485.hpc-pbs-sched1
+	JobId: 3095727.hpc-pbs-sched1
 	Project: as_spms_cheongsa
-	Exit Status: 1
+	Exit Status: 271
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	NCPUs: Requested(10), Used(10)
-	CPU Time Used: 00:01:41
-	Memory: Requested(200gb), Used(8848644kb)
-	Vmem Used: 16588300kb
-	Walltime: Requested(12:00:00), Used(00:00:49)
+	NCPUs: Requested(5), Used(5)
+	CPU Time Used: 01:25:32
+	Memory: Requested(100gb), Used(40097412kb)
+	Vmem Used: 45473756kb
+	Walltime: Requested(01:00:00), Used(00:32:00)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Execution Nodes Used: (hpc-wfly-a001:ncpus=10:mem=209715200kb)
+	Execution Nodes Used: (hpc-wfly-a009:ncpus=5:mem=104857600kb)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	No GPU-related information available for this job.
