@@ -59,11 +59,12 @@ def train_with_validation(model, train_loader, val_loader,fold, epochs=100):
     
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-2)
     criterion = nn.MSELoss()
-    stopper = EarlyStopping(patience=10)
+    stopper = EarlyStopping(patience=1) #Change to 10
 
     fold_history = {'train_mse': [], 'val_mse': [], 'train_r2': [], 'val_r2': []}
 
-    for epoch in range(epochs):
+    for epoch in range(1,epochs+1):
+        print(f"----- Epoch {epoch} -----")
         # --- TRAINING PHASE ---
         model.train()
         train_targets = []
@@ -71,7 +72,7 @@ def train_with_validation(model, train_loader, val_loader,fold, epochs=100):
         train_loss = 0
         print("Training begins")
         for batch_idx, (inputs, labels) in enumerate(train_loader):
-            print(f"Batch {batch_idx + 1}: Features shape {inputs.shape}, Labels shape {labels.shape}")
+            #print(f"Batch {batch_idx + 1}: Features shape {inputs.shape}, Labels shape {labels.shape}")
             x, y = inputs.to(device), labels.to(device)
         # for x, y in train_loader:
         #     x, y = x.to(device), y.to(device)
@@ -94,7 +95,7 @@ def train_with_validation(model, train_loader, val_loader,fold, epochs=100):
         print("Validation begins")
         with torch.no_grad():
             for batch_idx, (x, y) in enumerate(train_loader):
-                print(f"Batch {batch_idx + 1}: Features shape {x.shape}, Labels shape {y.shape}")
+                #print(f"Batch {batch_idx + 1}: Features shape {x.shape}, Labels shape {y.shape}")
                 x, y = x.to(device), y.to(device)
                 #labels = y
                 outputs = model(x)
@@ -119,8 +120,10 @@ def train_with_validation(model, train_loader, val_loader,fold, epochs=100):
 
         avg_train = train_loss / len(train_loader)
         avg_val = val_loss / len(val_loader)
+        print(f"----- Train/Validation results -----")
         print(f"Epoch {epoch}: Train Loss {avg_train:.6f} | Val Loss {avg_val:.6f}")
         print(f"Epoch {epoch}: Train R^2: {epoch_training_r2_score * 100:.4f}% | Val R^2: {epoch_validation_r2_score * 100:.4f}%")
+        print("-"*20)
 
         # Store Metrics for plotting
         fold_history['train_mse'].append(avg_train)
@@ -150,10 +153,28 @@ def diff_model_multi_fold_cv_train_test(trainloaders, testloaders): #
         print(10*"=", f"Fold={fold}", 10*"=")
 
         #Instantiate the transformer model for each fold
-        model = VisionForecaster(img_size=p.IMG_SIZE , patch_size=p.PATCH_SIZE, in_chans=p.CHANNELS, embed_dim=p.EMBED_DIM, depth=p.DEPTH, heads=p.HEADS, mlp_dim=p.MLP_DIM)
+        model = SmallDataDecoderViT(
+        in_channels=1,
+        embed_dim=64, depth=8, num_heads=8,
+        proj_drop=0.1, drop_path_rate=0.1)
+
+        #This is the original Decoder-only ViT without SPT and LSA
+        # model = DecoderOnlyViT(
+        # in_channels=1,
+        # img_size=457,
+        # patch_size=16,          # try 16 or 32
+        # embed_dim=64,          # small for smoke test
+        # depth=4,
+        # num_heads=8,
+        # mlp_ratio=4.0)
         path, train_mse, val_mse, train_r2, val_r2, fold_history = train_with_validation(model, trainloader, val_loader,fold, epochs=p.num_epochs)
-        fold_model.append(path)
-        fold_result[fold-1] = np.array([train_mse, val_mse, train_r2, val_r2])
+        fold_models.append(path)
+        fold_result[fold-1] = np.array([
+                                train_mse.detach().cpu().numpy(), 
+                                val_mse.detach().cpu().numpy(), 
+                                train_r2.detach().cpu().numpy(), 
+                                val_r2.detach().cpu().numpy()
+                                ])
         fold += 1
 
         all_fold_history.append(fold_history)
@@ -170,7 +191,7 @@ def diff_model_multi_fold_cv_train_test(trainloaders, testloaders): #
         print(f"Model {model_highest_val_r2} has the highest val_R^2.")
         return 
 
-    return fold_model[model_lowest_val_mse], all_fold_history 
+    return fold_models[model_lowest_val_mse], all_fold_history 
     
 # To load model, define model class first.
 #model = VisionForecaster(img_size=p.IMG_SIZE , patch_size=p.PATCH_SIZE, in_chans=p.CHANNELS, embed_dim=p.EMBED_DIM, depth=p.DEPTH, heads=p.HEADS, mlp_dim=p.MLP_DIM)

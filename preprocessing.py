@@ -24,9 +24,7 @@ def generate_multi_fold_cv_dataloaders(distance_matrix):
     y = distance_matrix[1:][:, np.newaxis, :]
     print(f"Non-padded data shape: {X.shape}, {y.shape}")
 
-    tscv = TimeSeriesSplit(n_splits=5, max_train_size=311, test_size=21)  # n_splits determines the number of splits
-
-#    (1576 - 21 - x)/4 = x solve for x yields 311
+    tscv = TimeSeriesSplit(n_splits=9, max_train_size=504, test_size=126)  # n_splits determines the number of splits
 
     for fold, (train_index, test_index) in enumerate(tscv.split(X)):
         print(f"Fold {fold+1}:")
@@ -55,4 +53,23 @@ def generate_multi_fold_cv_dataloaders(distance_matrix):
         testloaders.append(test_loader)
 
     return trainloaders, testloaders
+
+def printshape(train_loader,test_loader):
+    for fold in range(9):
+        print(f"Fold {fold+1}:")
+
+        for inputs, _ in train_loader[fold]:
+            if torch.isnan(inputs).sum() > 0:
+                raise ValueError(f"NaN detected in train_loader fold {fold} data!")
+
+        for inputs, _ in test_loader[fold]:
+            if torch.isnan(inputs).sum() > 0:
+                raise ValueError(f"NaN detected in test_loader fold {fold} data!")
+
+        Training_set_shape = get_shape(train_loader[fold])
+        Testing_set_shape = get_shape(test_loader[fold])
+
+        print(f"Training set shape: {Training_set_shape}")
+        print(f"Testing set shape: {Testing_set_shape}")
+
 

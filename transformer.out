@@ -1,41 +1,48 @@
-/home/s230047/Downloads/Transformer
-Using virtualenv: /home/s230047/.cache/pypoetry/virtualenvs/transformer-6ZlpAHC1-py3.13
-Non-padded data shape: (1574, 1, 457, 457), (1574, 1, 457, 457)
+/home/s230047/Downloads/VisionForecaster
+Using virtualenv: /home/s230047/.cache/pypoetry/virtualenvs/transformer-D-LRPITk-py3.13
+Check for NAN values in distance matrices, (False -> no NAN, True otherwise.):  False
+Distance matrix shape: (num_of_trading_days, num_of_stocks, num_of_stocks):  (1575, 457, 457)
 Fold 1:
-Training set shape: ((311, 1, 457, 457), (311, 1, 457, 457))
-Testing set shape: ((21, 1, 457, 457), (21, 1, 457, 457))
+Training set shape: ((440, 1, 457, 457), (440, 1, 457, 457))
+Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
 Fold 2:
-Training set shape: ((311, 1, 457, 457), (311, 1, 457, 457))
-Testing set shape: ((21, 1, 457, 457), (21, 1, 457, 457))
+Training set shape: ((504, 1, 457, 457), (504, 1, 457, 457))
+Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
 Fold 3:
-Training set shape: ((311, 1, 457, 457), (311, 1, 457, 457))
-Testing set shape: ((21, 1, 457, 457), (21, 1, 457, 457))
+Training set shape: ((504, 1, 457, 457), (504, 1, 457, 457))
+Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
 Fold 4:
-Training set shape: ((311, 1, 457, 457), (311, 1, 457, 457))
-Testing set shape: ((21, 1, 457, 457), (21, 1, 457, 457))
+Training set shape: ((504, 1, 457, 457), (504, 1, 457, 457))
+Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
 Fold 5:
-Training set shape: ((311, 1, 457, 457), (311, 1, 457, 457))
-Testing set shape: ((21, 1, 457, 457), (21, 1, 457, 457))
+Training set shape: ((504, 1, 457, 457), (504, 1, 457, 457))
+Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
+Fold 6:
+Training set shape: ((504, 1, 457, 457), (504, 1, 457, 457))
+Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
+Fold 7:
+Training set shape: ((504, 1, 457, 457), (504, 1, 457, 457))
+Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
+Fold 8:
+Training set shape: ((504, 1, 457, 457), (504, 1, 457, 457))
+Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
+Fold 9:
+Training set shape: ((504, 1, 457, 457), (504, 1, 457, 457))
+Testing set shape: ((126, 1, 457, 457), (126, 1, 457, 457))
 ========== Fold=1 ==========
-Training begins
-Batch 1: Features shape torch.Size([128, 1, 457, 457]), Labels shape torch.Size([128, 1, 457, 457])
-Batch 2: Features shape torch.Size([128, 1, 457, 457]), Labels shape torch.Size([128, 1, 457, 457])
-Batch 3: Features shape torch.Size([55, 1, 457, 457]), Labels shape torch.Size([55, 1, 457, 457])
-Validation begins
-Batch 1: Features shape torch.Size([128, 1, 457, 457]), Labels shape torch.Size([128, 1, 457, 457])
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-			Resource Usage on 2026-02-26 19:14:17.535377:
+			Resource Usage on 2026-02-27 18:57:40.893705:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	JobId: 3094215.hpc-pbs-sched1
+	JobId: 3095485.hpc-pbs-sched1
 	Project: as_spms_cheongsa
 	Exit Status: 1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	NCPUs: Requested(20), Used(20)
-	CPU Time Used: 00:09:15
-	Memory: Requested(150gb), Used(43046576kb)
-	Vmem Used: 51126708kb
-	Walltime: Requested(12:00:00), Used(00:02:20)
+	NCPUs: Requested(10), Used(10)
+	CPU Time Used: 00:01:41
+	Memory: Requested(200gb), Used(8848644kb)
+	Vmem Used: 16588300kb
+	Walltime: Requested(12:00:00), Used(00:00:49)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Execution Nodes Used: (hpc-wfly-a001:ncpus=20:mem=157286400kb)
+	Execution Nodes Used: (hpc-wfly-a001:ncpus=10:mem=209715200kb)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	No GPU-related information available for this job.

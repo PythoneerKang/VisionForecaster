@@ -19,7 +19,7 @@
 
 ## Select 1 AMD EPYC 7702 "64-Core" Processors Node with max 160 cores, 500GB memory
 ##PBS -l select=1:ncpus=1:ngpus=1
-#PBS -l select=1:ncpus=20:mpiprocs=20:mem=150gb 
+#PBS -l select=1:ncpus=10:mpiprocs=10:mem=200gb 
 ##for qamd_wfly
 ##host=hpc-wfly-r002
 
@@ -40,3 +40,4 @@ cd $PBS_O_WORKDIR
 pyenv global 3.13
 poetry env use 3.13
 poetry run python main.py
+#poetry run python scratch.py
