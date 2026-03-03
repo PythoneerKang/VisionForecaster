@@ -3,6 +3,7 @@ import torch
 from torchmetrics import R2Score
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from transformer import *
+import pickle
 
 #from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
@@ -52,14 +53,16 @@ def r_squared_score(predictions, targets):
 
     return r2
 
-def train_with_validation(model, train_loader, val_loader,fold, epochs=100):
+def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
 
-    device =  torch.device("cpu") #torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Use GPU if available; this also makes it easier to spot/avoid
+    # CUDA memory growth during training.
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-2)
     criterion = nn.MSELoss()
-    stopper = EarlyStopping(patience=5) #Change to 10
+    stopper = EarlyStopping(patience=10) #Change to 10
 
     fold_history = {'train_mse': [], 'val_mse': [], 'train_r2': [], 'val_r2': []}
 
@@ -67,6 +70,7 @@ def train_with_validation(model, train_loader, val_loader,fold, epochs=100):
         print(f"----- Epoch {epoch} -----")
         # --- TRAINING PHASE ---
         model.train()
+        # Store detached CPU copies only (no computation graph)
         train_targets = []
         train_predictions = []
         train_loss = 0
@@ -77,30 +81,32 @@ def train_with_validation(model, train_loader, val_loader,fold, epochs=100):
         # for x, y in train_loader:
         #     x, y = x.to(device), y.to(device)
             optimizer.zero_grad()
-            #labels = y
             outputs = model(x)
             loss = criterion(outputs, y)
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
-            train_targets.append(y.cpu())
-            train_predictions.append(outputs.cpu())
+
+            # Move to CPU and detach so we don't keep the computation graph
+            train_targets.append(y.detach().cpu())
+            train_predictions.append(outputs.detach().cpu())
             train_loss += loss.item()
 
         # --- VALIDATION PHASE ---
         model.eval()
+        # Store detached CPU copies only (no computation graph)
         val_targets = []
         val_predictions = []
         val_loss = 0
         print("Validation begins")
         with torch.no_grad():
-            for batch_idx, (x, y) in enumerate(train_loader):
-                #print(f"Batch {batch_idx + 1}: Features shape {x.shape}, Labels shape {y.shape}")
+            for batch_idx, (x, y) in enumerate(val_loader):
                 x, y = x.to(device), y.to(device)
-                #labels = y
                 outputs = model(x)
-                val_targets.append(y.cpu())
-                val_predictions.append(outputs.cpu())
+
+                # Move to CPU and detach (no graph under no_grad, but keep it consistent)
+                val_targets.append(y.detach().cpu())
+                val_predictions.append(outputs.detach().cpu())
                 val_loss += criterion(outputs, y).item()
 
 
@@ -139,14 +145,12 @@ def train_with_validation(model, train_loader, val_loader,fold, epochs=100):
     model_path = f'model_fold_{fold}.pth'
     torch.save(model.state_dict(), model_path) # [1]
         
-    return model_path, avg_train, avg_val, epoch_training_r2_score, epoch_validation_r2_score, fold_history
+    return model_path, fold_history
 
 def diff_model_multi_fold_cv_train_test(trainloaders, testloaders): #
 
     fold = 1
     fold_models = []
-    fold_result = np.zeros((5,4))
-
     all_fold_history = [] #For final training/val result plots.
 
     for trainloader,val_loader in zip(trainloaders,testloaders):
@@ -155,7 +159,7 @@ def diff_model_multi_fold_cv_train_test(trainloaders, testloaders): #
         #Instantiate the transformer model for each fold
         model = SmallDataDecoderViT(
         in_channels=1,
-        embed_dim=64, depth=6, num_heads=8,
+        embed_dim=192, depth=6, num_heads=3,
         proj_drop=0.1, drop_path_rate=0.05)
 
         #This is the original Decoder-only ViT without SPT and LSA
@@ -167,29 +171,29 @@ def diff_model_multi_fold_cv_train_test(trainloaders, testloaders): #
         # depth=4,
         # num_heads=8,
         # mlp_ratio=4.0)
-        path, train_mse, val_mse, train_r2, val_r2, fold_history = train_with_validation(model, trainloader, val_loader,fold, epochs=p.num_epochs)
+        path, fold_history = train_with_validation(model, trainloader, val_loader, fold, epochs=p.num_epochs)
+        # with open(f'train_val_fold{fold}.pkl', 'wb') as f:
+        #     pickle.dump([path, fold_history['train_mse'], fold_history['val_mse'], fold_history['train_r2'], fold_history['val_r2']], f)
         fold_models.append(path)
-        fold_result[fold-1] = np.array([
-                                train_mse, 
-                                val_mse, 
-                                train_r2.detach().cpu().numpy(), 
-                                val_r2.detach().cpu().numpy()
-                                ])
+
+        # Explicitly release model and cached CUDA memory between folds
+        del model
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
         fold += 1
 
         all_fold_history.append(fold_history)
    
     #Compare among the folds, choose the one with the highest val R^2 and/or lowest val MSE
-    model_lowest_val_mse = np.argmax(fold_result[:,1])
-    model_highest_val_r2 = np.argmax(fold_result[:,3])
+    model_lowest_val_mse = np.argmax([fold_history['val_mse'][-1] for fold_history in all_fold_history])
+    model_highest_val_r2 = np.argmax([fold_history['val_r2'][-1].item() for fold_history in all_fold_history])
     if model_lowest_val_mse == model_highest_val_r2:
         print("Lowest val_mse model = highest val_r2 model, all good.")
-        print(f"Model {model_lowest_val_mse} has the lowest val_MSE and the highest val_R^2.")
+        print(f"Model {model_lowest_val_mse+1} has the lowest val_MSE and the highest val_R^2.")
     else:
         print("Lowest val_mse model != highest val_r2 model, choose lowest mse model.")
-        print(f"Model {model_lowest_val_mse} has the lowest val_MSE.")
-        print(f"Model {model_highest_val_r2} has the highest val_R^2.")
-        return 
+        print(f"Model {model_lowest_val_mse+1} has the lowest val_MSE.")
+        print(f"Model {model_highest_val_r2+1} has the highest val_R^2.")
 
     return fold_models[model_lowest_val_mse], all_fold_history 
     
