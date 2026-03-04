@@ -3,9 +3,8 @@ import torch
 from torchmetrics import R2Score
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from transformer import *
-import pickle
-
-#from torch.utils.data import DataLoader, TensorDataset
+from sklearn.model_selection import TimeSeriesSplit
+from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 
 class EarlyStopping:
@@ -142,60 +141,89 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
             model.load_state_dict(torch.load('best_model.pt'))
             break
     
-    model_path = f'model_fold_{fold}.pth'
-    torch.save(model.state_dict(), model_path) # [1]
-        
+    model_path = f"model_fold_{fold}.pth"
+    torch.save(model.state_dict(), model_path)
+
     return model_path, fold_history
 
-def diff_model_multi_fold_cv_train_test(trainloaders, testloaders): #
+
+def diff_model_multi_fold_cv_train_test(distance_matrix: np.ndarray):
+    """
+    Perform multi-fold CV training using a single shared base tensor and
+    constructing DataLoaders one fold at a time to keep memory usage low.
+    """
+    # Build base tensors once (float32, on CPU)
+    X = distance_matrix[:-1][:, np.newaxis, :]
+    y = distance_matrix[1:][:, np.newaxis, :]
+
+    X_tensor = torch.from_numpy(X).float()
+    y_tensor = torch.from_numpy(y).float()
+
+    tscv = TimeSeriesSplit(n_splits=9, max_train_size=504, test_size=126)
 
     fold = 1
     fold_models = []
-    all_fold_history = [] #For final training/val result plots.
+    all_fold_history = []  # For final training/val result plots.
 
-    for trainloader,val_loader in zip(trainloaders,testloaders):
-        print(10*"=", f"Fold={fold}", 10*"=")
+    for train_index, val_index in tscv.split(X_tensor):
+        print(10 * "=", f"Fold={fold}", 10 * "=")
 
-        #Instantiate the transformer model for each fold
+        X_train, X_val = X_tensor[train_index], X_tensor[val_index]
+        y_train, y_val = y_tensor[train_index], y_tensor[val_index]
+
+        train_dataset = TensorDataset(X_train, y_train)
+        val_dataset = TensorDataset(X_val, y_val)
+
+        train_loader = DataLoader(train_dataset, batch_size=p.BATCH_SIZE, shuffle=False)
+        val_loader = DataLoader(val_dataset, batch_size=p.BATCH_SIZE, shuffle=False)
+
+        # Instantiate the transformer model for each fold
         model = SmallDataDecoderViT(
-        in_channels=1,
-        embed_dim=192, depth=6, num_heads=3,
-        proj_drop=0.1, drop_path_rate=0.05)
+            in_channels=1,
+            embed_dim=192,
+            depth=6,
+            num_heads=3,
+            proj_drop=0.1,
+            drop_path_rate=0.05,
+        )
 
-        #This is the original Decoder-only ViT without SPT and LSA
-        # model = DecoderOnlyViT(
-        # in_channels=1,
-        # img_size=457,
-        # patch_size=16,          # try 16 or 32
-        # embed_dim=64,          # small for smoke test
-        # depth=4,
-        # num_heads=8,
-        # mlp_ratio=4.0)
-        path, fold_history = train_with_validation(model, trainloader, val_loader, fold, epochs=p.num_epochs)
-        # with open(f'train_val_fold{fold}.pkl', 'wb') as f:
-        #     pickle.dump([path, fold_history['train_mse'], fold_history['val_mse'], fold_history['train_r2'], fold_history['val_r2']], f)
-        fold_models.append(path)
+        model_path, fold_history = train_with_validation(
+            model, train_loader, val_loader, fold, epochs=p.num_epochs
+        )
+        fold_models.append(model_path)
+        all_fold_history.append(fold_history)
 
-        # Explicitly release model and cached CUDA memory between folds
-        del model
+        # Explicitly release model, datasets, and cached CUDA memory between folds
+        del model, train_loader, val_loader, train_dataset, val_dataset
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
+
         fold += 1
 
-        all_fold_history.append(fold_history)
-   
-    #Compare among the folds, choose the one with the highest val R^2 and/or lowest val MSE
-    model_lowest_val_mse = np.argmax([fold_history['val_mse'][-1] for fold_history in all_fold_history])
-    model_highest_val_r2 = np.argmax([fold_history['val_r2'][-1].item() for fold_history in all_fold_history])
+    # Compare among the folds, choose the one with the highest val R^2 and/or lowest val MSE
+    model_lowest_val_mse = np.argmin(
+        [fold_history["val_mse"][-1] for fold_history in all_fold_history]
+    )
+    model_highest_val_r2 = np.argmax(
+        [fold_history["val_r2"][-1].item() for fold_history in all_fold_history]
+    )
     if model_lowest_val_mse == model_highest_val_r2:
         print("Lowest val_mse model = highest val_r2 model, all good.")
-        print(f"Model {model_lowest_val_mse+1} has the lowest val_MSE and the highest val_R^2.")
+        print(
+            f"Model {model_lowest_val_mse + 1} has the lowest val_MSE and the highest val_R^2."
+        )
     else:
-        print("Lowest val_mse model != highest val_r2 model, choose lowest mse model.")
-        print(f"Model {model_lowest_val_mse+1} has the lowest val_MSE.")
-        print(f"Model {model_highest_val_r2+1} has the highest val_R^2.")
+        print(
+            "Lowest val_mse model != highest val_r2 model, choose lowest mse model."
+        )
+        print(
+            f"Model {model_lowest_val_mse + 1} has the lowest val_MSE."
+        )
+        print(
+            f"Model {model_highest_val_r2 + 1} has the highest val_R^2."
+        )
 
-    return fold_models[model_lowest_val_mse], all_fold_history 
+    return fold_models[model_lowest_val_mse], all_fold_history
     
 # To load model, define model class first.
 #model = VisionForecaster(img_size=p.IMG_SIZE , patch_size=p.PATCH_SIZE, in_chans=p.CHANNELS, embed_dim=p.EMBED_DIM, depth=p.DEPTH, heads=p.HEADS, mlp_dim=p.MLP_DIM)
