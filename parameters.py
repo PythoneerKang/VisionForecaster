@@ -1,5 +1,5 @@
 #Window widths
-w = 35
+w = 70
 
 #Git/GitHub Repo name
 repo_name = "VisionForecaster"
@@ -8,7 +8,7 @@ repo_name = "VisionForecaster"
 save_loaders = False
 
 #Number of training epochs
-num_epochs = 2
+num_epochs = 100
 
 # Hyperparameters
 IMG_SIZE = 457

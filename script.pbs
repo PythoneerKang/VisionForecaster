@@ -7,7 +7,7 @@
 #PBS -P as_spms_cheongsa 
 
 ## Queue  Name
-#PBS -q qamd_wfly
+#PBS -q qintel_wfly
 
 ##By default error and output files are in format <job_name>.e<JOB_ID> and <job_name>.o<JOB_ID>
 ## If you don't want in this format, you can change it as follow:
@@ -15,11 +15,11 @@
 #PBS -e transformer.err
 
 ## Specify walltime in HH:MM:SS
-#PBS -l walltime=1:00:00
+#PBS -l walltime=48:00:00
 
 ## Select 1 AMD EPYC 7702 "64-Core" Processors Node with max 160 cores, 500GB memory
 ##PBS -l select=1:ncpus=1:ngpus=1
-#PBS -l select=1:ncpus=5:mpiprocs=5:mem=100gb 
+#PBS -l select=1:ncpus=20:mpiprocs=20:mem=200gb 
 ##for qamd_wfly
 ##host=hpc-wfly-r002
 
