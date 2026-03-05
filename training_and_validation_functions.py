@@ -54,9 +54,17 @@ def r_squared_score(predictions, targets):
 
 def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
 
-    # Use GPU if available; this also makes it easier to spot/avoid
-    # CUDA memory growth during training.
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Configure PyTorch threading for CPU training on HPC.
+    # These values come from parameters.py and should be consistent with
+    # CPUs requested in the PBS script.
+    if p.TORCH_NUM_THREADS is not None:
+        torch.set_num_threads(p.TORCH_NUM_THREADS)
+    if p.TORCH_NUM_INTEROP_THREADS is not None:
+        torch.set_num_interop_threads(p.TORCH_NUM_INTEROP_THREADS)
+
+    # Device selection: for Intel CPU-only HPC runs, p.USE_GPU is False so
+    # we always stay on CPU even if a CUDA device is visible.
+    device = torch.device("cuda" if p.USE_GPU and torch.cuda.is_available() else "cpu")
     model.to(device)
     
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-2)
@@ -174,8 +182,20 @@ def diff_model_multi_fold_cv_train_test(distance_matrix: np.ndarray):
         train_dataset = TensorDataset(X_train, y_train)
         val_dataset = TensorDataset(X_val, y_val)
 
-        train_loader = DataLoader(train_dataset, batch_size=p.BATCH_SIZE, shuffle=False)
-        val_loader = DataLoader(val_dataset, batch_size=p.BATCH_SIZE, shuffle=False)
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=p.BATCH_SIZE,
+            shuffle=False,
+            num_workers=p.NUM_WORKERS,
+            pin_memory=False,
+        )
+        val_loader = DataLoader(
+            val_dataset,
+            batch_size=p.BATCH_SIZE,
+            shuffle=False,
+            num_workers=p.NUM_WORKERS,
+            pin_memory=False,
+        )
 
         # Instantiate the transformer model for each fold
         model = SmallDataDecoderViT(

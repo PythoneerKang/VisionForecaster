@@ -17,19 +17,23 @@
 ## Specify walltime in HH:MM:SS
 #PBS -l walltime=48:00:00
 
-## Select 1 AMD EPYC 7702 "64-Core" Processors Node with max 160 cores, 500GB memory
-##PBS -l select=1:ncpus=1:ngpus=1
-#PBS -l select=1:ncpus=20:mpiprocs=20:mem=200gb 
-##for qamd_wfly
-##host=hpc-wfly-r002
+## Select 1 CPU-only node with 20 cores and ~200GB memory for Intel HPC training
+#PBS -l select=1:ncpus=20:mem=200gb
 
 ##Load Application
 #module load anaconda2025/2025
 #eval "$(/usr/local/anaconda2025/bin/conda shell.bash hook)"
 #activate my-own-conda-env
 
-## Capture Number of Cores
-nprocs=`cat $PBS_NODEFILE|wc -l`
+## Capture Number of Cores and configure threading
+NCPUS=${PBS_NP:-20}
+echo "Using $NCPUS CPU cores on this node."
+
+## OpenMP / BLAS threading configuration for PyTorch + NumPy
+export OMP_NUM_THREADS=$NCPUS
+export MKL_NUM_THREADS=$NCPUS
+export NUMEXPR_NUM_THREADS=$NCPUS
+export OPENBLAS_NUM_THREADS=$NCPUS
 
 ## pre-processing script
 echo $PBS_O_WORKDIR

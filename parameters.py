@@ -10,6 +10,27 @@ save_loaders = False
 #Number of training epochs
 num_epochs = 100
 
+# -----------------------------------------------------------------------------
+# Hardware / runtime configuration for HPC CPU training
+# -----------------------------------------------------------------------------
+
+# Target number of physical/logical CPU cores to use on the node.
+# Your PBS script will request 20 cores; keep this in [10, 20].
+NUM_CPUS = 20
+
+# Torch threading configuration. These are used in the training code to
+# control intra-op and inter-op parallelism on CPU.
+TORCH_NUM_THREADS = 16          # math / BLAS work per operator
+TORCH_NUM_INTEROP_THREADS = 2   # parallelism across operators
+
+# DataLoader worker processes. Keep
+#   NUM_WORKERS * TORCH_NUM_THREADS <= NUM_CPUS
+NUM_WORKERS = 2
+
+# Whether to use GPU when available. For Intel CPU-only training on HPC, keep
+# this False so training always runs on CPU even if a GPU is visible.
+USE_GPU = False
+
 # Hyperparameters
 IMG_SIZE = 457
 PATCH_SIZE = 16
