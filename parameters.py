@@ -1,5 +1,5 @@
 #Window widths
-w = 70
+w = 120
 
 #Git/GitHub Repo name
 repo_name = "VisionForecaster"
@@ -15,16 +15,18 @@ num_epochs = 100
 # -----------------------------------------------------------------------------
 
 # Target number of physical/logical CPU cores to use on the node.
-# Your PBS script will request 20 cores; keep this in [10, 20].
-NUM_CPUS = 20
+# Your PBS script will request 16 cores; keep this in [10, 16].
+NUM_CPUS = 16
 
 # Torch threading configuration. These are used in the training code to
 # control intra-op and inter-op parallelism on CPU.
-TORCH_NUM_THREADS = 16          # math / BLAS work per operator
+# With 16 CPUs, a good starting point is 8 intra-op threads and 2 inter-op
+# threads, plus a couple of DataLoader workers, to avoid oversubscription.
+TORCH_NUM_THREADS = 8           # math / BLAS work per operator
 TORCH_NUM_INTEROP_THREADS = 2   # parallelism across operators
 
-# DataLoader worker processes. Keep
-#   NUM_WORKERS * TORCH_NUM_THREADS <= NUM_CPUS
+# DataLoader worker processes. Keep roughly
+#   NUM_WORKERS * TORCH_NUM_THREADS <= NUM_CPUS.
 NUM_WORKERS = 2
 
 # Whether to use GPU when available. For Intel CPU-only training on HPC, keep
