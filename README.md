@@ -133,3 +133,12 @@ unpatchify → (B, 1, 464, 464) → crop → (B, 1, 457, 457)
 ## Padding Note
 
 457 is not divisible by the patch size (16). The input is reflect-padded to 464 = 29 × 16 before tokenisation, then the reconstructed output is cropped back to 457 × 457.
+
+---
+
+## Inspiration
+
+> Seung Hoon Lee, Seunghyun Lee, Byung Cheol Song. **Vision Transformer for Small-Size Datasets.** IEEE Access, 2022.
+> DOI: [10.1109/ACCESS.2022.3220167](https://ieeexplore.ieee.org/document/9957006)
+
+The SPT and LSA techniques used in this architecture are adapted from this work, which introduced locality inductive bias mechanisms enabling ViTs to train effectively on small datasets without large-scale pre-training.
