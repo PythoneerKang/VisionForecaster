@@ -397,6 +397,7 @@
     <div class="pill">proj_drop <b>0.1</b></div>
     <div class="pill">drop_path_rate <b>0.05</b></div>
     <div class="pill">ls_init <b>1e-4</b></div>
+    <div class="pill">locality_strength <b>0.1</b></div>
   </div>
 
   <div class="flow">
@@ -513,8 +514,9 @@
                       QKV proj: 192 → 3×192 (no bias)<br>
                       heads=3 &nbsp;·&nbsp; head_dim=64<br>
                       temp: learnable per-head scalar<br>
-                      bias: locality_weight × −‖Δcoord‖² / max(‖Δcoord‖²)<br>
-                      bias range: [−1, 0] &nbsp;·&nbsp; locality_weight = logit-unit knob<br>
+                      locality_weight: per-head (shape H) &nbsp;·&nbsp; init=0.1<br>
+                      bias: locality_weight_h × −‖Δcoord‖² / max(‖Δcoord‖²)<br>
+                      bias range: [−1, 0] per head &nbsp;·&nbsp; heads diverge independently<br>
                       full bidirectional attention (no causal mask)<br>
                       softmax → attn_drop=0.0<br>
                       out proj: 192 → 192
@@ -662,8 +664,8 @@
       <p>Rate increases linearly across blocks (0 → 0.05). Acts as an ensemble of shallower networks at training time.</p>
     </div>
     <div class="legend-item" style="border-top:3px solid #e64a19;">
-      <b style="color:#bf360c;">Normalised Locality Bias</b>
-      <p>Gaussian distance bias is normalised to [−1, 0], making <em>locality_weight</em> a direct logit-units knob: its value equals the suppression applied to the most distant patch pair.</p>
+      <b style="color:#bf360c;">Per-Head Locality Bias</b>
+      <p>Each head has its own learnable <em>locality_weight</em> scalar (init&nbsp;0.1), applied to the normalised Gaussian bias [−1,&nbsp;0]. Heads can independently learn how local or global to be, producing the diversity that multihead attention is designed to exploit. The low init keeps the bias weak early in training so random QKV projections drive head divergence first.</p>
     </div>
     <div class="legend-item" style="border-top:3px solid #546e7a;">
       <b style="color:#37474f;">Padding &amp; Crop</b>

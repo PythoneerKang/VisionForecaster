@@ -62,6 +62,7 @@ For the full interactive diagram, open [`docs/index.html`](https://pythoneerkang
 | `proj_drop`        | 0.1          |
 | `drop_path_rate`   | 0.05         |
 | `ls_init`          | 1e-4         |
+| `locality_strength`| 0.1          |
 
 ---
 
@@ -81,7 +82,7 @@ Each patch token is enriched with 4 diagonally-shifted neighbours before project
 ### Locality Self-Attention (LSA)
 Full bidirectional self-attention with two small-data-friendly modifications:
 - **Learnable per-head temperature** scalar, rather than fixed `1/√d`.
-- **Gaussian distance bias** — `locality_weight × −‖Δcoord‖² / max(‖Δcoord‖²)` normalised to `[−1, 0]`, softly encouraging attention to nearby patches. `locality_weight` acts as a direct logit-units knob: its value equals the suppression applied to the most distant patch.
+- **Learnable per-head locality bias weight** — each head has its own `locality_weight` scalar (shape `(H,)`, init `0.1`), applied as `locality_weight_h × −‖Δcoord‖² / max(‖Δcoord‖²)`. The bias is normalised to `[−1, 0]`, so each head's weight is a direct logit-units knob: its value equals the suppression applied to the most distant patch for that head. Using a per-head weight lets heads independently learn how much spatial proximity matters, producing the head diversity that multihead attention is designed to exploit. The low init (`0.1` vs the previous `1.0`) keeps the bias weak at the start of training, giving the random QKV projections room to drive head divergence before spatial preferences are learned.
 
 No causal mask is applied. The 841 tokens represent spatial patch positions within a single distance matrix snapshot (one trading day), not a temporal sequence — every patch attends freely to every other patch. Temporal ordering is enforced at the data level (input = day *t*, target = day *t+1*).
 

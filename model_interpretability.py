@@ -70,7 +70,8 @@ class _AttentionHook:
         scale = module.temperature.exp()
         attn = (q @ k.transpose(-2, -1)) * scale
         loc = module._locality_bias(x.device)
-        attn = attn + module.locality_weight * loc
+        lw  = module.locality_weight.view(module.num_heads, 1, 1)  # (H,1,1)
+        attn = attn + lw * loc
         # No causal mask applied (full bidirectional attention within frame)
         self.weights = attn.softmax(dim=-1).detach().cpu()  # (B, H, N, N)
 
@@ -392,35 +393,48 @@ class ModelInterpreter:
 
     def plot_locality_weights(self, filename: str = "locality_weights.png"):
         """
-        Bar chart of the learned locality_weight scalar per block.
+        Plot the learned per-head locality_weight for every block.
 
-        Positive & large → model leans on spatial proximity (local).
-        Near zero / negative → model ignores or suppresses locality bias.
+        Each block now has H independent weights (one per head), so this is
+        shown as a heat-map (block × head) — the same layout used for
+        attention temperatures.
 
-        With the normalised bias (values in [-1, 0]), locality_weight now acts
-        as a direct logit-units knob: locality_weight=k means the most distant
-        patch is suppressed by k logit units relative to the same patch.
+        Positive weight → head prefers nearby patches.
+        Near-zero / negative → head ignores or suppresses locality bias.
         """
         blocks = self._blocks()
-        weights = [blk.attn.locality_weight.item() for blk in blocks]
-        x = np.arange(1, len(blocks) + 1)
+        depth = len(blocks)
+        H = blocks[0].attn.num_heads
 
-        colors = ["#4CAF50" if w > 0 else "#F44336" for w in weights]
-        fig, ax = plt.subplots(figsize=(max(7, len(blocks) + 1), 4))
-        bars = ax.bar(x, weights, color=colors, edgecolor="white", linewidth=0.5)
-        ax.axhline(0, color="black", linewidth=0.8)
-        ax.set_xlabel("Block")
-        ax.set_ylabel("Locality weight (logit units, normalised bias)")
-        ax.set_title("Learned Locality Bias Weight per Block\n"
-                     "Green (+) = prefers local attention  |  Red (−) = suppresses it\n"
-                     "(bias normalised to [−1, 0]: weight = max logit suppression for farthest patch)",
-                     fontweight="bold")
-        ax.set_xticks(x)
-        for bar, val in zip(bars, weights):
-            ax.text(bar.get_x() + bar.get_width() / 2,
-                    val + 0.01 * np.sign(val), f"{val:.3f}",
-                    ha="center", va="bottom" if val >= 0 else "top", fontsize=8)
-        ax.grid(axis="y", alpha=0.3)
+        weights = np.zeros((depth, H))
+        for l, blk in enumerate(blocks):
+            weights[l] = blk.attn.locality_weight.detach().cpu().numpy()  # (H,)
+
+        fig, ax = plt.subplots(figsize=(max(6, H + 1), depth + 1))
+        # Use a diverging colormap centred at 0
+        vabs = max(abs(weights.min()), abs(weights.max()), 1e-6)
+        im = ax.imshow(weights, cmap="RdYlGn", aspect="auto",
+                       vmin=-vabs, vmax=vabs)
+        ax.set_xticks(range(H))
+        ax.set_xticklabels([f"H{h+1}" for h in range(H)])
+        ax.set_yticks(range(depth))
+        ax.set_yticklabels([f"Block {l+1}" for l in range(depth)])
+        ax.set_xlabel("Attention Head")
+        ax.set_title(
+            "Learned Locality Bias Weight per Block × Head\n"
+            "Green (+) = prefers local attention  |  Red (−) = suppresses it\n"
+            "(bias normalised to [−1, 0]: weight = max logit suppression for farthest patch)",
+            fontweight="bold",
+        )
+        fig.colorbar(im, ax=ax, label="locality_weight (logit units)")
+
+        for l in range(depth):
+            for h in range(H):
+                val = weights[l, h]
+                text_col = "black"
+                ax.text(h, l, f"{val:.3f}", ha="center", va="center",
+                        fontsize=8, color=text_col)
+
         plt.tight_layout()
         self._savefig(fig, filename)
 
@@ -465,7 +479,7 @@ class ModelInterpreter:
         bias_maxs   = np.zeros(depth)
         bias_mins   = np.zeros(depth)
         ratios      = np.zeros(depth)
-        lw_vals     = np.zeros(depth)
+        lw_means    = np.zeros(depth)   # mean locality_weight across heads per block
 
         handles = []
 
@@ -476,19 +490,20 @@ class ModelInterpreter:
                 qkv = module.qkv(inp).reshape(B, N_, 3, module.num_heads, module.head_dim)
                 q, k, v = qkv.permute(2, 0, 3, 1, 4).unbind(0)
 
-                scale       = module.temperature.exp()
-                raw_logits  = (q @ k.transpose(-2, -1)) * scale
-                loc         = module._locality_bias(inp.device)           # (N,N) in [-1,0]
-                bias        = (module.locality_weight * loc).detach().cpu().numpy()
+                scale       = module.temperature.exp()                         # (H,1,1)
+                raw_logits  = (q @ k.transpose(-2, -1)) * scale               # (B,H,N,N)
+                loc         = module._locality_bias(inp.device)               # (N,N) in [-1,0]
+                lw          = module.locality_weight.view(module.num_heads, 1, 1)  # (H,1,1)
+                bias_vol    = (lw * loc).detach().cpu().numpy()               # (H,N,N)
 
                 raw_np = raw_logits.detach().cpu().numpy()
 
                 logit_stds[idx] = float(raw_np.std())
                 logit_mins[idx] = float(raw_np.min())
                 logit_maxs[idx] = float(raw_np.max())
-                bias_maxs[idx]  = float(np.abs(bias).max())
-                bias_mins[idx]  = float(bias.min())
-                lw_vals[idx]    = module.locality_weight.item()
+                bias_maxs[idx]  = float(np.abs(bias_vol).max())
+                bias_mins[idx]  = float(bias_vol.min())
+                lw_means[idx]   = float(module.locality_weight.detach().cpu().numpy().mean())
                 ratios[idx]     = bias_maxs[idx] / (logit_stds[idx] + 1e-8)
             return hook
 
@@ -504,9 +519,10 @@ class ModelInterpreter:
         # ── Print table ───────────────────────────────────────────────────
         print("\n── Locality Bias Scale Diagnostic ──────────────────────────────────")
         print(f"  Grid: {gh}×{gw}  |  N={N} patches  |  bias normalised to [−1, 0]")
-        print(f"  bias_max = |locality_weight| × 1.0  (normalised corner-to-corner)")
+        print(f"  bias_max = max(|lw_h| × bias) across all heads  (normalised corner-to-corner)")
+        print(f"  lw_mean  = mean locality_weight across heads per block")
         print()
-        header = (f"  {'Block':>5}  {'lw':>7}  {'logit_std':>10}  "
+        header = (f"  {'Block':>5}  {'lw_mean':>8}  {'logit_std':>10}  "
                   f"{'bias_max':>9}  {'bias_min':>9}  {'ratio':>7}  {'verdict':}")
         print(header)
         print("  " + "-" * (len(header) - 2))
@@ -524,7 +540,7 @@ class ModelInterpreter:
                     break
             if ratios[i] >= 5:
                 any_severe = True
-            print(f"  {i+1:>5}  {lw_vals[i]:>7.4f}  {logit_stds[i]:>10.4f}  "
+            print(f"  {i+1:>5}  {lw_means[i]:>8.4f}  {logit_stds[i]:>10.4f}  "
                   f"{bias_maxs[i]:>9.4f}  {bias_mins[i]:>9.4f}  "
                   f"{ratios[i]:>7.2f}x  {verdict}")
 

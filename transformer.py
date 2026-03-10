@@ -190,7 +190,7 @@ class LocalitySelfAttention(nn.Module):
     """
     Multi-head self-attention with:
       - Learnable per-head temperature (replaces fixed sqrt(d_k) scaling)
-      - Additive Gaussian spatial locality bias (normalised to [-1, 0])
+      - Learnable per-head locality bias weight (one scalar per head, normalised to [-1, 0])
 
     No causal mask is applied here. The 841 tokens (29×29) represent spatial
     patch positions within a *single* distance matrix snapshot (one trading
@@ -198,8 +198,16 @@ class LocalitySelfAttention(nn.Module):
     be free to attend to every other patch. Temporal ordering is handled at
     the data level: the model receives day t as input and predicts day t+1.
 
-    The locality bias softly encourages attention to nearby patches and can be
-    fully learned away if the task benefits from global attention.
+    Using a per-head locality_weight (rather than a single shared scalar) lets
+    each head independently learn how much spatial proximity matters. This
+    breaks the symmetry that caused all heads to focus on the same region when
+    the bias was shared — some heads may learn to attend globally while others
+    remain local, producing the head diversity that multihead attention is
+    designed to exploit.
+
+    locality_strength is initialised to 0.1 (down from 1.0) so the bias is
+    weak at the start of training, giving the random QKV projections room to
+    drive head divergence before spatial preferences are learned.
     """
 
     def __init__(
@@ -209,7 +217,7 @@ class LocalitySelfAttention(nn.Module):
         grid_h:      int,
         grid_w:      int,
         attn_drop:   float = 0.0,
-        locality_strength: float = 1.0,
+        locality_strength: float = 0.1,
     ):
         super().__init__()
         assert embed_dim % num_heads == 0
@@ -224,9 +232,12 @@ class LocalitySelfAttention(nn.Module):
             torch.full((num_heads, 1, 1), init_temp)
         )
 
-        # Learnable scalar on the locality bias
+        # Learnable per-head locality bias weight (one scalar per head).
+        # Per-head weights let each head independently learn how much to favour
+        # nearby patches, breaking the symmetry that caused all heads to focus
+        # on the same spatial region when a single shared scalar was used.
         self.locality_weight = nn.Parameter(
-            torch.tensor(locality_strength)
+            torch.full((num_heads,), locality_strength)
         )
 
         self.qkv       = nn.Linear(embed_dim, 3 * embed_dim, bias=False)
@@ -254,10 +265,12 @@ class LocalitySelfAttention(nn.Module):
         attn  = (q @ k.transpose(-2, -1)) * scale         # (B, H, N, N)
 
         # Additive locality bias: nearby patches get a boost, far ones a penalty.
-        # Bias is normalised to [-1, 0] so locality_weight is interpretable as
-        # "how many logit units to penalise the most distant patch".
-        loc  = self._locality_bias(x.device)               # (N, N)
-        attn = attn + self.locality_weight * loc           # broadcast over (B, H)
+        # Bias is normalised to [-1, 0] so each head's locality_weight is interpretable
+        # as "how many logit units to penalise the most distant patch".
+        # locality_weight is (H,) → reshape to (H, 1, 1) for broadcasting over (B, H, N, N).
+        loc  = self._locality_bias(x.device)                        # (N, N)
+        lw   = self.locality_weight.view(self.num_heads, 1, 1)      # (H, 1, 1)
+        attn = attn + lw * loc                                      # (B, H, N, N)
 
         # NOTE: No causal mask. Patches represent spatial positions within a
         # single frame, not a time series — full bidirectional attention is correct.
@@ -323,7 +336,7 @@ class DecoderBlock(nn.Module):
         proj_drop:    float = 0.0,
         drop_path:    float = 0.0,
         ls_init:      float = 1e-4,
-        locality_strength: float = 1.0,
+        locality_strength: float = 0.1,
     ):
         super().__init__()
         self.norm1 = nn.LayerNorm(embed_dim)
@@ -382,7 +395,7 @@ class SmallDataDecoderViT(nn.Module):
         proj_drop:         float = 0.1,
         drop_path_rate:    float = 0.1,
         ls_init_value:     float = 1e-4,
-        locality_strength: float = 1.0,
+        locality_strength: float = 0.1,
     ):
         super().__init__()
         assert 16 <= patch_size <= 32, "patch_size must be in [16, 32]"
