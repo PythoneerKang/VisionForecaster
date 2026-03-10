@@ -40,7 +40,7 @@ Pixel Reconstruction Head
 Output (B × 1 × 457 × 457)
 ```
 
-For the full interactive diagram, open [`docs/index.html`](docs/index.html) in a browser.
+For the full interactive diagram, open [`docs/index.html`](https://pythoneerkang.github.io/VisionForecaster/) in a browser.
 
 ---
 
