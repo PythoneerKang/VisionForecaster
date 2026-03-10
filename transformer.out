@@ -1,0 +1,159 @@
+Using 19 CPU cores on this node.
+/home/s230047/Downloads/VisionForecaster
+Using virtualenv: /home/s230047/.cache/pypoetry/virtualenvs/transformer-D-LRPITk-py3.13
+Check for NAN values in distance matrices, (False -> no NAN, True otherwise.):  False
+Distance matrix shape: (num_of_trading_days, num_of_stocks, num_of_stocks):  (1575, 457, 457)
+========== Fold=1 ==========
+----- Epoch 1 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.823132 | Val Loss 0.976115
+Epoch 1: Train R^2: -11.1141% | Val R^2: -3.2953%
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.815665 | Val Loss 0.976029
+Epoch 2: Train R^2: -10.0919% | Val R^2: -3.2862%
+--------------------
+----- Epoch 3 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.807830 | Val Loss 0.977603
+Epoch 3: Train R^2: -9.0277% | Val R^2: -3.4528%
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.798800 | Val Loss 0.981628
+Epoch 4: Train R^2: -7.8001% | Val R^2: -3.8787%
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.788214 | Val Loss 0.988996
+Epoch 5: Train R^2: -6.3545% | Val R^2: -4.6584%
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.776061 | Val Loss 1.000700
+Epoch 6: Train R^2: -4.6842% | Val R^2: -5.8969%
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.762750 | Val Loss 1.017582
+Epoch 7: Train R^2: -2.8389% | Val R^2: -7.6834%
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.749129 | Val Loss 1.039608
+Epoch 8: Train R^2: -0.9309% | Val R^2: -10.0143%
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.736196 | Val Loss 1.064646
+Epoch 9: Train R^2: 0.8989% | Val R^2: -12.6640%
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.724568 | Val Loss 1.087726
+Epoch 10: Train R^2: 2.5509% | Val R^2: -15.1063%
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.714100 | Val Loss 1.102778
+Epoch 11: Train R^2: 4.0248% | Val R^2: -16.6992%
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.704349 | Val Loss 1.106937
+Epoch 12: Train R^2: 5.3728% | Val R^2: -17.1392%
+--------------------
+Early stopping triggered. Loading best model...
+========== Fold=2 ==========
+----- Epoch 1 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.878369 | Val Loss 0.937780
+Epoch 1: Train R^2: -3.4401% | Val R^2: 0.1410%
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.872296 | Val Loss 0.933240
+Epoch 2: Train R^2: -2.7162% | Val R^2: 0.6244%
+--------------------
+----- Epoch 3 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.866971 | Val Loss 0.929003
+Epoch 3: Train R^2: -2.0813% | Val R^2: 1.0756%
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.861689 | Val Loss 0.925012
+Epoch 4: Train R^2: -1.4507% | Val R^2: 1.5006%
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.856239 | Val Loss 0.921239
+Epoch 5: Train R^2: -0.7989% | Val R^2: 1.9023%
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.850514 | Val Loss 0.917699
+Epoch 6: Train R^2: -0.1132% | Val R^2: 2.2793%
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.844471 | Val Loss 0.914433
+Epoch 7: Train R^2: 0.6115% | Val R^2: 2.6271%
+--------------------
+----- Epoch 8 -----
+Training begins
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			Resource Usage on 2026-03-10 20:44:49.015410:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	JobId: 3141563.hpc-pbs-sched1
+	Project: as_spms_cheongsa
+	Exit Status: 271
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	NCPUs: Requested(19), Used(19)
+	CPU Time Used: 02:23:55
+	Memory: Requested(100gb), Used(35338128kb)
+	Vmem Used: 56559328kb
+	Walltime: Requested(48:00:00), Used(00:30:06)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Execution Nodes Used: (hpc-enri-i005:ncpus=19:mem=104857600kb)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	No GPU-related information available for this job.

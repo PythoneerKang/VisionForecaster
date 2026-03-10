@@ -68,6 +68,9 @@ if __name__ == "__main__":
     interp.plot_attention_maps(sample_x, layer=0)
     interp.plot_attention_maps(sample_x, layer=best_model.blocks.__len__() - 1,
                             filename="attention_maps_last_block.png")
+    interp.plot_attention_maps_overlay(sample_x, layer=0)
+    interp.plot_attention_maps_overlay(sample_x, layer=best_model.blocks.__len__() - 1,
+                                   filename="attention_maps_overlay_last_block.png")
     interp.plot_mean_attention_distance(sample_x)
     interp.plot_layerscale_gammas()
     interp.plot_attention_temperatures()

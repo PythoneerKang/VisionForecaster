@@ -186,6 +186,141 @@ class ModelInterpreter:
         plt.tight_layout()
         self._savefig(fig, filename)
 
+    # ── 1b. Colour-coded attention overlay ───────────────────────────────────
+
+    def plot_attention_maps_overlay(
+        self,
+        x: torch.Tensor,
+        layer: int = 0,
+        query_patch: Optional[int] = None,
+        filename: str = "attention_maps_overlay.png",
+    ):
+        """
+        Plot all attention heads on a single map using colour-coded blending.
+
+        Each head is assigned a distinct hue (evenly spaced around the colour
+        wheel).  Its attention weights from *query_patch* are used as the
+        alpha (opacity) channel, so patches that a head attends to strongly
+        appear saturated in that head's colour.  The per-head RGBA layers are
+        then alpha-composited onto a white background, producing a single image
+        where:
+          - Colour  → which head(s) are attending to that patch
+          - Brightness → how strongly (bright = high attention, dark = low)
+          - Mixed colour → multiple heads attending to the same patch
+
+        A companion figure shows each head's colour-masked contribution
+        individually so the blended result can be interpreted clearly.
+
+        Parameters
+        ----------
+        x            : Input tensor (B, C, H, W) — only first sample is used.
+        layer        : Which transformer block (0-indexed).
+        query_patch  : Source patch index.  Default = centre patch.
+        filename     : Output filename for the blended overlay.
+                       Individual-head figure is saved as 'ind_' + filename.
+        """
+        gh, gw = self._grid()
+        N = gh * gw
+        if query_patch is None:
+            query_patch = N // 2
+
+        attn = self._get_attn_weights(x, layer)  # (1, H, N, N)
+        H = attn.shape[1]
+
+        # ── Assign one hue per head, evenly spaced ────────────────────────
+        import matplotlib.colors as mcolors
+        hues = np.linspace(0, 1, H, endpoint=False)
+        # Convert HSV (full saturation/value) → RGB for each head
+        head_rgb = np.array([mcolors.hsv_to_rgb([h, 0.85, 0.95]) for h in hues])  # (H, 3)
+
+        # ── Build per-head RGBA arrays (gh, gw, 4) ────────────────────────
+        # Alpha = normalised attention weight so the strongest-attending head
+        # dominates in the blend.
+        qy, qx = divmod(query_patch, gw)
+
+        head_rgba = []
+        for h in range(H):
+            w = attn[0, h, query_patch, :].numpy()   # (N,)
+            # Normalise to [0, 1] so the max-attention patch = fully opaque
+            w_norm = w / (w.max() + 1e-8)
+            alpha  = w_norm.reshape(gh, gw)           # (gh, gw)
+            rgba   = np.zeros((gh, gw, 4), dtype=np.float32)
+            rgba[..., :3] = head_rgb[h]               # constant colour per head
+            rgba[..., 3]  = alpha                     # attention = opacity
+            head_rgba.append(rgba)
+
+        # ── Alpha-composite all heads onto white background ───────────────
+        # Use "over" compositing: result = src_rgb * src_a + dst_rgb * (1 - src_a)
+        composite = np.ones((gh, gw, 3), dtype=np.float32)  # white background
+        for rgba in head_rgba:
+            src_a   = rgba[..., 3:4]                  # (gh, gw, 1)
+            src_rgb = rgba[..., :3]                   # (gh, gw, 3)
+            composite = src_rgb * src_a + composite * (1.0 - src_a)
+        composite = np.clip(composite, 0, 1)
+
+        # ── Figure 1: blended overlay ─────────────────────────────────────
+        fig, ax = plt.subplots(figsize=(6, 6))
+        ax.imshow(composite, interpolation="nearest", origin="upper")
+        ax.scatter([qx], [qy], c="black", s=120, marker="x",
+                   linewidths=2, zorder=5, label="Query patch")
+        ax.set_title(
+            f"Attention Overlay — Block {layer+1}  |  Query patch {query_patch}  ({gh}×{gw})\n"
+            f"Colour = head identity  ·  Brightness = attention strength  ·  Mixed = shared focus",
+            fontsize=9, fontweight="bold",
+        )
+        ax.axis("off")
+
+        # Colour legend patches
+        from matplotlib.patches import Patch
+        legend_handles = [
+            Patch(facecolor=head_rgb[h], edgecolor="grey", label=f"Head {h+1}")
+            for h in range(H)
+        ]
+        legend_handles.append(
+            plt.Line2D([0], [0], marker="x", color="black", linestyle="None",
+                       markersize=8, markeredgewidth=2, label="Query patch")
+        )
+        ax.legend(handles=legend_handles, loc="upper right", fontsize=8,
+                  framealpha=0.85, edgecolor="grey")
+
+        plt.tight_layout()
+        self._savefig(fig, filename)
+
+        # ── Figure 2: individual head colour masks side by side ───────────
+        ncols = min(H, 4)
+        nrows = math.ceil(H / ncols)
+        fig2, axes = plt.subplots(nrows, ncols, figsize=(4 * ncols, 3.5 * nrows))
+        axes = np.array(axes).flatten()
+        fig2.suptitle(
+            f"Per-Head Colour Masks — Block {layer+1}  |  Query patch {query_patch}\n"
+            f"(same colour coding as overlay; brightness = attention weight)",
+            fontsize=10, fontweight="bold",
+        )
+
+        for h in range(H):
+            ax2 = axes[h]
+            # Show this head's coloured contribution on a white background
+            single = np.ones((gh, gw, 3), dtype=np.float32)
+            src_a   = head_rgba[h][..., 3:4]
+            src_rgb = head_rgba[h][..., :3]
+            single  = src_rgb * src_a + single * (1.0 - src_a)
+            single  = np.clip(single, 0, 1)
+
+            ax2.imshow(single, interpolation="nearest", origin="upper")
+            ax2.scatter([qx], [qy], c="black", s=80, marker="x",
+                        linewidths=1.5, zorder=5)
+            # Coloured title strip matching the head hue
+            ax2.set_title(f"Head {h+1}", fontsize=9, fontweight="bold",
+                          color=head_rgb[h] * 0.6)   # slightly darker for readability
+            ax2.axis("off")
+
+        for ax2 in axes[H:]:
+            ax2.axis("off")
+
+        plt.tight_layout()
+        ind_filename = "ind_" + filename
+        self._savefig(fig2, ind_filename)
+
     # ── 2. Mean attention distance ───────────────────────────────────────────
 
     def plot_mean_attention_distance(
@@ -771,6 +906,9 @@ sample_y = y_t[last_val_idx[:1]]
 interp.plot_attention_maps(sample_x, layer=0)
 interp.plot_attention_maps(sample_x, layer=best_model.blocks.__len__() - 1,
                            filename="attention_maps_last_block.png")
+interp.plot_attention_maps_overlay(sample_x, layer=0)
+interp.plot_attention_maps_overlay(sample_x, layer=best_model.blocks.__len__() - 1,
+                                   filename="attention_maps_overlay_last_block.png")
 interp.plot_mean_attention_distance(sample_x)
 interp.plot_layerscale_gammas()
 interp.plot_attention_temperatures()
