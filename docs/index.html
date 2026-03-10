@@ -137,33 +137,28 @@
   }
 
   /* colour skins */
-  /* blue — input/output */
   .bh-blue { background: #e8f0fe; }
   .bi-blue { background: #c5d8fb; color: #0d47a1; }
   .bb-blue { background: #1565c0; color: #fff; }
   .sb-blue { border-color: #90b8f8; color: #0d47a1; background: #eef4ff; }
   .brd-blue { border-color: #90b8f8 !important; }
 
-  /* green — SPT */
   .bh-grn { background: #e6f4ea; }
   .bi-grn { background: #b9dfbe; color: #1b5e20; }
   .bb-grn { background: #2e7d32; color: #fff; }
   .brd-grn { border-color: #93d19b !important; }
 
-  /* purple — pos embed / norm */
   .bh-pur { background: #f0e8fc; }
   .bi-pur { background: #dcc6f5; color: #4a148c; }
   .bb-pur { background: #6a1b9a; color: #fff; }
   .sb-pur { border-color: #c49de8; color: #4a148c; background: #f7f0fd; }
   .brd-pur { border-color: #c49de8 !important; }
 
-  /* orange — decoder block */
   .bh-org { background: #fef3e2; }
   .bi-org { background: #fddba8; color: #bf360c; }
   .bb-org { background: #e64a19; color: #fff; }
   .brd-org { border-color: #f8b97a !important; }
 
-  /* teal — pixel head */
   .bh-tel { background: #e0f7fa; }
   .bi-tel { background: #aadfe8; color: #006064; }
   .bb-tel { background: #00838f; color: #fff; }
@@ -278,6 +273,94 @@
   .flow > *:nth-child(11) { animation-delay:0.54s; }
   .flow > *:nth-child(12) { animation-delay:0.59s; }
   .flow > *:nth-child(13) { animation-delay:0.64s; }
+
+  /* ── Prerequisites ── */
+  .prereq-section { margin-top: 44px; }
+  .prereq-section-label {
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: #1565c0; margin-bottom: 14px; font-weight: 700;
+  }
+  .prereq-meta-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+  .prereq-req-card {
+    flex: 1; min-width: 200px; border: 1.5px solid #90b8f8;
+    border-radius: 8px; background: #eef4ff;
+    padding: 13px 16px; box-shadow: 0 1px 4px var(--shadow);
+  }
+  .prereq-req-label {
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: #1565c0; font-weight: 700; margin-bottom: 8px;
+  }
+  .prereq-req-item { display: flex; align-items: center; gap: 8px; }
+  .prereq-req-item + .prereq-req-item { margin-top: 6px; }
+  .prereq-req-name { font-size: 11px; color: #1a202c; font-weight: 600; }
+  .prereq-req-link {
+    font-size: 11px; font-weight: 600;
+    color: #1565c0; text-decoration: none;
+    border-bottom: 1px dashed #90b8f8;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .prereq-req-link:hover { color: #0d47a1; border-bottom-color: #0d47a1; }
+  .prereq-version {
+    background: #1565c0; color: #fff; font-size: 9px;
+    padding: 2px 8px; border-radius: 3px; font-weight: 700; letter-spacing: 0.5px;
+  }
+  .prereq-notes-card {
+    flex: 2; min-width: 280px; border: 1px solid var(--border);
+    border-radius: 8px; background: var(--panel);
+    padding: 13px 16px; box-shadow: 0 1px 4px var(--shadow);
+  }
+  .prereq-notes-label {
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--dim); font-weight: 700; margin-bottom: 6px;
+  }
+  .prereq-notes-text { font-size: 10px; color: var(--text-md); line-height: 1.7; }
+
+  .prereq-steps { display: flex; flex-direction: column; gap: 10px; }
+  .prereq-step {
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--panel); overflow: hidden;
+    box-shadow: 0 1px 4px var(--shadow);
+  }
+  .prereq-step.hpc { border-color: #f8b97a; }
+  .prereq-step-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px; border-bottom: 1px solid var(--border);
+    background: #f7f8fa;
+  }
+  .prereq-step.hpc .prereq-step-header { border-bottom-color: #f8b97a; background: #fef8f0; }
+  .step-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #1565c0; color: #fff;
+    font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .prereq-step.hpc .step-num { background: #e64a19; }
+  .step-title { font-size: 11px; font-weight: 700; color: var(--text); flex: 1; }
+  .step-optional {
+    font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
+    background: #e64a19; color: #fff;
+    padding: 2px 8px; border-radius: 3px; font-weight: 700;
+  }
+  .prereq-step-body { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+  .code-block {
+    background: #1a202c; border-radius: 6px;
+    padding: 10px 14px; font-size: 11px; color: #e2e8f0; line-height: 1.8;
+  }
+  .code-block .prompt { color: #68d391; }
+  .code-block .var    { color: #fbd38d; }
+  .sub-label {
+    font-size: 9px; color: var(--dim);
+    text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;
+  }
+  .prereq-warning {
+    font-size: 9px; color: var(--dim);
+    border: 1px dashed #f8b97a; border-radius: 4px;
+    padding: 6px 10px; background: #fffaf5; line-height: 1.6;
+  }
+  code.inline {
+    background: #eef2f7; padding: 1px 6px;
+    border-radius: 3px; font-size: 10px; color: #bf360c;
+  }
 </style>
 </head>
 <body>
@@ -584,6 +667,92 @@
     <div class="legend-item" style="border-top:3px solid #546e7a;">
       <b style="color:#37474f;">Padding &amp; Crop</b>
       <p>457 is not divisible by 16. Reflect-pad to 464 before tokenisation, then crop back to 457×457 after reconstruction.</p>
+    </div>
+  </div>
+
+  <!-- Prerequisites -->
+  <div class="prereq-section">
+    <div class="prereq-section-label">// Prerequisites &amp; Setup</div>
+
+    <div class="prereq-meta-row">
+      <div class="prereq-req-card">
+        <div class="prereq-req-label">Required</div>
+        <div class="prereq-req-item">
+          <span style="font-size:14px;">🐍</span>
+          <a href="https://www.python.org/downloads/release/python-31312/" target="_blank" rel="noopener" class="prereq-req-name prereq-req-link">Python</a>
+          <span class="prereq-version">3.13.12</span>
+        </div>
+        <div class="prereq-req-item">
+          <span style="font-size:14px;">📦</span>
+          <a href="https://python-poetry.org/docs/" target="_blank" rel="noopener" class="prereq-req-name prereq-req-link">Poetry</a>
+          <span class="prereq-version">2.3.2</span>
+        </div>
+      </div>
+      <div class="prereq-notes-card">
+        <div class="prereq-notes-label">Notes</div>
+        <div class="prereq-notes-text">
+          Code is optimized for execution on <b style="color:#1a202c;">CPU-only HPC</b>.
+          Modification will be needed for CUDA acceleration.<br>
+          HPC job submission uses the <b style="color:#1a202c;">PBS workload manager</b>.
+        </div>
+      </div>
+    </div>
+
+    <div class="prereq-steps">
+
+      <!-- Step 1 -->
+      <div class="prereq-step">
+        <div class="prereq-step-header">
+          <div class="step-num">1</div>
+          <div class="step-title">Install dependencies</div>
+        </div>
+        <div class="prereq-step-body">
+          <div class="code-block">
+            <span class="prompt">$</span> cd <span class="var">&lt;repository-name&gt;</span><br>
+            <span class="prompt">$</span> poetry install
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="prereq-step">
+        <div class="prereq-step-header">
+          <div class="step-num">2</div>
+          <div class="step-title">Activate virtual environment &amp; run</div>
+        </div>
+        <div class="prereq-step-body">
+          <div class="sub-label">Option A — activate shell</div>
+          <div class="code-block">
+            <span class="prompt">$</span> poetry shell<br>
+            <span class="prompt">$</span> python main.py
+          </div>
+          <div class="sub-label" style="margin-top:2px;">Option B — run directly within virtual environment</div>
+          <div class="code-block">
+            <span class="prompt">$</span> poetry run python main.py
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 HPC -->
+      <div class="prereq-step hpc">
+        <div class="prereq-step-header">
+          <div class="step-num">3</div>
+          <div class="step-title">HPC execution (PBS workload manager)</div>
+          <div class="step-optional">optional</div>
+        </div>
+        <div class="prereq-step-body">
+          <div style="font-size:10px;color:var(--text-md);line-height:1.6;">
+            Modify <code class="inline">script.pbs</code> to match your cluster's resource requirements, then submit the job:
+          </div>
+          <div class="code-block">
+            <span class="prompt">$</span> qsub script.pbs
+          </div>
+          <div class="prereq-warning">
+            ⚠&nbsp; Code is optimized for CPU-only HPC. Additional changes are required to enable CUDA acceleration.
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
