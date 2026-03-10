@@ -1,0 +1,3391 @@
+Using 19 CPU cores on this node.
+/home/s230047/Downloads/VisionForecaster
+Using virtualenv: /home/s230047/.cache/pypoetry/virtualenvs/transformer-D-LRPITk-py3.13
+Check for NAN values in distance matrices, (False -> no NAN, True otherwise.):  False
+Distance matrix shape: (num_of_trading_days, num_of_stocks, num_of_stocks):  (1575, 457, 457)
+========== Fold=1 ==========
+----- Epoch 1 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.743410 | Val Loss 0.832417
+Epoch 1: Train R^2: -19.7999% | Val R^2: -8.6157%
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.734061 | Val Loss 0.835473
+Epoch 2: Train R^2: -18.2232% | Val R^2: -9.0143%
+--------------------
+----- Epoch 3 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.724470 | Val Loss 0.840921
+Epoch 3: Train R^2: -16.6034% | Val R^2: -9.7253%
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.713569 | Val Loss 0.849900
+Epoch 4: Train R^2: -14.7419% | Val R^2: -10.8968%
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.701025 | Val Loss 0.863457
+Epoch 5: Train R^2: -12.5702% | Val R^2: -12.6658%
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.687004 | Val Loss 0.882577
+Epoch 6: Train R^2: -10.1043% | Val R^2: -15.1606%
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.672124 | Val Loss 0.907921
+Epoch 7: Train R^2: -7.4394% | Val R^2: -18.4676%
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.657375 | Val Loss 0.939171
+Epoch 8: Train R^2: -4.7392% | Val R^2: -22.5452%
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.643822 | Val Loss 0.974042
+Epoch 9: Train R^2: -2.1986% | Val R^2: -27.0951%
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.632170 | Val Loss 1.007712
+Epoch 10: Train R^2: 0.0239% | Val R^2: -31.4886%
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.622261 | Val Loss 1.034014
+Epoch 11: Train R^2: 1.8997% | Val R^2: -34.9205%
+--------------------
+Early stopping triggered. Loading best model...
+========== Fold=2 ==========
+----- Epoch 1 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.770496 | Val Loss 0.862044
+Epoch 1: Train R^2: -4.7807% | Val R^2: -2.5056%
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.764369 | Val Loss 0.856731
+Epoch 2: Train R^2: -3.9363% | Val R^2: -1.8738%
+--------------------
+----- Epoch 3 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.759181 | Val Loss 0.851505
+Epoch 3: Train R^2: -3.2214% | Val R^2: -1.2524%
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.754059 | Val Loss 0.846218
+Epoch 4: Train R^2: -2.5143% | Val R^2: -0.6236%
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.748788 | Val Loss 0.840797
+Epoch 5: Train R^2: -1.7852% | Val R^2: 0.0210%
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.743260 | Val Loss 0.835224
+Epoch 6: Train R^2: -1.0189% | Val R^2: 0.6836%
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.737427 | Val Loss 0.829524
+Epoch 7: Train R^2: -0.2086% | Val R^2: 1.3614%
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.731271 | Val Loss 0.823753
+Epoch 8: Train R^2: 0.6480% | Val R^2: 2.0476%
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.724808 | Val Loss 0.817999
+Epoch 9: Train R^2: 1.5485% | Val R^2: 2.7318%
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.718069 | Val Loss 0.812370
+Epoch 10: Train R^2: 2.4882% | Val R^2: 3.4012%
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.711113 | Val Loss 0.806972
+Epoch 11: Train R^2: 3.4581% | Val R^2: 4.0430%
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.703981 | Val Loss 0.801893
+Epoch 12: Train R^2: 4.4515% | Val R^2: 4.6470%
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.696716 | Val Loss 0.797179
+Epoch 13: Train R^2: 5.4612% | Val R^2: 5.2076%
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 0.689341 | Val Loss 0.792843
+Epoch 14: Train R^2: 6.4828% | Val R^2: 5.7231%
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 0.681874 | Val Loss 0.788877
+Epoch 15: Train R^2: 7.5131% | Val R^2: 6.1947%
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 0.674325 | Val Loss 0.785272
+Epoch 16: Train R^2: 8.5500% | Val R^2: 6.6234%
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 0.666747 | Val Loss 0.782017
+Epoch 17: Train R^2: 9.5868% | Val R^2: 7.0104%
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 0.659152 | Val Loss 0.779093
+Epoch 18: Train R^2: 10.6226% | Val R^2: 7.3582%
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 0.651538 | Val Loss 0.776454
+Epoch 19: Train R^2: 11.6580% | Val R^2: 7.6719%
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 0.643844 | Val Loss 0.774049
+Epoch 20: Train R^2: 12.7021% | Val R^2: 7.9579%
+--------------------
+----- Epoch 21 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.635952 | Val Loss 0.771837
+Epoch 21: Train R^2: 13.7711% | Val R^2: 8.2210%
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.627844 | Val Loss 0.769803
+Epoch 22: Train R^2: 14.8671% | Val R^2: 8.4628%
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.619246 | Val Loss 0.767963
+Epoch 23: Train R^2: 16.0272% | Val R^2: 8.6816%
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.610257 | Val Loss 0.766343
+Epoch 24: Train R^2: 17.2370% | Val R^2: 8.8743%
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.600793 | Val Loss 0.764948
+Epoch 25: Train R^2: 18.5078% | Val R^2: 9.0401%
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.590984 | Val Loss 0.763715
+Epoch 26: Train R^2: 19.8221% | Val R^2: 9.1868%
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.581091 | Val Loss 0.762442
+Epoch 27: Train R^2: 21.1467% | Val R^2: 9.3381%
+--------------------
+----- Epoch 28 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 28: Train Loss 0.571946 | Val Loss 0.760849
+Epoch 28: Train R^2: 22.3700% | Val R^2: 9.5276%
+--------------------
+----- Epoch 29 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 29: Train Loss 0.563997 | Val Loss 0.758512
+Epoch 29: Train R^2: 23.4335% | Val R^2: 9.8055%
+--------------------
+----- Epoch 30 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 30: Train Loss 0.557558 | Val Loss 0.755603
+Epoch 30: Train R^2: 24.2952% | Val R^2: 10.1513%
+--------------------
+----- Epoch 31 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 31: Train Loss 0.551916 | Val Loss 0.752766
+Epoch 31: Train R^2: 25.0512% | Val R^2: 10.4887%
+--------------------
+----- Epoch 32 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 32: Train Loss 0.546647 | Val Loss 0.750086
+Epoch 32: Train R^2: 25.7591% | Val R^2: 10.8073%
+--------------------
+----- Epoch 33 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 33: Train Loss 0.541400 | Val Loss 0.747078
+Epoch 33: Train R^2: 26.4651% | Val R^2: 11.1651%
+--------------------
+----- Epoch 34 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 34: Train Loss 0.536501 | Val Loss 0.742928
+Epoch 34: Train R^2: 27.1235% | Val R^2: 11.6586%
+--------------------
+----- Epoch 35 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 35: Train Loss 0.531844 | Val Loss 0.739155
+Epoch 35: Train R^2: 27.7491% | Val R^2: 12.1072%
+--------------------
+----- Epoch 36 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 36: Train Loss 0.527403 | Val Loss 0.734966
+Epoch 36: Train R^2: 28.3458% | Val R^2: 12.6052%
+--------------------
+----- Epoch 37 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 37: Train Loss 0.523121 | Val Loss 0.731478
+Epoch 37: Train R^2: 28.9213% | Val R^2: 13.0200%
+--------------------
+----- Epoch 38 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 38: Train Loss 0.518893 | Val Loss 0.727845
+Epoch 38: Train R^2: 29.4894% | Val R^2: 13.4520%
+--------------------
+----- Epoch 39 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 39: Train Loss 0.514861 | Val Loss 0.724093
+Epoch 39: Train R^2: 30.0324% | Val R^2: 13.8982%
+--------------------
+----- Epoch 40 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 40: Train Loss 0.510922 | Val Loss 0.720364
+Epoch 40: Train R^2: 30.5631% | Val R^2: 14.3416%
+--------------------
+----- Epoch 41 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 41: Train Loss 0.506957 | Val Loss 0.716051
+Epoch 41: Train R^2: 31.0974% | Val R^2: 14.8544%
+--------------------
+----- Epoch 42 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 42: Train Loss 0.503229 | Val Loss 0.711682
+Epoch 42: Train R^2: 31.6004% | Val R^2: 15.3740%
+--------------------
+----- Epoch 43 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 43: Train Loss 0.499505 | Val Loss 0.707731
+Epoch 43: Train R^2: 32.1025% | Val R^2: 15.8438%
+--------------------
+----- Epoch 44 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 44: Train Loss 0.495794 | Val Loss 0.703254
+Epoch 44: Train R^2: 32.6033% | Val R^2: 16.3762%
+--------------------
+----- Epoch 45 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 45: Train Loss 0.492087 | Val Loss 0.699578
+Epoch 45: Train R^2: 33.1034% | Val R^2: 16.8132%
+--------------------
+----- Epoch 46 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 46: Train Loss 0.488561 | Val Loss 0.695303
+Epoch 46: Train R^2: 33.5795% | Val R^2: 17.3216%
+--------------------
+----- Epoch 47 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 47: Train Loss 0.485084 | Val Loss 0.691642
+Epoch 47: Train R^2: 34.0494% | Val R^2: 17.7569%
+--------------------
+----- Epoch 48 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 48: Train Loss 0.481645 | Val Loss 0.687247
+Epoch 48: Train R^2: 34.5138% | Val R^2: 18.2795%
+--------------------
+----- Epoch 49 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 49: Train Loss 0.478115 | Val Loss 0.684383
+Epoch 49: Train R^2: 34.9904% | Val R^2: 18.6201%
+--------------------
+----- Epoch 50 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 50: Train Loss 0.474874 | Val Loss 0.678866
+Epoch 50: Train R^2: 35.4290% | Val R^2: 19.2762%
+--------------------
+----- Epoch 51 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 51: Train Loss 0.471490 | Val Loss 0.676446
+Epoch 51: Train R^2: 35.8862% | Val R^2: 19.5639%
+--------------------
+----- Epoch 52 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 52: Train Loss 0.468237 | Val Loss 0.671630
+Epoch 52: Train R^2: 36.3255% | Val R^2: 20.1366%
+--------------------
+----- Epoch 53 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 53: Train Loss 0.464862 | Val Loss 0.667575
+Epoch 53: Train R^2: 36.7817% | Val R^2: 20.6188%
+--------------------
+----- Epoch 54 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 54: Train Loss 0.461825 | Val Loss 0.665492
+Epoch 54: Train R^2: 37.1927% | Val R^2: 20.8665%
+--------------------
+----- Epoch 55 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 55: Train Loss 0.458801 | Val Loss 0.660385
+Epoch 55: Train R^2: 37.6021% | Val R^2: 21.4737%
+--------------------
+----- Epoch 56 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 56: Train Loss 0.455623 | Val Loss 0.656203
+Epoch 56: Train R^2: 38.0310% | Val R^2: 21.9710%
+--------------------
+----- Epoch 57 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 57: Train Loss 0.453584 | Val Loss 0.655972
+Epoch 57: Train R^2: 38.3077% | Val R^2: 21.9985%
+--------------------
+----- Epoch 58 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 58: Train Loss 0.451833 | Val Loss 0.649330
+Epoch 58: Train R^2: 38.5471% | Val R^2: 22.7883%
+--------------------
+----- Epoch 59 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 59: Train Loss 0.448410 | Val Loss 0.645661
+Epoch 59: Train R^2: 39.0040% | Val R^2: 23.2246%
+--------------------
+----- Epoch 60 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 60: Train Loss 0.448170 | Val Loss 0.649787
+Epoch 60: Train R^2: 39.0372% | Val R^2: 22.7339%
+--------------------
+----- Epoch 61 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 61: Train Loss 0.443734 | Val Loss 0.639073
+Epoch 61: Train R^2: 39.6411% | Val R^2: 24.0079%
+--------------------
+----- Epoch 62 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 62: Train Loss 0.439074 | Val Loss 0.639059
+Epoch 62: Train R^2: 40.2711% | Val R^2: 24.0096%
+--------------------
+----- Epoch 63 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 63: Train Loss 0.436651 | Val Loss 0.632626
+Epoch 63: Train R^2: 40.5971% | Val R^2: 24.7745%
+--------------------
+----- Epoch 64 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 64: Train Loss 0.435002 | Val Loss 0.634830
+Epoch 64: Train R^2: 40.8202% | Val R^2: 24.5124%
+--------------------
+----- Epoch 65 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 65: Train Loss 0.432074 | Val Loss 0.626670
+Epoch 65: Train R^2: 41.2180% | Val R^2: 25.4828%
+--------------------
+----- Epoch 66 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 66: Train Loss 0.428972 | Val Loss 0.627350
+Epoch 66: Train R^2: 41.6373% | Val R^2: 25.4019%
+--------------------
+----- Epoch 67 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 67: Train Loss 0.426581 | Val Loss 0.620652
+Epoch 67: Train R^2: 41.9603% | Val R^2: 26.1984%
+--------------------
+----- Epoch 68 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 68: Train Loss 0.424584 | Val Loss 0.621068
+Epoch 68: Train R^2: 42.2315% | Val R^2: 26.1489%
+--------------------
+----- Epoch 69 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 69: Train Loss 0.422033 | Val Loss 0.614772
+Epoch 69: Train R^2: 42.5771% | Val R^2: 26.8976%
+--------------------
+----- Epoch 70 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 70: Train Loss 0.419259 | Val Loss 0.613882
+Epoch 70: Train R^2: 42.9523% | Val R^2: 27.0034%
+--------------------
+----- Epoch 71 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 71: Train Loss 0.416914 | Val Loss 0.609366
+Epoch 71: Train R^2: 43.2692% | Val R^2: 27.5404%
+--------------------
+----- Epoch 72 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 72: Train Loss 0.414718 | Val Loss 0.607306
+Epoch 72: Train R^2: 43.5668% | Val R^2: 27.7853%
+--------------------
+----- Epoch 73 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 73: Train Loss 0.412427 | Val Loss 0.604184
+Epoch 73: Train R^2: 43.8768% | Val R^2: 28.1566%
+--------------------
+----- Epoch 74 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 74: Train Loss 0.410186 | Val Loss 0.600850
+Epoch 74: Train R^2: 44.1802% | Val R^2: 28.5530%
+--------------------
+----- Epoch 75 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 75: Train Loss 0.408112 | Val Loss 0.598861
+Epoch 75: Train R^2: 44.4611% | Val R^2: 28.7895%
+--------------------
+----- Epoch 76 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 76: Train Loss 0.405862 | Val Loss 0.595501
+Epoch 76: Train R^2: 44.7659% | Val R^2: 29.1890%
+--------------------
+----- Epoch 77 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 77: Train Loss 0.403712 | Val Loss 0.592414
+Epoch 77: Train R^2: 45.0566% | Val R^2: 29.5561%
+--------------------
+----- Epoch 78 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 78: Train Loss 0.401722 | Val Loss 0.590433
+Epoch 78: Train R^2: 45.3263% | Val R^2: 29.7916%
+--------------------
+----- Epoch 79 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 79: Train Loss 0.399698 | Val Loss 0.587121
+Epoch 79: Train R^2: 45.6006% | Val R^2: 30.1855%
+--------------------
+----- Epoch 80 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 80: Train Loss 0.397604 | Val Loss 0.584003
+Epoch 80: Train R^2: 45.8834% | Val R^2: 30.5563%
+--------------------
+----- Epoch 81 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 81: Train Loss 0.395774 | Val Loss 0.582793
+Epoch 81: Train R^2: 46.1317% | Val R^2: 30.7002%
+--------------------
+----- Epoch 82 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 82: Train Loss 0.394080 | Val Loss 0.579023
+Epoch 82: Train R^2: 46.3626% | Val R^2: 31.1484%
+--------------------
+----- Epoch 83 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 83: Train Loss 0.392077 | Val Loss 0.575712
+Epoch 83: Train R^2: 46.6312% | Val R^2: 31.5422%
+--------------------
+----- Epoch 84 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 84: Train Loss 0.392162 | Val Loss 0.577156
+Epoch 84: Train R^2: 46.6226% | Val R^2: 31.3704%
+--------------------
+----- Epoch 85 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 85: Train Loss 0.392071 | Val Loss 0.571328
+Epoch 85: Train R^2: 46.6417% | Val R^2: 32.0635%
+--------------------
+----- Epoch 86 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 86: Train Loss 0.389588 | Val Loss 0.568966
+Epoch 86: Train R^2: 46.9637% | Val R^2: 32.3443%
+--------------------
+----- Epoch 87 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 87: Train Loss 0.393015 | Val Loss 0.574856
+Epoch 87: Train R^2: 46.5035% | Val R^2: 31.6440%
+--------------------
+----- Epoch 88 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 88: Train Loss 0.386312 | Val Loss 0.563378
+Epoch 88: Train R^2: 47.4160% | Val R^2: 33.0088%
+--------------------
+----- Epoch 89 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 89: Train Loss 0.381669 | Val Loss 0.563980
+Epoch 89: Train R^2: 48.0415% | Val R^2: 32.9372%
+--------------------
+----- Epoch 90 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 90: Train Loss 0.380460 | Val Loss 0.558718
+Epoch 90: Train R^2: 48.2039% | Val R^2: 33.5629%
+--------------------
+----- Epoch 91 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 91: Train Loss 0.379913 | Val Loss 0.562058
+Epoch 91: Train R^2: 48.2787% | Val R^2: 33.1657%
+--------------------
+----- Epoch 92 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 92: Train Loss 0.377118 | Val Loss 0.554528
+Epoch 92: Train R^2: 48.6586% | Val R^2: 34.0611%
+--------------------
+----- Epoch 93 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 93: Train Loss 0.375028 | Val Loss 0.555823
+Epoch 93: Train R^2: 48.9410% | Val R^2: 33.9072%
+--------------------
+----- Epoch 94 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 94: Train Loss 0.373712 | Val Loss 0.549974
+Epoch 94: Train R^2: 49.1186% | Val R^2: 34.6027%
+--------------------
+----- Epoch 95 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 95: Train Loss 0.372492 | Val Loss 0.551570
+Epoch 95: Train R^2: 49.2848% | Val R^2: 34.4129%
+--------------------
+----- Epoch 96 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 96: Train Loss 0.370514 | Val Loss 0.545911
+Epoch 96: Train R^2: 49.5532% | Val R^2: 35.0858%
+--------------------
+----- Epoch 97 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 97: Train Loss 0.368884 | Val Loss 0.546349
+Epoch 97: Train R^2: 49.7735% | Val R^2: 35.0337%
+--------------------
+----- Epoch 98 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 98: Train Loss 0.367247 | Val Loss 0.541653
+Epoch 98: Train R^2: 49.9954% | Val R^2: 35.5921%
+--------------------
+----- Epoch 99 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 99: Train Loss 0.365745 | Val Loss 0.541504
+Epoch 99: Train R^2: 50.1993% | Val R^2: 35.6098%
+--------------------
+----- Epoch 100 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 100: Train Loss 0.364252 | Val Loss 0.538071
+Epoch 100: Train R^2: 50.4019% | Val R^2: 36.0181%
+--------------------
+========== Fold=3 ==========
+----- Epoch 1 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.783709 | Val Loss 1.949395
+Epoch 1: Train R^2: -1.2300% | Val R^2: -27.4665%
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.778149 | Val Loss 1.949190
+Epoch 2: Train R^2: -0.5116% | Val R^2: -27.4531%
+--------------------
+----- Epoch 3 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.773190 | Val Loss 1.949143
+Epoch 3: Train R^2: 0.1281% | Val R^2: -27.4500%
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.768348 | Val Loss 1.949514
+Epoch 4: Train R^2: 0.7526% | Val R^2: -27.4743%
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.763468 | Val Loss 1.950363
+Epoch 5: Train R^2: 1.3818% | Val R^2: -27.5298%
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.758466 | Val Loss 1.951697
+Epoch 6: Train R^2: 2.0268% | Val R^2: -27.6171%
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.753302 | Val Loss 1.953517
+Epoch 7: Train R^2: 2.6926% | Val R^2: -27.7361%
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.747964 | Val Loss 1.955829
+Epoch 8: Train R^2: 3.3810% | Val R^2: -27.8872%
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.742448 | Val Loss 1.958631
+Epoch 9: Train R^2: 4.0925% | Val R^2: -28.0704%
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.736746 | Val Loss 1.961885
+Epoch 10: Train R^2: 4.8281% | Val R^2: -28.2832%
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.730850 | Val Loss 1.965492
+Epoch 11: Train R^2: 5.5887% | Val R^2: -28.5190%
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.724759 | Val Loss 1.969264
+Epoch 12: Train R^2: 6.3749% | Val R^2: -28.7657%
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.718475 | Val Loss 1.972932
+Epoch 13: Train R^2: 7.1861% | Val R^2: -29.0056%
+--------------------
+Early stopping triggered. Loading best model...
+========== Fold=4 ==========
+----- Epoch 1 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 1.110907 | Val Loss 1.179235
+Epoch 1: Train R^2: -1.1074% | Val R^2: -14.8019%
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 1.104989 | Val Loss 1.172730
+Epoch 2: Train R^2: -0.5656% | Val R^2: -14.1686%
+--------------------
+----- Epoch 3 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 1.099907 | Val Loss 1.166083
+Epoch 3: Train R^2: -0.1026% | Val R^2: -13.5215%
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 1.094965 | Val Loss 1.159338
+Epoch 4: Train R^2: 0.3471% | Val R^2: -12.8649%
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 1.090005 | Val Loss 1.152399
+Epoch 5: Train R^2: 0.7980% | Val R^2: -12.1894%
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 1.084919 | Val Loss 1.145181
+Epoch 6: Train R^2: 1.2598% | Val R^2: -11.4866%
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 1.079643 | Val Loss 1.137627
+Epoch 7: Train R^2: 1.7383% | Val R^2: -10.7512%
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 1.074137 | Val Loss 1.129702
+Epoch 8: Train R^2: 2.2371% | Val R^2: -9.9797%
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 1.068371 | Val Loss 1.121367
+Epoch 9: Train R^2: 2.7588% | Val R^2: -9.1682%
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 1.062305 | Val Loss 1.112578
+Epoch 10: Train R^2: 3.3067% | Val R^2: -8.3126%
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 1.055890 | Val Loss 1.103283
+Epoch 11: Train R^2: 3.8854% | Val R^2: -7.4078%
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 1.049054 | Val Loss 1.093437
+Epoch 12: Train R^2: 4.5010% | Val R^2: -6.4492%
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 1.041722 | Val Loss 1.083001
+Epoch 13: Train R^2: 5.1604% | Val R^2: -5.4332%
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 1.033792 | Val Loss 1.071948
+Epoch 14: Train R^2: 5.8727% | Val R^2: -4.3572%
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 1.025145 | Val Loss 1.060265
+Epoch 15: Train R^2: 6.6485% | Val R^2: -3.2198%
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 1.015645 | Val Loss 1.047943
+Epoch 16: Train R^2: 7.5002% | Val R^2: -2.0203%
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 1.005128 | Val Loss 1.034994
+Epoch 17: Train R^2: 8.4423% | Val R^2: -0.7596%
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 0.993408 | Val Loss 1.021432
+Epoch 18: Train R^2: 9.4919% | Val R^2: 0.5607%
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 0.980285 | Val Loss 1.007277
+Epoch 19: Train R^2: 10.6666% | Val R^2: 1.9387%
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 0.965478 | Val Loss 0.992540
+Epoch 20: Train R^2: 11.9921% | Val R^2: 3.3734%
+--------------------
+----- Epoch 21 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.948719 | Val Loss 0.977220
+Epoch 21: Train R^2: 13.4924% | Val R^2: 4.8649%
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.929623 | Val Loss 0.961285
+Epoch 22: Train R^2: 15.2026% | Val R^2: 6.4162%
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.908007 | Val Loss 0.944631
+Epoch 23: Train R^2: 17.1400% | Val R^2: 8.0375%
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.883246 | Val Loss 0.927066
+Epoch 24: Train R^2: 19.3605% | Val R^2: 9.7475%
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.855913 | Val Loss 0.908408
+Epoch 25: Train R^2: 21.8132% | Val R^2: 11.5639%
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.826966 | Val Loss 0.888913
+Epoch 26: Train R^2: 24.4114% | Val R^2: 13.4618%
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.798810 | Val Loss 0.870087
+Epoch 27: Train R^2: 26.9388% | Val R^2: 15.2946%
+--------------------
+----- Epoch 28 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 28: Train Loss 0.773647 | Val Loss 0.853533
+Epoch 28: Train R^2: 29.1958% | Val R^2: 16.9061%
+--------------------
+----- Epoch 29 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 29: Train Loss 0.752561 | Val Loss 0.839016
+Epoch 29: Train R^2: 31.0847% | Val R^2: 18.3194%
+--------------------
+----- Epoch 30 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 30: Train Loss 0.733790 | Val Loss 0.825890
+Epoch 30: Train R^2: 32.7707% | Val R^2: 19.5973%
+--------------------
+----- Epoch 31 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 31: Train Loss 0.716539 | Val Loss 0.814695
+Epoch 31: Train R^2: 34.3248% | Val R^2: 20.6872%
+--------------------
+----- Epoch 32 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 32: Train Loss 0.700973 | Val Loss 0.807689
+Epoch 32: Train R^2: 35.7239% | Val R^2: 21.3692%
+--------------------
+----- Epoch 33 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 33: Train Loss 0.687236 | Val Loss 0.810180
+Epoch 33: Train R^2: 36.9557% | Val R^2: 21.1267%
+--------------------
+----- Epoch 34 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 34: Train Loss 0.675968 | Val Loss 0.805769
+Epoch 34: Train R^2: 37.9659% | Val R^2: 21.5561%
+--------------------
+----- Epoch 35 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 35: Train Loss 0.667158 | Val Loss 0.829832
+Epoch 35: Train R^2: 38.7445% | Val R^2: 19.2135%
+--------------------
+----- Epoch 36 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 36: Train Loss 0.663650 | Val Loss 0.800218
+Epoch 36: Train R^2: 39.0486% | Val R^2: 22.0965%
+--------------------
+----- Epoch 37 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 37: Train Loss 0.652086 | Val Loss 0.807205
+Epoch 37: Train R^2: 40.1077% | Val R^2: 21.4163%
+--------------------
+----- Epoch 38 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 38: Train Loss 0.642603 | Val Loss 0.800449
+Epoch 38: Train R^2: 40.9674% | Val R^2: 22.0740%
+--------------------
+----- Epoch 39 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 39: Train Loss 0.637456 | Val Loss 0.798069
+Epoch 39: Train R^2: 41.4396% | Val R^2: 22.3057%
+--------------------
+----- Epoch 40 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 40: Train Loss 0.630685 | Val Loss 0.798599
+Epoch 40: Train R^2: 42.0493% | Val R^2: 22.2541%
+--------------------
+----- Epoch 41 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 41: Train Loss 0.625092 | Val Loss 0.789772
+Epoch 41: Train R^2: 42.5586% | Val R^2: 23.1135%
+--------------------
+----- Epoch 42 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 42: Train Loss 0.620187 | Val Loss 0.790739
+Epoch 42: Train R^2: 43.0055% | Val R^2: 23.0193%
+--------------------
+----- Epoch 43 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 43: Train Loss 0.615770 | Val Loss 0.774182
+Epoch 43: Train R^2: 43.4088% | Val R^2: 24.6311%
+--------------------
+----- Epoch 44 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 44: Train Loss 0.611193 | Val Loss 0.772712
+Epoch 44: Train R^2: 43.8272% | Val R^2: 24.7743%
+--------------------
+----- Epoch 45 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 45: Train Loss 0.606673 | Val Loss 0.757108
+Epoch 45: Train R^2: 44.2408% | Val R^2: 26.2934%
+--------------------
+----- Epoch 46 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 46: Train Loss 0.602758 | Val Loss 0.755822
+Epoch 46: Train R^2: 44.5992% | Val R^2: 26.4186%
+--------------------
+----- Epoch 47 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 47: Train Loss 0.598436 | Val Loss 0.739660
+Epoch 47: Train R^2: 44.9940% | Val R^2: 27.9920%
+--------------------
+----- Epoch 48 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 48: Train Loss 0.594515 | Val Loss 0.742479
+Epoch 48: Train R^2: 45.3540% | Val R^2: 27.7176%
+--------------------
+----- Epoch 49 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 49: Train Loss 0.590394 | Val Loss 0.726909
+Epoch 49: Train R^2: 45.7318% | Val R^2: 29.2334%
+--------------------
+----- Epoch 50 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 50: Train Loss 0.586333 | Val Loss 0.732141
+Epoch 50: Train R^2: 46.1043% | Val R^2: 28.7240%
+--------------------
+----- Epoch 51 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 51: Train Loss 0.582288 | Val Loss 0.717680
+Epoch 51: Train R^2: 46.4753% | Val R^2: 30.1318%
+--------------------
+----- Epoch 52 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 52: Train Loss 0.578486 | Val Loss 0.719221
+Epoch 52: Train R^2: 46.8243% | Val R^2: 29.9818%
+--------------------
+----- Epoch 53 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 53: Train Loss 0.574758 | Val Loss 0.706963
+Epoch 53: Train R^2: 47.1660% | Val R^2: 31.1751%
+--------------------
+----- Epoch 54 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 54: Train Loss 0.570961 | Val Loss 0.704958
+Epoch 54: Train R^2: 47.5155% | Val R^2: 31.3703%
+--------------------
+----- Epoch 55 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 55: Train Loss 0.567037 | Val Loss 0.700761
+Epoch 55: Train R^2: 47.8738% | Val R^2: 31.7789%
+--------------------
+----- Epoch 56 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 56: Train Loss 0.563961 | Val Loss 0.691337
+Epoch 56: Train R^2: 48.1549% | Val R^2: 32.6964%
+--------------------
+----- Epoch 57 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 57: Train Loss 0.562145 | Val Loss 0.701009
+Epoch 57: Train R^2: 48.3235% | Val R^2: 31.7548%
+--------------------
+----- Epoch 58 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 58: Train Loss 0.560520 | Val Loss 0.681252
+Epoch 58: Train R^2: 48.4826% | Val R^2: 33.6782%
+--------------------
+----- Epoch 59 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 59: Train Loss 0.555484 | Val Loss 0.683813
+Epoch 59: Train R^2: 48.9409% | Val R^2: 33.4288%
+--------------------
+----- Epoch 60 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 60: Train Loss 0.551729 | Val Loss 0.682978
+Epoch 60: Train R^2: 49.2788% | Val R^2: 33.5102%
+--------------------
+----- Epoch 61 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 61: Train Loss 0.547861 | Val Loss 0.671814
+Epoch 61: Train R^2: 49.6307% | Val R^2: 34.5970%
+--------------------
+----- Epoch 62 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 62: Train Loss 0.544507 | Val Loss 0.689383
+Epoch 62: Train R^2: 49.9396% | Val R^2: 32.8866%
+--------------------
+----- Epoch 63 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 63: Train Loss 0.540979 | Val Loss 0.664062
+Epoch 63: Train R^2: 50.2634% | Val R^2: 35.3517%
+--------------------
+----- Epoch 64 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 64: Train Loss 0.537764 | Val Loss 0.671839
+Epoch 64: Train R^2: 50.5582% | Val R^2: 34.5946%
+--------------------
+----- Epoch 65 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 65: Train Loss 0.534193 | Val Loss 0.654313
+Epoch 65: Train R^2: 50.8870% | Val R^2: 36.3007%
+--------------------
+----- Epoch 66 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 66: Train Loss 0.530568 | Val Loss 0.664689
+Epoch 66: Train R^2: 51.2195% | Val R^2: 35.2907%
+--------------------
+----- Epoch 67 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 67: Train Loss 0.527701 | Val Loss 0.649737
+Epoch 67: Train R^2: 51.4826% | Val R^2: 36.7463%
+--------------------
+----- Epoch 68 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 68: Train Loss 0.524604 | Val Loss 0.657207
+Epoch 68: Train R^2: 51.7665% | Val R^2: 36.0191%
+--------------------
+----- Epoch 69 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 69: Train Loss 0.522132 | Val Loss 0.643473
+Epoch 69: Train R^2: 51.9959% | Val R^2: 37.3561%
+--------------------
+----- Epoch 70 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 70: Train Loss 0.519064 | Val Loss 0.644667
+Epoch 70: Train R^2: 52.2782% | Val R^2: 37.2398%
+--------------------
+----- Epoch 71 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 71: Train Loss 0.515688 | Val Loss 0.640528
+Epoch 71: Train R^2: 52.5842% | Val R^2: 37.6428%
+--------------------
+----- Epoch 72 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 72: Train Loss 0.513268 | Val Loss 0.630352
+Epoch 72: Train R^2: 52.8061% | Val R^2: 38.6335%
+--------------------
+----- Epoch 73 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 73: Train Loss 0.510299 | Val Loss 0.634366
+Epoch 73: Train R^2: 53.0809% | Val R^2: 38.2426%
+--------------------
+----- Epoch 74 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 74: Train Loss 0.506986 | Val Loss 0.628015
+Epoch 74: Train R^2: 53.3837% | Val R^2: 38.8609%
+--------------------
+----- Epoch 75 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 75: Train Loss 0.504232 | Val Loss 0.623827
+Epoch 75: Train R^2: 53.6348% | Val R^2: 39.2686%
+--------------------
+----- Epoch 76 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 76: Train Loss 0.501700 | Val Loss 0.625767
+Epoch 76: Train R^2: 53.8678% | Val R^2: 39.0798%
+--------------------
+----- Epoch 77 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 77: Train Loss 0.499332 | Val Loss 0.619830
+Epoch 77: Train R^2: 54.0869% | Val R^2: 39.6577%
+--------------------
+----- Epoch 78 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 78: Train Loss 0.496664 | Val Loss 0.612238
+Epoch 78: Train R^2: 54.3295% | Val R^2: 40.3969%
+--------------------
+----- Epoch 79 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 79: Train Loss 0.495259 | Val Loss 0.621559
+Epoch 79: Train R^2: 54.4558% | Val R^2: 39.4895%
+--------------------
+----- Epoch 80 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 80: Train Loss 0.495802 | Val Loss 0.602088
+Epoch 80: Train R^2: 54.4181% | Val R^2: 41.3850%
+--------------------
+----- Epoch 81 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 81: Train Loss 0.491559 | Val Loss 0.610458
+Epoch 81: Train R^2: 54.8054% | Val R^2: 40.5702%
+--------------------
+----- Epoch 82 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 82: Train Loss 0.488211 | Val Loss 0.613204
+Epoch 82: Train R^2: 55.1033% | Val R^2: 40.3028%
+--------------------
+----- Epoch 83 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 83: Train Loss 0.486514 | Val Loss 0.595152
+Epoch 83: Train R^2: 55.2582% | Val R^2: 42.0602%
+--------------------
+----- Epoch 84 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 84: Train Loss 0.483071 | Val Loss 0.609794
+Epoch 84: Train R^2: 55.5772% | Val R^2: 40.6349%
+--------------------
+----- Epoch 85 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 85: Train Loss 0.479910 | Val Loss 0.592162
+Epoch 85: Train R^2: 55.8673% | Val R^2: 42.3513%
+--------------------
+----- Epoch 86 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 86: Train Loss 0.476936 | Val Loss 0.597449
+Epoch 86: Train R^2: 56.1384% | Val R^2: 41.8367%
+--------------------
+----- Epoch 87 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 87: Train Loss 0.474788 | Val Loss 0.592598
+Epoch 87: Train R^2: 56.3354% | Val R^2: 42.3089%
+--------------------
+----- Epoch 88 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 88: Train Loss 0.472443 | Val Loss 0.589183
+Epoch 88: Train R^2: 56.5502% | Val R^2: 42.6414%
+--------------------
+----- Epoch 89 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 89: Train Loss 0.470401 | Val Loss 0.592377
+Epoch 89: Train R^2: 56.7377% | Val R^2: 42.3305%
+--------------------
+----- Epoch 90 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 90: Train Loss 0.468236 | Val Loss 0.582032
+Epoch 90: Train R^2: 56.9352% | Val R^2: 43.3376%
+--------------------
+----- Epoch 91 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 91: Train Loss 0.466539 | Val Loss 0.588344
+Epoch 91: Train R^2: 57.0914% | Val R^2: 42.7231%
+--------------------
+----- Epoch 92 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 92: Train Loss 0.464777 | Val Loss 0.582795
+Epoch 92: Train R^2: 57.2557% | Val R^2: 43.2633%
+--------------------
+----- Epoch 93 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 93: Train Loss 0.463039 | Val Loss 0.570005
+Epoch 93: Train R^2: 57.4135% | Val R^2: 44.5084%
+--------------------
+----- Epoch 94 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 94: Train Loss 0.463223 | Val Loss 0.586911
+Epoch 94: Train R^2: 57.3904% | Val R^2: 42.8626%
+--------------------
+----- Epoch 95 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 95: Train Loss 0.464899 | Val Loss 0.558218
+Epoch 95: Train R^2: 57.2527% | Val R^2: 45.6559%
+--------------------
+----- Epoch 96 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 96: Train Loss 0.457678 | Val Loss 0.577994
+Epoch 96: Train R^2: 57.9064% | Val R^2: 43.7307%
+--------------------
+----- Epoch 97 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 97: Train Loss 0.454319 | Val Loss 0.565737
+Epoch 97: Train R^2: 58.2126% | Val R^2: 44.9239%
+--------------------
+----- Epoch 98 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 98: Train Loss 0.452176 | Val Loss 0.564149
+Epoch 98: Train R^2: 58.4076% | Val R^2: 45.0785%
+--------------------
+----- Epoch 99 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 99: Train Loss 0.450190 | Val Loss 0.565136
+Epoch 99: Train R^2: 58.5893% | Val R^2: 44.9824%
+--------------------
+----- Epoch 100 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 100: Train Loss 0.448212 | Val Loss 0.558676
+Epoch 100: Train R^2: 58.7705% | Val R^2: 45.6113%
+--------------------
+========== Fold=5 ==========
+----- Epoch 1 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 1.202849 | Val Loss 0.925723
+Epoch 1: Train R^2: -6.9176% | Val R^2: -9.2574%
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 1.194451 | Val Loss 0.925689
+Epoch 2: Train R^2: -6.1730% | Val R^2: -9.2534%
+--------------------
+----- Epoch 3 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 1.186292 | Val Loss 0.926530
+Epoch 3: Train R^2: -5.4502% | Val R^2: -9.3526%
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 1.177763 | Val Loss 0.928585
+Epoch 4: Train R^2: -4.6949% | Val R^2: -9.5952%
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 1.168560 | Val Loss 0.932215
+Epoch 5: Train R^2: -3.8801% | Val R^2: -10.0236%
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 1.158505 | Val Loss 0.937792
+Epoch 6: Train R^2: -2.9898% | Val R^2: -10.6818%
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 1.147529 | Val Loss 0.945671
+Epoch 7: Train R^2: -2.0181% | Val R^2: -11.6117%
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 1.135661 | Val Loss 0.956131
+Epoch 8: Train R^2: -0.9673% | Val R^2: -12.8462%
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 1.123024 | Val Loss 0.969258
+Epoch 9: Train R^2: 0.1518% | Val R^2: -14.3956%
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 1.109811 | Val Loss 0.984798
+Epoch 10: Train R^2: 1.3223% | Val R^2: -16.2297%
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 1.096229 | Val Loss 1.002037
+Epoch 11: Train R^2: 2.5261% | Val R^2: -18.2643%
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 1.082389 | Val Loss 1.019777
+Epoch 12: Train R^2: 3.7538% | Val R^2: -20.3580%
+--------------------
+Early stopping triggered. Loading best model...
+========== Fold=6 ==========
+----- Epoch 1 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 1.226105 | Val Loss 0.921072
+Epoch 1: Train R^2: -1.9384% | Val R^2: -20.0436%
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 1.219716 | Val Loss 0.920076
+Epoch 2: Train R^2: -1.4038% | Val R^2: -19.9137%
+--------------------
+----- Epoch 3 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 1.214031 | Val Loss 0.919187
+Epoch 3: Train R^2: -0.9282% | Val R^2: -19.7979%
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 1.208447 | Val Loss 0.918483
+Epoch 4: Train R^2: -0.4609% | Val R^2: -19.7061%
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 1.202803 | Val Loss 0.918021
+Epoch 5: Train R^2: 0.0117% | Val R^2: -19.6459%
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 1.196993 | Val Loss 0.917859
+Epoch 6: Train R^2: 0.4986% | Val R^2: -19.6248%
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 1.190936 | Val Loss 0.918056
+Epoch 7: Train R^2: 1.0065% | Val R^2: -19.6504%
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 1.184561 | Val Loss 0.918659
+Epoch 8: Train R^2: 1.5417% | Val R^2: -19.7291%
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 1.177793 | Val Loss 0.919692
+Epoch 9: Train R^2: 2.1104% | Val R^2: -19.8637%
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 1.170539 | Val Loss 0.921139
+Epoch 10: Train R^2: 2.7203% | Val R^2: -20.0523%
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 1.162714 | Val Loss 0.922935
+Epoch 11: Train R^2: 3.3787% | Val R^2: -20.2864%
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 1.154208 | Val Loss 0.924959
+Epoch 12: Train R^2: 4.0946% | Val R^2: -20.5501%
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 1.144911 | Val Loss 0.927038
+Epoch 13: Train R^2: 4.8769% | Val R^2: -20.8211%
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 1.134697 | Val Loss 0.928943
+Epoch 14: Train R^2: 5.7363% | Val R^2: -21.0693%
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 1.123415 | Val Loss 0.930405
+Epoch 15: Train R^2: 6.6848% | Val R^2: -21.2599%
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 1.110929 | Val Loss 0.931120
+Epoch 16: Train R^2: 7.7336% | Val R^2: -21.3531%
+--------------------
+Early stopping triggered. Loading best model...
+========== Fold=7 ==========
+----- Epoch 1 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 1.239797 | Val Loss 0.842735
+Epoch 1: Train R^2: -0.8335% | Val R^2: -0.0586%
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 1.233030 | Val Loss 0.839905
+Epoch 2: Train R^2: -0.2782% | Val R^2: 0.2774%
+--------------------
+----- Epoch 3 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 1.227922 | Val Loss 0.837068
+Epoch 3: Train R^2: 0.1400% | Val R^2: 0.6143%
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 1.223064 | Val Loss 0.834210
+Epoch 4: Train R^2: 0.5374% | Val R^2: 0.9537%
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 1.218185 | Val Loss 0.831301
+Epoch 5: Train R^2: 0.9365% | Val R^2: 1.2991%
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 1.213135 | Val Loss 0.828326
+Epoch 6: Train R^2: 1.3495% | Val R^2: 1.6522%
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 1.207809 | Val Loss 0.825291
+Epoch 7: Train R^2: 1.7850% | Val R^2: 2.0126%
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 1.202113 | Val Loss 0.822209
+Epoch 8: Train R^2: 2.2508% | Val R^2: 2.3786%
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 1.195942 | Val Loss 0.819095
+Epoch 9: Train R^2: 2.7555% | Val R^2: 2.7483%
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 1.189159 | Val Loss 0.815963
+Epoch 10: Train R^2: 3.3102% | Val R^2: 3.1201%
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 1.181582 | Val Loss 0.812826
+Epoch 11: Train R^2: 3.9298% | Val R^2: 3.4925%
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 1.172975 | Val Loss 0.809707
+Epoch 12: Train R^2: 4.6334% | Val R^2: 3.8629%
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 1.163039 | Val Loss 0.806651
+Epoch 13: Train R^2: 5.4453% | Val R^2: 4.2257%
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 1.151424 | Val Loss 0.803749
+Epoch 14: Train R^2: 6.3938% | Val R^2: 4.5703%
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 1.137727 | Val Loss 0.801152
+Epoch 15: Train R^2: 7.5115% | Val R^2: 4.8786%
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 1.121486 | Val Loss 0.799107
+Epoch 16: Train R^2: 8.8358% | Val R^2: 5.1215%
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 1.102200 | Val Loss 0.798003
+Epoch 17: Train R^2: 10.4070% | Val R^2: 5.2524%
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 1.079434 | Val Loss 0.798470
+Epoch 18: Train R^2: 12.2600% | Val R^2: 5.1970%
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 1.053035 | Val Loss 0.801522
+Epoch 19: Train R^2: 14.4076% | Val R^2: 4.8347%
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 1.023346 | Val Loss 0.808615
+Epoch 20: Train R^2: 16.8229% | Val R^2: 3.9925%
+--------------------
+----- Epoch 21 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.991864 | Val Loss 0.820751
+Epoch 21: Train R^2: 19.3870% | Val R^2: 2.5516%
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.960702 | Val Loss 0.835562
+Epoch 22: Train R^2: 21.9311% | Val R^2: 0.7931%
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.930987 | Val Loss 0.845599
+Epoch 23: Train R^2: 24.3631% | Val R^2: -0.3986%
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.903300 | Val Loss 0.845149
+Epoch 24: Train R^2: 26.6312% | Val R^2: -0.3452%
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.878168 | Val Loss 0.836733
+Epoch 25: Train R^2: 28.6899% | Val R^2: 0.6541%
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.855493 | Val Loss 0.824958
+Epoch 26: Train R^2: 30.5479% | Val R^2: 2.0522%
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.835218 | Val Loss 0.811272
+Epoch 27: Train R^2: 32.2097% | Val R^2: 3.6771%
+--------------------
+Early stopping triggered. Loading best model...
+========== Fold=8 ==========
+----- Epoch 1 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.967079 | Val Loss 1.435072
+Epoch 1: Train R^2: -0.7910% | Val R^2: -34.6796%
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.961660 | Val Loss 1.430839
+Epoch 2: Train R^2: -0.2253% | Val R^2: -34.2823%
+--------------------
+----- Epoch 3 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.956863 | Val Loss 1.426822
+Epoch 3: Train R^2: 0.2745% | Val R^2: -33.9053%
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.952167 | Val Loss 1.422815
+Epoch 4: Train R^2: 0.7637% | Val R^2: -33.5293%
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.947457 | Val Loss 1.418780
+Epoch 5: Train R^2: 1.2542% | Val R^2: -33.1506%
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.942663 | Val Loss 1.414732
+Epoch 6: Train R^2: 1.7533% | Val R^2: -32.7706%
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.937746 | Val Loss 1.410716
+Epoch 7: Train R^2: 2.2654% | Val R^2: -32.3937%
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.932686 | Val Loss 1.406792
+Epoch 8: Train R^2: 2.7922% | Val R^2: -32.0255%
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.927471 | Val Loss 1.403022
+Epoch 9: Train R^2: 3.3354% | Val R^2: -31.6717%
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.922082 | Val Loss 1.399463
+Epoch 10: Train R^2: 3.8968% | Val R^2: -31.3377%
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.916494 | Val Loss 1.396164
+Epoch 11: Train R^2: 4.4790% | Val R^2: -31.0281%
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.910683 | Val Loss 1.393172
+Epoch 12: Train R^2: 5.0846% | Val R^2: -30.7473%
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.904624 | Val Loss 1.390521
+Epoch 13: Train R^2: 5.7162% | Val R^2: -30.4985%
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 0.898301 | Val Loss 1.388232
+Epoch 14: Train R^2: 6.3756% | Val R^2: -30.2837%
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 0.891700 | Val Loss 1.386303
+Epoch 15: Train R^2: 7.0644% | Val R^2: -30.1027%
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 0.884815 | Val Loss 1.384680
+Epoch 16: Train R^2: 7.7831% | Val R^2: -29.9503%
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 0.877639 | Val Loss 1.383236
+Epoch 17: Train R^2: 8.5326% | Val R^2: -29.8148%
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 0.870174 | Val Loss 1.381790
+Epoch 18: Train R^2: 9.3127% | Val R^2: -29.6791%
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 0.862416 | Val Loss 1.380060
+Epoch 19: Train R^2: 10.1240% | Val R^2: -29.5168%
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 0.854360 | Val Loss 1.377701
+Epoch 20: Train R^2: 10.9671% | Val R^2: -29.2954%
+--------------------
+----- Epoch 21 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.846001 | Val Loss 1.374267
+Epoch 21: Train R^2: 11.8424% | Val R^2: -28.9731%
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.837364 | Val Loss 1.369204
+Epoch 22: Train R^2: 12.7476% | Val R^2: -28.4979%
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.828351 | Val Loss 1.361903
+Epoch 23: Train R^2: 13.6927% | Val R^2: -27.8127%
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.819004 | Val Loss 1.351663
+Epoch 24: Train R^2: 14.6736% | Val R^2: -26.8517%
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.809194 | Val Loss 1.337526
+Epoch 25: Train R^2: 15.7035% | Val R^2: -25.5250%
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.798887 | Val Loss 1.318463
+Epoch 26: Train R^2: 16.7859% | Val R^2: -23.7360%
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.788000 | Val Loss 1.293453
+Epoch 27: Train R^2: 17.9293% | Val R^2: -21.3888%
+--------------------
+----- Epoch 28 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 28: Train Loss 0.776605 | Val Loss 1.261541
+Epoch 28: Train R^2: 19.1260% | Val R^2: -18.3940%
+--------------------
+----- Epoch 29 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 29: Train Loss 0.764892 | Val Loss 1.222752
+Epoch 29: Train R^2: 20.3556% | Val R^2: -14.7536%
+--------------------
+----- Epoch 30 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 30: Train Loss 0.753126 | Val Loss 1.179428
+Epoch 30: Train R^2: 21.5901% | Val R^2: -10.6877%
+--------------------
+----- Epoch 31 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 31: Train Loss 0.742192 | Val Loss 1.135776
+Epoch 31: Train R^2: 22.7365% | Val R^2: -6.5910%
+--------------------
+----- Epoch 32 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 32: Train Loss 0.732149 | Val Loss 1.097677
+Epoch 32: Train R^2: 23.7894% | Val R^2: -3.0155%
+--------------------
+----- Epoch 33 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 33: Train Loss 0.723038 | Val Loss 1.067653
+Epoch 33: Train R^2: 24.7437% | Val R^2: -0.1978%
+--------------------
+----- Epoch 34 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 34: Train Loss 0.714551 | Val Loss 1.043838
+Epoch 34: Train R^2: 25.6311% | Val R^2: 2.0373%
+--------------------
+----- Epoch 35 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 35: Train Loss 0.706384 | Val Loss 1.024886
+Epoch 35: Train R^2: 26.4845% | Val R^2: 3.8158%
+--------------------
+----- Epoch 36 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 36: Train Loss 0.698337 | Val Loss 1.006214
+Epoch 36: Train R^2: 27.3254% | Val R^2: 5.5682%
+--------------------
+----- Epoch 37 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 37: Train Loss 0.690724 | Val Loss 0.984839
+Epoch 37: Train R^2: 28.1213% | Val R^2: 7.5742%
+--------------------
+----- Epoch 38 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 38: Train Loss 0.683264 | Val Loss 0.963930
+Epoch 38: Train R^2: 28.9010% | Val R^2: 9.5365%
+--------------------
+----- Epoch 39 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 39: Train Loss 0.676178 | Val Loss 0.941632
+Epoch 39: Train R^2: 29.6420% | Val R^2: 11.6292%
+--------------------
+----- Epoch 40 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 40: Train Loss 0.669031 | Val Loss 0.922563
+Epoch 40: Train R^2: 30.3894% | Val R^2: 13.4187%
+--------------------
+----- Epoch 41 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 41: Train Loss 0.662335 | Val Loss 0.903686
+Epoch 41: Train R^2: 31.0895% | Val R^2: 15.1903%
+--------------------
+----- Epoch 42 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 42: Train Loss 0.655610 | Val Loss 0.884748
+Epoch 42: Train R^2: 31.7927% | Val R^2: 16.9676%
+--------------------
+----- Epoch 43 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 43: Train Loss 0.649311 | Val Loss 0.870094
+Epoch 43: Train R^2: 32.4511% | Val R^2: 18.3429%
+--------------------
+----- Epoch 44 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 44: Train Loss 0.643027 | Val Loss 0.853346
+Epoch 44: Train R^2: 33.1086% | Val R^2: 19.9146%
+--------------------
+----- Epoch 45 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 45: Train Loss 0.637163 | Val Loss 0.835294
+Epoch 45: Train R^2: 33.7211% | Val R^2: 21.6088%
+--------------------
+----- Epoch 46 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 46: Train Loss 0.631498 | Val Loss 0.830497
+Epoch 46: Train R^2: 34.3137% | Val R^2: 22.0590%
+--------------------
+----- Epoch 47 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 47: Train Loss 0.630356 | Val Loss 0.822994
+Epoch 47: Train R^2: 34.4392% | Val R^2: 22.7631%
+--------------------
+----- Epoch 48 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 48: Train Loss 0.635200 | Val Loss 0.808390
+Epoch 48: Train R^2: 33.9428% | Val R^2: 24.1337%
+--------------------
+----- Epoch 49 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 49: Train Loss 0.623375 | Val Loss 0.813602
+Epoch 49: Train R^2: 35.1599% | Val R^2: 23.6445%
+--------------------
+----- Epoch 50 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 50: Train Loss 0.614727 | Val Loss 0.812326
+Epoch 50: Train R^2: 36.0662% | Val R^2: 23.7643%
+--------------------
+----- Epoch 51 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 51: Train Loss 0.611746 | Val Loss 0.786513
+Epoch 51: Train R^2: 36.3823% | Val R^2: 26.1868%
+--------------------
+----- Epoch 52 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 52: Train Loss 0.608497 | Val Loss 0.803752
+Epoch 52: Train R^2: 36.7243% | Val R^2: 24.5690%
+--------------------
+----- Epoch 53 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 53: Train Loss 0.601717 | Val Loss 0.769927
+Epoch 53: Train R^2: 37.4268% | Val R^2: 27.7434%
+--------------------
+----- Epoch 54 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 54: Train Loss 0.597685 | Val Loss 0.790308
+Epoch 54: Train R^2: 37.8457% | Val R^2: 25.8307%
+--------------------
+----- Epoch 55 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 55: Train Loss 0.594672 | Val Loss 0.757837
+Epoch 55: Train R^2: 38.1577% | Val R^2: 28.8780%
+--------------------
+----- Epoch 56 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 56: Train Loss 0.589350 | Val Loss 0.765286
+Epoch 56: Train R^2: 38.7147% | Val R^2: 28.1789%
+--------------------
+----- Epoch 57 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 57: Train Loss 0.585330 | Val Loss 0.747934
+Epoch 57: Train R^2: 39.1331% | Val R^2: 29.8074%
+--------------------
+----- Epoch 58 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 58: Train Loss 0.581681 | Val Loss 0.749876
+Epoch 58: Train R^2: 39.5135% | Val R^2: 29.6252%
+--------------------
+----- Epoch 59 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 59: Train Loss 0.578288 | Val Loss 0.738745
+Epoch 59: Train R^2: 39.8673% | Val R^2: 30.6698%
+--------------------
+----- Epoch 60 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 60: Train Loss 0.574538 | Val Loss 0.735355
+Epoch 60: Train R^2: 40.2586% | Val R^2: 30.9880%
+--------------------
+----- Epoch 61 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 61: Train Loss 0.571260 | Val Loss 0.728535
+Epoch 61: Train R^2: 40.6001% | Val R^2: 31.6280%
+--------------------
+----- Epoch 62 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 62: Train Loss 0.567944 | Val Loss 0.725684
+Epoch 62: Train R^2: 40.9459% | Val R^2: 31.8955%
+--------------------
+----- Epoch 63 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 63: Train Loss 0.564750 | Val Loss 0.718866
+Epoch 63: Train R^2: 41.2789% | Val R^2: 32.5354%
+--------------------
+----- Epoch 64 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 64: Train Loss 0.561615 | Val Loss 0.716194
+Epoch 64: Train R^2: 41.6057% | Val R^2: 32.7862%
+--------------------
+----- Epoch 65 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 65: Train Loss 0.558590 | Val Loss 0.709802
+Epoch 65: Train R^2: 41.9210% | Val R^2: 33.3861%
+--------------------
+----- Epoch 66 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 66: Train Loss 0.555648 | Val Loss 0.706700
+Epoch 66: Train R^2: 42.2277% | Val R^2: 33.6772%
+--------------------
+----- Epoch 67 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 67: Train Loss 0.552782 | Val Loss 0.702438
+Epoch 67: Train R^2: 42.5256% | Val R^2: 34.0772%
+--------------------
+----- Epoch 68 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 68: Train Loss 0.549557 | Val Loss 0.695024
+Epoch 68: Train R^2: 42.8618% | Val R^2: 34.7730%
+--------------------
+----- Epoch 69 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 69: Train Loss 0.546546 | Val Loss 0.695633
+Epoch 69: Train R^2: 43.1755% | Val R^2: 34.7158%
+--------------------
+----- Epoch 70 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 70: Train Loss 0.543732 | Val Loss 0.685980
+Epoch 70: Train R^2: 43.4685% | Val R^2: 35.6217%
+--------------------
+----- Epoch 71 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 71: Train Loss 0.540978 | Val Loss 0.684227
+Epoch 71: Train R^2: 43.7556% | Val R^2: 35.7863%
+--------------------
+----- Epoch 72 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 72: Train Loss 0.538346 | Val Loss 0.683378
+Epoch 72: Train R^2: 44.0294% | Val R^2: 35.8659%
+--------------------
+----- Epoch 73 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 73: Train Loss 0.535535 | Val Loss 0.670444
+Epoch 73: Train R^2: 44.3221% | Val R^2: 37.0797%
+--------------------
+----- Epoch 74 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 74: Train Loss 0.533693 | Val Loss 0.676867
+Epoch 74: Train R^2: 44.5146% | Val R^2: 36.4770%
+--------------------
+----- Epoch 75 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 75: Train Loss 0.532829 | Val Loss 0.676959
+Epoch 75: Train R^2: 44.6018% | Val R^2: 36.4683%
+--------------------
+----- Epoch 76 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 76: Train Loss 0.529419 | Val Loss 0.655401
+Epoch 76: Train R^2: 44.9569% | Val R^2: 38.4915%
+--------------------
+----- Epoch 77 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 77: Train Loss 0.528803 | Val Loss 0.684592
+Epoch 77: Train R^2: 45.0217% | Val R^2: 35.7519%
+--------------------
+----- Epoch 78 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 78: Train Loss 0.528232 | Val Loss 0.659961
+Epoch 78: Train R^2: 45.0832% | Val R^2: 38.0635%
+--------------------
+----- Epoch 79 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 79: Train Loss 0.522917 | Val Loss 0.656322
+Epoch 79: Train R^2: 45.6402% | Val R^2: 38.4051%
+--------------------
+----- Epoch 80 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 80: Train Loss 0.519271 | Val Loss 0.658196
+Epoch 80: Train R^2: 46.0153% | Val R^2: 38.2292%
+--------------------
+----- Epoch 81 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 81: Train Loss 0.516052 | Val Loss 0.656626
+Epoch 81: Train R^2: 46.3519% | Val R^2: 38.3766%
+--------------------
+----- Epoch 82 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 82: Train Loss 0.514409 | Val Loss 0.648047
+Epoch 82: Train R^2: 46.5226% | Val R^2: 39.1817%
+--------------------
+----- Epoch 83 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 83: Train Loss 0.512058 | Val Loss 0.642922
+Epoch 83: Train R^2: 46.7685% | Val R^2: 39.6627%
+--------------------
+----- Epoch 84 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 84: Train Loss 0.509475 | Val Loss 0.644257
+Epoch 84: Train R^2: 47.0361% | Val R^2: 39.5373%
+--------------------
+----- Epoch 85 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 85: Train Loss 0.506894 | Val Loss 0.636745
+Epoch 85: Train R^2: 47.3049% | Val R^2: 40.2424%
+--------------------
+----- Epoch 86 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 86: Train Loss 0.504383 | Val Loss 0.633058
+Epoch 86: Train R^2: 47.5666% | Val R^2: 40.5884%
+--------------------
+----- Epoch 87 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 87: Train Loss 0.502310 | Val Loss 0.630336
+Epoch 87: Train R^2: 47.7825% | Val R^2: 40.8438%
+--------------------
+----- Epoch 88 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 88: Train Loss 0.500191 | Val Loss 0.630145
+Epoch 88: Train R^2: 48.0029% | Val R^2: 40.8618%
+--------------------
+----- Epoch 89 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 89: Train Loss 0.498065 | Val Loss 0.620329
+Epoch 89: Train R^2: 48.2239% | Val R^2: 41.7830%
+--------------------
+----- Epoch 90 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 90: Train Loss 0.495862 | Val Loss 0.622422
+Epoch 90: Train R^2: 48.4534% | Val R^2: 41.5866%
+--------------------
+----- Epoch 91 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 91: Train Loss 0.493812 | Val Loss 0.617790
+Epoch 91: Train R^2: 48.6670% | Val R^2: 42.0212%
+--------------------
+----- Epoch 92 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 92: Train Loss 0.491617 | Val Loss 0.610612
+Epoch 92: Train R^2: 48.8954% | Val R^2: 42.6949%
+--------------------
+----- Epoch 93 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 93: Train Loss 0.489548 | Val Loss 0.615412
+Epoch 93: Train R^2: 49.1108% | Val R^2: 42.2444%
+--------------------
+----- Epoch 94 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 94: Train Loss 0.487924 | Val Loss 0.605845
+Epoch 94: Train R^2: 49.2796% | Val R^2: 43.1423%
+--------------------
+----- Epoch 95 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 95: Train Loss 0.486054 | Val Loss 0.599714
+Epoch 95: Train R^2: 49.4740% | Val R^2: 43.7177%
+--------------------
+----- Epoch 96 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 96: Train Loss 0.483956 | Val Loss 0.616172
+Epoch 96: Train R^2: 49.6927% | Val R^2: 42.1731%
+--------------------
+----- Epoch 97 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 97: Train Loss 0.484155 | Val Loss 0.594448
+Epoch 97: Train R^2: 49.6723% | Val R^2: 44.2119%
+--------------------
+----- Epoch 98 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 98: Train Loss 0.485520 | Val Loss 0.595550
+Epoch 98: Train R^2: 49.5297% | Val R^2: 44.1084%
+--------------------
+----- Epoch 99 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 99: Train Loss 0.482642 | Val Loss 0.628367
+Epoch 99: Train R^2: 49.8233% | Val R^2: 41.0286%
+--------------------
+----- Epoch 100 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 100: Train Loss 0.480637 | Val Loss 0.583173
+Epoch 100: Train R^2: 50.0317% | Val R^2: 45.2700%
+--------------------
+========== Fold=9 ==========
+----- Epoch 1 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 1.040636 | Val Loss 0.921599
+Epoch 1: Train R^2: -0.1975% | Val R^2: -4.6476%
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 1.034778 | Val Loss 0.917078
+Epoch 2: Train R^2: 0.3704% | Val R^2: -4.1342%
+--------------------
+----- Epoch 3 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 1.030164 | Val Loss 0.912402
+Epoch 3: Train R^2: 0.8149% | Val R^2: -3.6033%
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 1.025691 | Val Loss 0.907650
+Epoch 4: Train R^2: 1.2450% | Val R^2: -3.0636%
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 1.021177 | Val Loss 0.902793
+Epoch 5: Train R^2: 1.6789% | Val R^2: -2.5122%
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 1.016522 | Val Loss 0.897812
+Epoch 6: Train R^2: 2.1262% | Val R^2: -1.9465%
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 1.011676 | Val Loss 0.892711
+Epoch 7: Train R^2: 2.5918% | Val R^2: -1.3673%
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 1.006617 | Val Loss 0.887508
+Epoch 8: Train R^2: 3.0779% | Val R^2: -0.7765%
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 1.001334 | Val Loss 0.882217
+Epoch 9: Train R^2: 3.5856% | Val R^2: -0.1757%
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.995802 | Val Loss 0.876836
+Epoch 10: Train R^2: 4.1171% | Val R^2: 0.4353%
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.989978 | Val Loss 0.871351
+Epoch 11: Train R^2: 4.6767% | Val R^2: 1.0581%
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.983794 | Val Loss 0.865749
+Epoch 12: Train R^2: 5.2709% | Val R^2: 1.6942%
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.977173 | Val Loss 0.860024
+Epoch 13: Train R^2: 5.9071% | Val R^2: 2.3443%
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 0.970019 | Val Loss 0.854184
+Epoch 14: Train R^2: 6.5943% | Val R^2: 3.0074%
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 0.962233 | Val Loss 0.848251
+Epoch 15: Train R^2: 7.3421% | Val R^2: 3.6812%
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 0.953712 | Val Loss 0.842253
+Epoch 16: Train R^2: 8.1603% | Val R^2: 4.3622%
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 0.944327 | Val Loss 0.836228
+Epoch 17: Train R^2: 9.0610% | Val R^2: 5.0464%
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 0.933952 | Val Loss 0.830207
+Epoch 18: Train R^2: 10.0560% | Val R^2: 5.7301%
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 0.922505 | Val Loss 0.824205
+Epoch 19: Train R^2: 11.1528% | Val R^2: 6.4116%
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 0.909863 | Val Loss 0.818200
+Epoch 20: Train R^2: 12.3622% | Val R^2: 7.0934%
+--------------------
+----- Epoch 21 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.896034 | Val Loss 0.812119
+Epoch 21: Train R^2: 13.6832% | Val R^2: 7.7839%
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.881040 | Val Loss 0.805834
+Epoch 22: Train R^2: 15.1123% | Val R^2: 8.4975%
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.865278 | Val Loss 0.799221
+Epoch 23: Train R^2: 16.6115% | Val R^2: 9.2485%
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.849149 | Val Loss 0.792284
+Epoch 24: Train R^2: 18.1432% | Val R^2: 10.0361%
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.833342 | Val Loss 0.785285
+Epoch 25: Train R^2: 19.6425% | Val R^2: 10.8309%
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.818492 | Val Loss 0.778490
+Epoch 26: Train R^2: 21.0515% | Val R^2: 11.6025%
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.804884 | Val Loss 0.771848
+Epoch 27: Train R^2: 22.3431% | Val R^2: 12.3567%
+--------------------
+----- Epoch 28 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 28: Train Loss 0.792640 | Val Loss 0.765035
+Epoch 28: Train R^2: 23.5070% | Val R^2: 13.1303%
+--------------------
+----- Epoch 29 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 29: Train Loss 0.781212 | Val Loss 0.758732
+Epoch 29: Train R^2: 24.5938% | Val R^2: 13.8460%
+--------------------
+----- Epoch 30 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 30: Train Loss 0.770929 | Val Loss 0.753303
+Epoch 30: Train R^2: 25.5709% | Val R^2: 14.4624%
+--------------------
+----- Epoch 31 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 31: Train Loss 0.761707 | Val Loss 0.748155
+Epoch 31: Train R^2: 26.4475% | Val R^2: 15.0470%
+--------------------
+----- Epoch 32 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 32: Train Loss 0.753166 | Val Loss 0.743678
+Epoch 32: Train R^2: 27.2592% | Val R^2: 15.5554%
+--------------------
+----- Epoch 33 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 33: Train Loss 0.745177 | Val Loss 0.737692
+Epoch 33: Train R^2: 28.0189% | Val R^2: 16.2350%
+--------------------
+----- Epoch 34 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 34: Train Loss 0.737719 | Val Loss 0.731113
+Epoch 34: Train R^2: 28.7285% | Val R^2: 16.9821%
+--------------------
+----- Epoch 35 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 35: Train Loss 0.730751 | Val Loss 0.724469
+Epoch 35: Train R^2: 29.3922% | Val R^2: 17.7366%
+--------------------
+----- Epoch 36 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 36: Train Loss 0.724036 | Val Loss 0.719152
+Epoch 36: Train R^2: 30.0325% | Val R^2: 18.3403%
+--------------------
+----- Epoch 37 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 37: Train Loss 0.717685 | Val Loss 0.715005
+Epoch 37: Train R^2: 30.6383% | Val R^2: 18.8112%
+--------------------
+----- Epoch 38 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 38: Train Loss 0.711697 | Val Loss 0.708776
+Epoch 38: Train R^2: 31.2099% | Val R^2: 19.5185%
+--------------------
+----- Epoch 39 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 39: Train Loss 0.705677 | Val Loss 0.705113
+Epoch 39: Train R^2: 31.7849% | Val R^2: 19.9344%
+--------------------
+----- Epoch 40 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 40: Train Loss 0.700028 | Val Loss 0.699653
+Epoch 40: Train R^2: 32.3250% | Val R^2: 20.5544%
+--------------------
+----- Epoch 41 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 41: Train Loss 0.694482 | Val Loss 0.692565
+Epoch 41: Train R^2: 32.8555% | Val R^2: 21.3593%
+--------------------
+----- Epoch 42 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 42: Train Loss 0.689146 | Val Loss 0.690288
+Epoch 42: Train R^2: 33.3661% | Val R^2: 21.6178%
+--------------------
+----- Epoch 43 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 43: Train Loss 0.683873 | Val Loss 0.683438
+Epoch 43: Train R^2: 33.8711% | Val R^2: 22.3957%
+--------------------
+----- Epoch 44 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 44: Train Loss 0.678649 | Val Loss 0.674858
+Epoch 44: Train R^2: 34.3714% | Val R^2: 23.3699%
+--------------------
+----- Epoch 45 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 45: Train Loss 0.673548 | Val Loss 0.673018
+Epoch 45: Train R^2: 34.8601% | Val R^2: 23.5788%
+--------------------
+----- Epoch 46 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 46: Train Loss 0.668691 | Val Loss 0.675633
+Epoch 46: Train R^2: 35.3251% | Val R^2: 23.2818%
+--------------------
+----- Epoch 47 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 47: Train Loss 0.664080 | Val Loss 0.654744
+Epoch 47: Train R^2: 35.7675% | Val R^2: 25.6538%
+--------------------
+----- Epoch 48 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 48: Train Loss 0.661548 | Val Loss 0.648217
+Epoch 48: Train R^2: 36.0048% | Val R^2: 26.3950%
+--------------------
+----- Epoch 49 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 49: Train Loss 0.657115 | Val Loss 0.675167
+Epoch 49: Train R^2: 36.4313% | Val R^2: 23.3348%
+--------------------
+----- Epoch 50 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 50: Train Loss 0.659119 | Val Loss 0.633638
+Epoch 50: Train R^2: 36.2249% | Val R^2: 28.0504%
+--------------------
+----- Epoch 51 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 51: Train Loss 0.651272 | Val Loss 0.671255
+Epoch 51: Train R^2: 36.9902% | Val R^2: 23.7790%
+--------------------
+----- Epoch 52 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 52: Train Loss 0.643151 | Val Loss 0.627261
+Epoch 52: Train R^2: 37.7699% | Val R^2: 28.7745%
+--------------------
+----- Epoch 53 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 53: Train Loss 0.640826 | Val Loss 0.635654
+Epoch 53: Train R^2: 37.9978% | Val R^2: 27.8215%
+--------------------
+----- Epoch 54 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 54: Train Loss 0.637444 | Val Loss 0.626005
+Epoch 54: Train R^2: 38.3118% | Val R^2: 28.9171%
+--------------------
+----- Epoch 55 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 55: Train Loss 0.632249 | Val Loss 0.626404
+Epoch 55: Train R^2: 38.8151% | Val R^2: 28.8718%
+--------------------
+----- Epoch 56 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 56: Train Loss 0.627704 | Val Loss 0.627125
+Epoch 56: Train R^2: 39.2558% | Val R^2: 28.7899%
+--------------------
+----- Epoch 57 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 57: Train Loss 0.623524 | Val Loss 0.609766
+Epoch 57: Train R^2: 39.6588% | Val R^2: 30.7610%
+--------------------
+----- Epoch 58 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 58: Train Loss 0.618480 | Val Loss 0.618803
+Epoch 58: Train R^2: 40.1405% | Val R^2: 29.7350%
+--------------------
+----- Epoch 59 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 59: Train Loss 0.614567 | Val Loss 0.604039
+Epoch 59: Train R^2: 40.5164% | Val R^2: 31.4113%
+--------------------
+----- Epoch 60 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 60: Train Loss 0.610593 | Val Loss 0.609620
+Epoch 60: Train R^2: 40.8979% | Val R^2: 30.7776%
+--------------------
+----- Epoch 61 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 61: Train Loss 0.606765 | Val Loss 0.597895
+Epoch 61: Train R^2: 41.2652% | Val R^2: 32.1091%
+--------------------
+----- Epoch 62 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 62: Train Loss 0.602874 | Val Loss 0.598057
+Epoch 62: Train R^2: 41.6387% | Val R^2: 32.0907%
+--------------------
+----- Epoch 63 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 63: Train Loss 0.599255 | Val Loss 0.591512
+Epoch 63: Train R^2: 41.9863% | Val R^2: 32.8338%
+--------------------
+----- Epoch 64 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 64: Train Loss 0.595634 | Val Loss 0.589442
+Epoch 64: Train R^2: 42.3336% | Val R^2: 33.0688%
+--------------------
+----- Epoch 65 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 65: Train Loss 0.592065 | Val Loss 0.584226
+Epoch 65: Train R^2: 42.6762% | Val R^2: 33.6611%
+--------------------
+----- Epoch 66 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 66: Train Loss 0.588394 | Val Loss 0.582272
+Epoch 66: Train R^2: 43.0292% | Val R^2: 33.8830%
+--------------------
+----- Epoch 67 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 67: Train Loss 0.584830 | Val Loss 0.576907
+Epoch 67: Train R^2: 43.3714% | Val R^2: 34.4922%
+--------------------
+----- Epoch 68 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 68: Train Loss 0.581382 | Val Loss 0.576199
+Epoch 68: Train R^2: 43.7026% | Val R^2: 34.5726%
+--------------------
+----- Epoch 69 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 69: Train Loss 0.577875 | Val Loss 0.569300
+Epoch 69: Train R^2: 44.0391% | Val R^2: 35.3560%
+--------------------
+----- Epoch 70 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 70: Train Loss 0.574444 | Val Loss 0.568770
+Epoch 70: Train R^2: 44.3685% | Val R^2: 35.4162%
+--------------------
+----- Epoch 71 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 71: Train Loss 0.571106 | Val Loss 0.561461
+Epoch 71: Train R^2: 44.6890% | Val R^2: 36.2461%
+--------------------
+----- Epoch 72 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 72: Train Loss 0.567686 | Val Loss 0.561693
+Epoch 72: Train R^2: 45.0175% | Val R^2: 36.2197%
+--------------------
+----- Epoch 73 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 73: Train Loss 0.564404 | Val Loss 0.555475
+Epoch 73: Train R^2: 45.3327% | Val R^2: 36.9258%
+--------------------
+----- Epoch 74 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 74: Train Loss 0.561088 | Val Loss 0.554575
+Epoch 74: Train R^2: 45.6513% | Val R^2: 37.0280%
+--------------------
+----- Epoch 75 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 75: Train Loss 0.557872 | Val Loss 0.548822
+Epoch 75: Train R^2: 45.9601% | Val R^2: 37.6813%
+--------------------
+----- Epoch 76 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 76: Train Loss 0.554569 | Val Loss 0.546636
+Epoch 76: Train R^2: 46.2775% | Val R^2: 37.9295%
+--------------------
+----- Epoch 77 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 77: Train Loss 0.551505 | Val Loss 0.545527
+Epoch 77: Train R^2: 46.5720% | Val R^2: 38.0554%
+--------------------
+----- Epoch 78 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 78: Train Loss 0.548618 | Val Loss 0.536959
+Epoch 78: Train R^2: 46.8485% | Val R^2: 39.0283%
+--------------------
+----- Epoch 79 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 79: Train Loss 0.545837 | Val Loss 0.540152
+Epoch 79: Train R^2: 47.1157% | Val R^2: 38.6657%
+--------------------
+----- Epoch 80 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 80: Train Loss 0.543499 | Val Loss 0.540236
+Epoch 80: Train R^2: 47.3432% | Val R^2: 38.6562%
+--------------------
+----- Epoch 81 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 81: Train Loss 0.541427 | Val Loss 0.523076
+Epoch 81: Train R^2: 47.5381% | Val R^2: 40.6048%
+--------------------
+----- Epoch 82 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 82: Train Loss 0.542112 | Val Loss 0.551599
+Epoch 82: Train R^2: 47.4620% | Val R^2: 37.3660%
+--------------------
+----- Epoch 83 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 83: Train Loss 0.545187 | Val Loss 0.515212
+Epoch 83: Train R^2: 47.1876% | Val R^2: 41.4976%
+--------------------
+----- Epoch 84 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 84: Train Loss 0.532872 | Val Loss 0.533149
+Epoch 84: Train R^2: 48.3635% | Val R^2: 39.4610%
+--------------------
+----- Epoch 85 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 85: Train Loss 0.529373 | Val Loss 0.522462
+Epoch 85: Train R^2: 48.6983% | Val R^2: 40.6744%
+--------------------
+----- Epoch 86 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 86: Train Loss 0.526715 | Val Loss 0.516168
+Epoch 86: Train R^2: 48.9520% | Val R^2: 41.3891%
+--------------------
+----- Epoch 87 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 87: Train Loss 0.524325 | Val Loss 0.522674
+Epoch 87: Train R^2: 49.1824% | Val R^2: 40.6504%
+--------------------
+----- Epoch 88 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 88: Train Loss 0.522411 | Val Loss 0.506985
+Epoch 88: Train R^2: 49.3641% | Val R^2: 42.4319%
+--------------------
+----- Epoch 89 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 89: Train Loss 0.520282 | Val Loss 0.522661
+Epoch 89: Train R^2: 49.5670% | Val R^2: 40.6519%
+--------------------
+----- Epoch 90 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 90: Train Loss 0.518157 | Val Loss 0.501946
+Epoch 90: Train R^2: 49.7732% | Val R^2: 43.0040%
+--------------------
+----- Epoch 91 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 91: Train Loss 0.514384 | Val Loss 0.511073
+Epoch 91: Train R^2: 50.1384% | Val R^2: 41.9677%
+--------------------
+----- Epoch 92 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 92: Train Loss 0.511484 | Val Loss 0.503762
+Epoch 92: Train R^2: 50.4165% | Val R^2: 42.7978%
+--------------------
+----- Epoch 93 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 93: Train Loss 0.509116 | Val Loss 0.499365
+Epoch 93: Train R^2: 50.6431% | Val R^2: 43.2971%
+--------------------
+----- Epoch 94 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 94: Train Loss 0.506621 | Val Loss 0.501333
+Epoch 94: Train R^2: 50.8831% | Val R^2: 43.0737%
+--------------------
+----- Epoch 95 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 95: Train Loss 0.504344 | Val Loss 0.494977
+Epoch 95: Train R^2: 51.1020% | Val R^2: 43.7954%
+--------------------
+----- Epoch 96 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 96: Train Loss 0.502028 | Val Loss 0.494956
+Epoch 96: Train R^2: 51.3245% | Val R^2: 43.7978%
+--------------------
+----- Epoch 97 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 97: Train Loss 0.499747 | Val Loss 0.492106
+Epoch 97: Train R^2: 51.5436% | Val R^2: 44.1213%
+--------------------
+----- Epoch 98 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 98: Train Loss 0.497499 | Val Loss 0.486951
+Epoch 98: Train R^2: 51.7596% | Val R^2: 44.7067%
+--------------------
+----- Epoch 99 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 99: Train Loss 0.495383 | Val Loss 0.491921
+Epoch 99: Train R^2: 51.9629% | Val R^2: 44.1424%
+--------------------
+----- Epoch 100 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 100: Train Loss 0.493562 | Val Loss 0.481407
+Epoch 100: Train R^2: 52.1373% | Val R^2: 45.3362%
+--------------------
+Lowest val_mse model != highest val_r2 model, choose lowest mse model.
+Model 9 has the lowest val_MSE.
+Model 4 has the highest val_R^2.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			Resource Usage on 2026-03-05 23:44:35.473426:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	JobId: 3132521.hpc-pbs-sched1
+	Project: as_spms_cheongsa
+	Exit Status: 0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	NCPUs: Requested(19), Used(19)
+	CPU Time Used: 44:34:07
+	Memory: Requested(200gb), Used(37122968kb)
+	Vmem Used: 58717168kb
+	Walltime: Requested(73:00:00), Used(08:13:21)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Execution Nodes Used: (hpc-wfly-i006:ncpus=19:mem=209715200kb)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	No GPU-related information available for this job.

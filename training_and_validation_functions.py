@@ -54,14 +54,6 @@ def r_squared_score(predictions, targets):
 
 def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
 
-    # Configure PyTorch threading for CPU training on HPC.
-    # These values come from parameters.py and should be consistent with
-    # CPUs requested in the PBS script.
-    if p.TORCH_NUM_THREADS is not None:
-        torch.set_num_threads(p.TORCH_NUM_THREADS)
-    if p.TORCH_NUM_INTEROP_THREADS is not None:
-        torch.set_num_interop_threads(p.TORCH_NUM_INTEROP_THREADS)
-
     # Device selection: for Intel CPU-only HPC runs, p.USE_GPU is False so
     # we always stay on CPU even if a CUDA device is visible.
     device = torch.device("cuda" if p.USE_GPU and torch.cuda.is_available() else "cpu")
@@ -160,6 +152,15 @@ def diff_model_multi_fold_cv_train_test(distance_matrix: np.ndarray):
     Perform multi-fold CV training using a single shared base tensor and
     constructing DataLoaders one fold at a time to keep memory usage low.
     """
+
+    # Configure PyTorch threading for CPU training on HPC.
+    # These values come from parameters.py and should be consistent with
+    # CPUs requested in the PBS script.
+    if p.TORCH_NUM_THREADS is not None:
+        torch.set_num_threads(p.TORCH_NUM_THREADS)
+    if p.TORCH_NUM_INTEROP_THREADS is not None:
+        torch.set_num_interop_threads(p.TORCH_NUM_INTEROP_THREADS)
+
     # Build base tensors once (float32, on CPU)
     X = distance_matrix[:-1][:, np.newaxis, :]
     y = distance_matrix[1:][:, np.newaxis, :]

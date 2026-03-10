@@ -17,8 +17,8 @@
 ## Specify walltime in HH:MM:SS
 #PBS -l walltime=48:00:00
 
-## Select 1 CPU-only node with 16 cores and ~200GB memory for Intel HPC training
-#PBS -l select=1:ncpus=16:mem=200gb
+## Select 1 CPU-only node with 20 cores and ~100GB memory for Intel HPC training
+#PBS -l select=1:ncpus=19:mem=100gb
 
 ##Load Application
 #module load anaconda2025/2025
@@ -26,7 +26,7 @@
 #activate my-own-conda-env
 
 ## Capture Number of Cores and configure threading
-NCPUS=${PBS_NP:-16}
+NCPUS=${PBS_NP:-19}
 echo "Using $NCPUS CPU cores on this node."
 
 ## OpenMP / BLAS threading configuration for PyTorch + NumPy
