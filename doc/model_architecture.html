@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SmallDataDecoderViT — Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:        #f5f7fa;
+    --panel:     #ffffff;
+    --border:    #d1d9e0;
+    --border-md: #aab4be;
+    --text:      #1a202c;
+    --text-md:   #374151;
+    --dim:       #6b7280;
+    --shadow:    rgba(0,0,0,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+  }
+  .page {
+    max-width: 1050px;
+    margin: 0 auto;
+    padding: 44px 28px 80px;
+  }
+
+  /* ── Header ── */
+  header {
+    margin-bottom: 32px;
+    padding-bottom: 22px;
+    border-bottom: 2px solid var(--border);
+  }
+  .tag {
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: #1565c0; margin-bottom: 8px;
+  }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(22px, 4vw, 36px);
+    font-weight: 800; color: var(--text); line-height: 1.1;
+  }
+  h1 span { color: #1565c0; }
+  .subtitle { margin-top: 7px; font-size: 11px; color: var(--dim); }
+
+  /* ── Pills ── */
+  .params-row { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 32px; }
+  .pill {
+    background: #fff; border: 1px solid var(--border);
+    border-radius: 4px; padding: 5px 11px; font-size: 11px; color: var(--dim);
+    box-shadow: 0 1px 3px var(--shadow);
+  }
+  .pill b { color: #1565c0; }
+
+  /* ── Flow ── */
+  .flow { display: flex; flex-direction: column; align-items: center; gap: 0; }
+
+  .arrow {
+    width: 2px; height: 28px;
+    background: linear-gradient(to bottom, var(--border-md), #1565c0);
+    position: relative; flex-shrink: 0;
+  }
+  .arrow::after {
+    content: ''; position: absolute;
+    bottom: -6px; left: 50%; transform: translateX(-50%);
+    border-left: 5px solid transparent; border-right: 5px solid transparent;
+    border-top: 7px solid #1565c0;
+  }
+  .arrow.dim-arr { background: linear-gradient(to bottom, var(--border-md), var(--dim)); }
+  .arrow.dim-arr::after { border-top-color: var(--dim); }
+  .arrow-label {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    font-size: 9px; color: var(--dim); white-space: nowrap;
+    background: var(--bg); padding: 1px 4px; border-radius: 2px;
+  }
+
+  /* ── Cards ── */
+  .block {
+    position: relative; width: 100%; max-width: 730px;
+    border-radius: 10px; border: 1.5px solid var(--border);
+    background: var(--panel); overflow: hidden;
+    box-shadow: 0 2px 8px var(--shadow);
+    transition: box-shadow 0.2s, transform 0.15s; cursor: default;
+  }
+  .block:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.11); transform: translateY(-1px); }
+
+  .block-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 16px; border-bottom: 1px solid var(--border);
+  }
+  .block-icon {
+    width: 32px; height: 32px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; flex-shrink: 0;
+  }
+  .block-title {
+    font-family: 'Syne', sans-serif; font-size: 13px;
+    font-weight: 700; color: var(--text); flex: 1;
+  }
+  .block-badge {
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 3px 9px; border-radius: 20px; font-weight: 700;
+  }
+  .block-body {
+    padding: 13px 16px; display: flex; flex-direction: column;
+    gap: 8px; background: #fcfdfe;
+  }
+
+  /* sub elements */
+  .sub-row { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .sub-block {
+    border-radius: 5px; border: 1px solid var(--border); background: #fff;
+    padding: 5px 11px; font-size: 10px; color: var(--text-md);
+    white-space: nowrap; box-shadow: 0 1px 2px var(--shadow);
+  }
+  .sub-arrow { color: var(--dim); font-size: 13px; flex-shrink: 0; }
+  .formula {
+    font-size: 9px; color: #374151; padding: 4px 10px;
+    background: #eef2f7; border-radius: 4px;
+    border-left: 3px solid var(--border-md); white-space: nowrap;
+  }
+
+  /* colour skins */
+  /* blue — input/output */
+  .bh-blue { background: #e8f0fe; }
+  .bi-blue { background: #c5d8fb; color: #0d47a1; }
+  .bb-blue { background: #1565c0; color: #fff; }
+  .sb-blue { border-color: #90b8f8; color: #0d47a1; background: #eef4ff; }
+  .brd-blue { border-color: #90b8f8 !important; }
+
+  /* green — SPT */
+  .bh-grn { background: #e6f4ea; }
+  .bi-grn { background: #b9dfbe; color: #1b5e20; }
+  .bb-grn { background: #2e7d32; color: #fff; }
+  .brd-grn { border-color: #93d19b !important; }
+
+  /* purple — pos embed / norm */
+  .bh-pur { background: #f0e8fc; }
+  .bi-pur { background: #dcc6f5; color: #4a148c; }
+  .bb-pur { background: #6a1b9a; color: #fff; }
+  .sb-pur { border-color: #c49de8; color: #4a148c; background: #f7f0fd; }
+  .brd-pur { border-color: #c49de8 !important; }
+
+  /* orange — decoder block */
+  .bh-org { background: #fef3e2; }
+  .bi-org { background: #fddba8; color: #bf360c; }
+  .bb-org { background: #e64a19; color: #fff; }
+  .brd-org { border-color: #f8b97a !important; }
+
+  /* teal — pixel head */
+  .bh-tel { background: #e0f7fa; }
+  .bi-tel { background: #aadfe8; color: #006064; }
+  .bb-tel { background: #00838f; color: #fff; }
+  .sb-tel { border-color: #70cbd6; color: #006064; background: #e7f9fb; }
+  .brd-tel { border-color: #70cbd6 !important; }
+
+  /* ── Repeat bracket ── */
+  .repeat-wrapper { width: 100%; max-width: 730px; display: flex; align-items: stretch; }
+  .repeat-bracket { width: 20px; flex-shrink: 0; position: relative; }
+  .repeat-bracket::before {
+    content: ''; position: absolute; top: 0; bottom: 0; left: 8px;
+    width: 3px;
+    background: linear-gradient(to bottom, transparent, #e64a19 8%, #e64a19 92%, transparent);
+    border-radius: 3px;
+  }
+  .repeat-label {
+    position: absolute; top: 50%; left: -20px;
+    transform: translateY(-50%) rotate(-90deg);
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: #bf360c; white-space: nowrap; font-weight: 700;
+  }
+  .repeat-content {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; gap: 0; padding-left: 14px;
+  }
+
+  /* ── Inner columns ── */
+  .inner-row { display: flex; gap: 10px; width: 100%; }
+  .inner-col { flex: 1; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; background: #fff; }
+  .inner-col-header {
+    padding: 7px 12px; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .inner-col-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; background: #fafbfc; }
+  .mini-block {
+    padding: 6px 10px; border-radius: 5px; font-size: 9px;
+    border: 1px solid var(--border); color: var(--text-md);
+    background: #fff; line-height: 1.4;
+  }
+  .mini-arrow { text-align: center; color: var(--dim); font-size: 11px; line-height: 1; }
+  .residual-note {
+    font-size: 8px; color: var(--dim); text-align: center;
+    padding: 4px 6px; border: 1px dashed var(--border-md);
+    border-radius: 4px; background: #f4f6f8;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    margin-top: 44px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px;
+  }
+  .legend-item {
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 13px 15px; background: var(--panel); font-size: 10px;
+    box-shadow: 0 1px 4px var(--shadow);
+  }
+  .legend-item b { display: block; margin-bottom: 5px; font-size: 11px; }
+  .legend-item p { color: var(--dim); line-height: 1.6; }
+
+  /* tooltip */
+  .block[data-tip]:hover::after {
+    content: attr(data-tip); position: absolute;
+    bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+    background: #1a202c; color: #fff; font-size: 10px;
+    padding: 6px 11px; border-radius: 5px; white-space: nowrap;
+    pointer-events: none; z-index: 10;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(12px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+  .flow > * { animation: fadeUp 0.35s ease both; }
+  .flow > *:nth-child(1)  { animation-delay:0.04s; }
+  .flow > *:nth-child(2)  { animation-delay:0.09s; }
+  .flow > *:nth-child(3)  { animation-delay:0.14s; }
+  .flow > *:nth-child(4)  { animation-delay:0.19s; }
+  .flow > *:nth-child(5)  { animation-delay:0.24s; }
+  .flow > *:nth-child(6)  { animation-delay:0.29s; }
+  .flow > *:nth-child(7)  { animation-delay:0.34s; }
+  .flow > *:nth-child(8)  { animation-delay:0.39s; }
+  .flow > *:nth-child(9)  { animation-delay:0.44s; }
+  .flow > *:nth-child(10) { animation-delay:0.49s; }
+  .flow > *:nth-child(11) { animation-delay:0.54s; }
+  .flow > *:nth-child(12) { animation-delay:0.59s; }
+  .flow > *:nth-child(13) { animation-delay:0.64s; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="tag">// Vision Transformer · Architecture Diagram</div>
+    <h1>Small<span>Data</span>DecoderViT</h1>
+    <div class="subtitle">Decoder-only ViT with SPT · LSA · LayerScale · DropPath — tuned for ~2 000 samples</div>
+  </header>
+
+  <div class="params-row">
+    <div class="pill">in_channels <b>1</b></div>
+    <div class="pill">img_size <b>457</b></div>
+    <div class="pill">padded_size <b>464</b></div>
+    <div class="pill">patch_size <b>16</b></div>
+    <div class="pill">grid <b>29 × 29</b></div>
+    <div class="pill">N patches <b>841</b></div>
+    <div class="pill">embed_dim <b>192</b></div>
+    <div class="pill">depth <b>6</b></div>
+    <div class="pill">num_heads <b>3</b></div>
+    <div class="pill">head_dim <b>64</b></div>
+    <div class="pill">mlp_ratio <b>4×</b></div>
+    <div class="pill">proj_drop <b>0.1</b></div>
+    <div class="pill">drop_path_rate <b>0.05</b></div>
+    <div class="pill">ls_init <b>1e-4</b></div>
+  </div>
+
+  <div class="flow">
+
+    <!-- INPUT -->
+    <div class="block brd-blue" data-tip="Raw distance matrix for one trading day">
+      <div class="block-header bh-blue">
+        <div class="block-icon bi-blue">⬛</div>
+        <div class="block-title">Input Tensor</div>
+        <div class="block-badge bb-blue">entry point</div>
+      </div>
+      <div class="block-body">
+        <div class="sub-row">
+          <div class="sub-block sb-blue">B × 1 × 457 × 457</div>
+          <div class="sub-arrow">→</div>
+          <div class="formula">float32 &nbsp;z-scored distance matrix</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow" style="position:relative">
+      <span class="arrow-label">reflect pad 457 → 464</span>
+    </div>
+
+    <!-- SPT -->
+    <div class="block brd-grn" data-tip="Shifted-patch tokenisation: 5 crops concatenated per patch">
+      <div class="block-header bh-grn">
+        <div class="block-icon bi-grn">🔲</div>
+        <div class="block-title">Shifted Patch Tokenization (SPT)</div>
+        <div class="block-badge bb-grn">patch embed</div>
+      </div>
+      <div class="block-body">
+        <div class="sub-row">
+          <div class="sub-block">original</div>
+          <div class="sub-block">shift ↑ p/2</div>
+          <div class="sub-block">shift ↓ p/2</div>
+          <div class="sub-block">shift ← p/2</div>
+          <div class="sub-block">shift → p/2</div>
+        </div>
+        <div class="sub-row">
+          <div class="formula">concat 5 crops → (B, 841, 5×1×16×16) = (B, 841, 1280)</div>
+        </div>
+        <div class="sub-row">
+          <div class="sub-block">LayerNorm</div>
+          <div class="sub-arrow">→</div>
+          <div class="sub-block">Linear 1280→384</div>
+          <div class="sub-arrow">→</div>
+          <div class="sub-block">GELU</div>
+          <div class="sub-arrow">→</div>
+          <div class="sub-block">Linear 384→192</div>
+        </div>
+        <div class="sub-row">
+          <div class="formula">output: (B, 841, 192)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow" style="position:relative">
+      <span class="arrow-label">element-wise add</span>
+    </div>
+
+    <!-- POS EMBED -->
+    <div class="block brd-pur" data-tip="Learned absolute positional embeddings, one per patch">
+      <div class="block-header bh-pur">
+        <div class="block-icon bi-pur">📍</div>
+        <div class="block-title">Positional Embedding</div>
+        <div class="block-badge bb-pur">learned</div>
+      </div>
+      <div class="block-body">
+        <div class="sub-row">
+          <div class="sub-block sb-pur">nn.Parameter (1, 841, 192)</div>
+          <div class="sub-arrow">→</div>
+          <div class="formula">init: trunc_normal(std=0.02)</div>
+        </div>
+        <div class="sub-row">
+          <div class="formula">tokens = tokens + pos_embed &nbsp;→&nbsp; (B, 841, 192)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <!-- ×6 DECODER BLOCKS -->
+    <div class="repeat-wrapper">
+      <div class="repeat-bracket">
+        <div class="repeat-label">× 6 blocks</div>
+      </div>
+      <div class="repeat-content">
+        <div class="block brd-org" style="max-width:100%" data-tip="One DecoderBlock: LSA + FFN with residuals">
+          <div class="block-header bh-org">
+            <div class="block-icon bi-org">🔷</div>
+            <div class="block-title">
+              DecoderBlock
+              <span style="color:#9e4a00;font-size:10px;font-weight:400"> &nbsp;(stoch-depth linearly spaced 0 → 0.05)</span>
+            </div>
+            <div class="block-badge bb-org">×6</div>
+          </div>
+          <div class="block-body">
+            <div class="inner-row">
+
+              <!-- Attention branch -->
+              <div class="inner-col">
+                <div class="inner-col-header" style="color:#7b3a00;background:#fff0e0;">
+                  Attention Branch
+                </div>
+                <div class="inner-col-body">
+                  <div class="mini-block">
+                    LayerNorm <span style="color:var(--dim)">(192)</span>
+                  </div>
+                  <div class="mini-arrow">↓</div>
+                  <div class="mini-block" style="border-color:#f0a855;background:#fffaf3;">
+                    <span style="color:#7b3a00;font-weight:700;">Locality Self-Attention (LSA)</span>
+                    <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;">
+                      QKV proj: 192 → 3×192 (no bias)<br>
+                      heads=3 &nbsp;·&nbsp; head_dim=64<br>
+                      temp: learnable per-head scalar<br>
+                      bias: locality_weight × −‖Δcoord‖²<br>
+                      causal mask (lower-triangular)<br>
+                      softmax → attn_drop=0.0<br>
+                      out proj: 192 → 192
+                    </div>
+                  </div>
+                  <div class="mini-arrow">↓</div>
+                  <div class="mini-block" style="border-color:#c49de8;background:#f9f2ff;">
+                    <span style="color:#5b1a8a;font-weight:700;">LayerScale γ₁</span>
+                    <span style="color:var(--dim);font-size:8px;"> (init 1e-4, shape 192)</span>
+                  </div>
+                  <div class="mini-arrow">↓</div>
+                  <div class="mini-block" style="border-color:#90b8f8;background:#f0f5ff;">
+                    DropPath <span style="color:var(--dim)">(stoch depth)</span>
+                  </div>
+                  <div class="mini-arrow">↓</div>
+                  <div class="residual-note">⤷ residual add to input x</div>
+                </div>
+              </div>
+
+              <!-- FFN branch -->
+              <div class="inner-col">
+                <div class="inner-col-header" style="color:#1b5e20;background:#e8f5e9;">
+                  Feed-Forward Branch
+                </div>
+                <div class="inner-col-body">
+                  <div class="mini-block">
+                    LayerNorm <span style="color:var(--dim)">(192)</span>
+                  </div>
+                  <div class="mini-arrow">↓</div>
+                  <div class="mini-block" style="border-color:#93d19b;background:#f4fbf5;">
+                    <span style="color:#1b5e20;font-weight:700;">FeedForward MLP</span>
+                    <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;">
+                      Linear 192 → 768 (mlp_ratio=4×)<br>
+                      GELU<br>
+                      Dropout (0.1)<br>
+                      Linear 768 → 192<br>
+                      Dropout (0.1)
+                    </div>
+                  </div>
+                  <div class="mini-arrow">↓</div>
+                  <div class="mini-block" style="border-color:#c49de8;background:#f9f2ff;">
+                    <span style="color:#5b1a8a;font-weight:700;">LayerScale γ₂</span>
+                    <span style="color:var(--dim);font-size:8px;"> (init 1e-4, shape 192)</span>
+                  </div>
+                  <div class="mini-arrow">↓</div>
+                  <div class="mini-block" style="border-color:#90b8f8;background:#f0f5ff;">
+                    DropPath <span style="color:var(--dim)">(stoch depth)</span>
+                  </div>
+                  <div class="mini-arrow">↓</div>
+                  <div class="residual-note">⤷ residual add to post-attn x</div>
+                </div>
+              </div>
+
+            </div>
+            <div class="sub-row" style="margin-top:9px">
+              <div class="formula">output shape unchanged: (B, 841, 192)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <!-- FINAL NORM -->
+    <div class="block brd-pur">
+      <div class="block-header bh-pur">
+        <div class="block-icon bi-pur" style="font-style:normal;">≈</div>
+        <div class="block-title">Final LayerNorm</div>
+        <div class="block-badge bb-pur">post-transformer</div>
+      </div>
+      <div class="block-body">
+        <div class="sub-row">
+          <div class="sub-block sb-pur">LayerNorm (192)</div>
+          <div class="sub-arrow">→</div>
+          <div class="formula">(B, 841, 192)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow"></div>
+
+    <!-- PIXEL HEAD -->
+    <div class="block brd-tel" data-tip="Projects each token back to pixel values for its patch">
+      <div class="block-header bh-tel">
+        <div class="block-icon bi-tel">🖼</div>
+        <div class="block-title">Pixel Reconstruction Head</div>
+        <div class="block-badge bb-tel">decoder head</div>
+      </div>
+      <div class="block-body">
+        <div class="sub-row">
+          <div class="sub-block">Linear 192→192</div>
+          <div class="sub-arrow">→</div>
+          <div class="sub-block">GELU</div>
+          <div class="sub-arrow">→</div>
+          <div class="sub-block">Linear 192→256</div>
+        </div>
+        <div class="sub-row">
+          <div class="formula">patch_dim = 1×16×16 = 256 &nbsp;→&nbsp; (B, 841, 256)</div>
+        </div>
+        <div class="sub-row" style="margin-top:3px">
+          <div class="sub-block sb-tel">unpatchify</div>
+          <div class="sub-arrow">→</div>
+          <div class="formula">(B, 1, 464, 464) &nbsp;then crop&nbsp; → &nbsp;(B, 1, 457, 457)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow dim-arr"></div>
+
+    <!-- OUTPUT -->
+    <div class="block brd-blue">
+      <div class="block-header bh-blue">
+        <div class="block-icon bi-blue" style="font-style:normal;">✦</div>
+        <div class="block-title">Output Tensor</div>
+        <div class="block-badge bb-blue">prediction t+1</div>
+      </div>
+      <div class="block-body">
+        <div class="sub-row">
+          <div class="sub-block sb-blue">B × 1 × 457 × 457</div>
+          <div class="sub-arrow">→</div>
+          <div class="formula">predicted distance matrix at t+1 &nbsp;·&nbsp; MSE loss vs ground truth</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /flow -->
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item" style="border-top:3px solid #2e7d32;">
+      <b style="color:#1b5e20;">SPT — Shifted Patch Tokenization</b>
+      <p>Each patch token is enriched with 4 shifted neighbours before projection, providing local context without relying on attention.</p>
+    </div>
+    <div class="legend-item" style="border-top:3px solid #e64a19;">
+      <b style="color:#bf360c;">LSA — Locality Self-Attention</b>
+      <p>Full causal attention (no window) with a learnable per-head temperature and a Gaussian distance bias that softly prefers nearby patches.</p>
+    </div>
+    <div class="legend-item" style="border-top:3px solid #6a1b9a;">
+      <b style="color:#4a148c;">LayerScale</b>
+      <p>Per-channel scalar γ on each residual branch, initialised at 1e-4. Stabilises early training on small datasets.</p>
+    </div>
+    <div class="legend-item" style="border-top:3px solid #0288d1;">
+      <b style="color:#01579b;">DropPath (Stoch. Depth)</b>
+      <p>Rate increases linearly across blocks (0 → 0.05). Acts as an ensemble of shallower networks at training time.</p>
+    </div>
+    <div class="legend-item" style="border-top:3px solid #1565c0;">
+      <b style="color:#0d47a1;">Causal Mask</b>
+      <p>Upper-triangular −∞ mask enforces autoregressive ordering: patch i can only attend to patches 0…i.</p>
+    </div>
+    <div class="legend-item" style="border-top:3px solid #546e7a;">
+      <b style="color:#37474f;">Padding &amp; Crop</b>
+      <p>457 is not divisible by 16. Reflect-pad to 464 before tokenisation, then crop back to 457×457 after reconstruction.</p>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
+
