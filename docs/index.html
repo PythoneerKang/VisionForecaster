@@ -47,6 +47,18 @@
   h1 span { color: #1565c0; }
   .subtitle { margin-top: 7px; font-size: 11px; color: var(--dim); }
 
+  /* ── Header links ── */
+  .header-links { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; align-items: center; }
+  .header-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 10px; padding: 5px 12px; border-radius: 5px;
+    text-decoration: none; font-weight: 600; letter-spacing: 0.5px;
+    border: 1.5px solid; transition: opacity 0.15s, transform 0.1s;
+  }
+  .header-link:hover { opacity: 0.8; transform: translateY(-1px); }
+  .header-link-gh { background: #1a202c; color: #fff; border-color: #1a202c; }
+  .header-link-paper { background: #fff; color: #1565c0; border-color: #90b8f8; }
+
   /* ── Pills ── */
   .params-row { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 32px; }
   .pill {
@@ -212,6 +224,32 @@
   .legend-item b { display: block; margin-bottom: 5px; font-size: 11px; }
   .legend-item p { color: var(--dim); line-height: 1.6; }
 
+  /* ── Citation ── */
+  .citation-box {
+    margin-top: 28px; border: 1px solid var(--border);
+    border-radius: 8px; background: var(--panel);
+    padding: 14px 18px; font-size: 10px; color: var(--dim);
+    box-shadow: 0 1px 4px var(--shadow);
+    border-left: 3px solid #1565c0;
+  }
+  .citation-box .cite-label {
+    font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
+    color: #1565c0; margin-bottom: 8px; font-weight: 700;
+  }
+  .citation-box .cite-title {
+    color: var(--text); font-size: 11px; font-weight: 600;
+    margin-bottom: 4px; line-height: 1.4;
+  }
+  .citation-box .cite-authors { margin-bottom: 6px; line-height: 1.6; }
+  .citation-box a { color: #1565c0; text-decoration: none; }
+  .citation-box a:hover { text-decoration: underline; }
+  .cite-badge {
+    display: inline-block; background: #eef4ff; border: 1px solid #90b8f8;
+    color: #0d47a1; border-radius: 3px; padding: 2px 7px;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+    margin-right: 6px;
+  }
+
   /* tooltip */
   .block[data-tip]:hover::after {
     content: attr(data-tip); position: absolute;
@@ -249,6 +287,16 @@
     <div class="tag">// Vision Transformer · Architecture Diagram</div>
     <h1>Small<span>Data</span>DecoderViT</h1>
     <div class="subtitle">Decoder-only ViT with SPT · LSA · LayerScale · DropPath — tuned for ~2 000 samples</div>
+    <div class="header-links">
+      <a class="header-link header-link-gh" href="https://github.com/PythoneerKang/VisionForecaster" target="_blank" rel="noopener">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        View on GitHub
+      </a>
+      <a class="header-link header-link-paper" href="https://arxiv.org/abs/2112.13492" target="_blank" rel="noopener">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Inspiration Paper (arXiv:2112.13492)
+      </a>
+    </div>
   </header>
 
   <div class="params-row">
@@ -539,7 +587,18 @@
     </div>
   </div>
 
+  <!-- Citation -->
+  <div class="citation-box">
+    <div class="cite-label">// Inspiration</div>
+    <div class="cite-title">Vision Transformer for Small-Size Datasets</div>
+    <div class="cite-authors">
+      Seung Hoon Lee, Seunghyun Lee, Byung Cheol Song &nbsp;·&nbsp; 2021
+    </div>
+    <span class="cite-badge">arXiv:2112.13492</span>
+    The SPT and LSA techniques used in this architecture are adapted from this work, which introduced locality inductive bias mechanisms enabling ViTs to train effectively on small datasets without large-scale pre-training.
+    &nbsp;<a href="https://arxiv.org/abs/2112.13492" target="_blank" rel="noopener">→ View on arXiv</a>
+  </div>
+
 </div>
 </body>
 </html>
-
