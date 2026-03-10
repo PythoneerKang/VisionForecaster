@@ -27,15 +27,17 @@ if __name__ == "__main__":
     )
 
     # Training and validation with multi-fold CV (builds each fold on-the-fly)
-    #model_path, all_fold_history = diff_model_multi_fold_cv_train_test(distance_matrix)
+    model_path, all_fold_history = diff_model_multi_fold_cv_train_test(distance_matrix)
 
-    model_path = "best_model_w180_fold_9.pth"
+    #model_path = "best_model_w180_fold_9.pth"
+
+        # ── Add to main.py after diff_model_multi_fold_cv_train_test() ──────────────
 
     from model_interpretability import ModelInterpreter, plot_fold_summary
     from transformer import SmallDataDecoderViT
 
     # 1. Training summary across all folds
-    #plot_fold_summary(all_fold_history, save_path="fold_summary.png")
+    plot_fold_summary(all_fold_history, save_path="fold_summary.png")
 
     # 2. Load the best model
     best_model = SmallDataDecoderViT(
@@ -72,7 +74,7 @@ if __name__ == "__main__":
     interp.plot_locality_weights()
     interp.plot_locality_bias_scale(sample_x)   # ← diagnoses overfocusing risk
     interp.plot_prediction_error_map(sample_x, sample_y)
-        
+
     # plot_train_val_res(all_fold_history)
 
     # #Finally, testing.

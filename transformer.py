@@ -18,6 +18,12 @@ Key modifications for small-data regimes
    naturally preferred early in training, preventing attention collapse on
    small datasets.
 
+   NOTE: No causal mask is applied within a single frame. The 29×29 patch grid
+   represents spatial positions within one distance matrix (one trading day),
+   not a temporal sequence — every patch may attend to every other patch freely.
+   Temporal ordering is enforced at the data level (the model is trained on
+   consecutive day pairs t → t+1), not inside the attention mechanism.
+
 3. Stochastic Depth (DropPath)
    Per-layer stochastic depth acts as a powerful regularizer equivalent to an
    ensemble of shallower networks.
@@ -55,17 +61,22 @@ def _next_multiple(n: int, d: int) -> int:
     return math.ceil(n / d) * d
 
 
-def _make_causal_mask(n: int, device: torch.device) -> torch.Tensor:
-    """Additive causal mask: upper triangle = -inf, rest = 0."""
-    return torch.triu(torch.full((n, n), float("-inf"), device=device), diagonal=1)
-
-
 def _gaussian_distance_bias(grid_h: int, grid_w: int, device: torch.device) -> torch.Tensor:
     """
-    Returns a (N, N) matrix of negative squared L2 distances between patch
-    centre coordinates (normalised to [0,1]).  Added to attention logits so
-    nearby patches get a boost.  Learnable temperature scales it during
-    training.
+    Returns a (N, N) matrix of *normalised* negative squared L2 distances
+    between patch centre coordinates.
+
+    Values lie in [-1, 0]:
+      -  0 on the diagonal (same patch, distance = 0)
+      - -1 for the maximally distant patch pair (corner to corner)
+
+    Normalising to [-1, 0] makes locality_weight a true interpolation knob:
+      locality_weight = 0  →  no spatial bias (pure content attention)
+      locality_weight = k  →  distant patches suppressed by up to k logit units
+
+    Without normalisation the raw squared distances scale as O(G²) (up to ~1568
+    for a 29×29 grid), which caused the bias to dominate the attention logits
+    and led to severe overfocusing (ratio > 5× in all blocks).
     """
     gy, gx = torch.meshgrid(
         torch.linspace(0, 1, grid_h, device=device),
@@ -75,7 +86,7 @@ def _gaussian_distance_bias(grid_h: int, grid_w: int, device: torch.device) -> t
     coords = torch.stack([gy.flatten(), gx.flatten()], dim=-1)  # (N, 2)
     diff   = coords.unsqueeze(0) - coords.unsqueeze(1)           # (N, N, 2)
     dist2  = (diff ** 2).sum(-1)                                  # (N, N)
-    return -dist2                                                  # (N, N)
+    return -dist2 / dist2.max()                                   # (N, N) in [-1, 0]
 
 
 # ============================================================
@@ -177,13 +188,18 @@ class ShiftedPatchTokenization(nn.Module):
 
 class LocalitySelfAttention(nn.Module):
     """
-    Multi-head causal self-attention with:
+    Multi-head self-attention with:
       - Learnable per-head temperature (replaces fixed sqrt(d_k) scaling)
-      - Additive Gaussian spatial locality bias (pre-computed per forward call)
-      - Causal (lower-triangular) masking
+      - Additive Gaussian spatial locality bias (normalised to [-1, 0])
 
-    The locality bias smoothly interpolates between purely local and global
-    attention as temperature and bias weight are learned.
+    No causal mask is applied here. The 841 tokens (29×29) represent spatial
+    patch positions within a *single* distance matrix snapshot (one trading
+    day). There is no temporal ordering within a frame, so every patch should
+    be free to attend to every other patch. Temporal ordering is handled at
+    the data level: the model receives day t as input and predicts day t+1.
+
+    The locality bias softly encourages attention to nearby patches and can be
+    fully learned away if the task benefits from global attention.
     """
 
     def __init__(
@@ -217,7 +233,7 @@ class LocalitySelfAttention(nn.Module):
         self.proj      = nn.Linear(embed_dim, embed_dim)
         self.attn_drop = nn.Dropout(attn_drop)
 
-        # Cached locality bias (rebuilt if grid changes)
+        # Cached locality bias (rebuilt if device changes)
         self._cached_bias: Optional[torch.Tensor] = None
         self._cached_device: Optional[torch.device] = None
 
@@ -225,7 +241,7 @@ class LocalitySelfAttention(nn.Module):
         if self._cached_bias is None or self._cached_device != device:
             self._cached_bias   = _gaussian_distance_bias(self.grid_h, self.grid_w, device)
             self._cached_device = device
-        return self._cached_bias  # (N, N)
+        return self._cached_bias  # (N, N), values in [-1, 0]
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         B, N, C = x.shape
@@ -237,12 +253,14 @@ class LocalitySelfAttention(nn.Module):
         scale = self.temperature.exp()                     # (H, 1, 1)
         attn  = (q @ k.transpose(-2, -1)) * scale         # (B, H, N, N)
 
-        # Locality bias
-        loc = self._locality_bias(x.device)                # (N, N)
-        attn = attn + self.locality_weight * loc           # broadcast
+        # Additive locality bias: nearby patches get a boost, far ones a penalty.
+        # Bias is normalised to [-1, 0] so locality_weight is interpretable as
+        # "how many logit units to penalise the most distant patch".
+        loc  = self._locality_bias(x.device)               # (N, N)
+        attn = attn + self.locality_weight * loc           # broadcast over (B, H)
 
-        # Causal mask
-        attn = attn + _make_causal_mask(N, x.device)       # (N, N) broadcast
+        # NOTE: No causal mask. Patches represent spatial positions within a
+        # single frame, not a time series — full bidirectional attention is correct.
 
         attn = attn.softmax(dim=-1)
         attn = self.attn_drop(attn)
@@ -455,7 +473,7 @@ class SmallDataDecoderViT(nn.Module):
         tokens = self.patch_embed(x_pad)            # (B, N, embed_dim)
         tokens = tokens + self.pos_embed
 
-        # 2. Decoder blocks (causal LSA inside each)
+        # 2. Transformer blocks (full bidirectional attention in each)
         for blk in self.blocks:
             tokens = blk(tokens)
         tokens = self.norm(tokens)

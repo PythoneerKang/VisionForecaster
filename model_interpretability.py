@@ -46,7 +46,11 @@ from typing import List, Dict, Optional
 
 class _AttentionHook:
     """Registers a forward hook on a LocalitySelfAttention layer to capture
-    the full attention weight tensor (B, H, N, N)."""
+    the full attention weight tensor (B, H, N, N).
+
+    NOTE: No causal mask is applied here, matching the updated model which uses
+    full bidirectional attention within each spatial frame.
+    """
 
     def __init__(self):
         self.weights: Optional[torch.Tensor] = None
@@ -57,7 +61,8 @@ class _AttentionHook:
         return self
 
     def _hook(self, module, inputs, output):
-        # Re-run the attention *without* dropout so weights are deterministic
+        # Re-run the attention *without* dropout so weights are deterministic.
+        # No causal mask — patches are spatial positions, not a time series.
         x = inputs[0]
         B, N, C = x.shape
         qkv = module.qkv(x).reshape(B, N, 3, module.num_heads, module.head_dim)
@@ -66,8 +71,7 @@ class _AttentionHook:
         attn = (q @ k.transpose(-2, -1)) * scale
         loc = module._locality_bias(x.device)
         attn = attn + module.locality_weight * loc
-        causal = torch.triu(torch.full((N, N), float("-inf"), device=x.device), diagonal=1)
-        attn = attn + causal
+        # No causal mask applied (full bidirectional attention within frame)
         self.weights = attn.softmax(dim=-1).detach().cpu()  # (B, H, N, N)
 
     def remove(self):
@@ -135,6 +139,9 @@ class ModelInterpreter:
         *query_patch* token to all other tokens, reshaped to the 2-D grid.
         If query_patch is None, the centre patch is used.
 
+        Attention is fully bidirectional (no causal mask) — all patches in
+        the 29×29 spatial grid can attend to each other.
+
         Parameters
         ----------
         x            : Input tensor (B, C, H, W) — only first sample is used.
@@ -156,7 +163,7 @@ class ModelInterpreter:
         axes = np.array(axes).flatten()
         fig.suptitle(
             f"Attention maps — Block {layer+1}  |  Query patch {query_patch}  "
-            f"({gh}×{gw} grid)",
+            f"({gh}×{gw} grid, full bidirectional)",
             fontsize=12, fontweight="bold",
         )
 
@@ -190,14 +197,13 @@ class ModelInterpreter:
         between query and key weighted by attention probability.  Low values
         = locally focused; high values = globally attending.
 
-        Also computes two exact baselines from the distance matrix itself:
-          - Uniform baseline: mean pairwise L2 distance under uniform attention
-            (i.e. what you'd expect if the model attends randomly).
-          - Causal-uniform baseline: same, but restricted to the lower triangle
-            (i.e. uniform attention under the causal mask your model uses).
-        These are printed to stdout and drawn as reference lines on a companion
-        bar chart so you can judge whether each head is more local or more
-        global than chance.
+        Baselines computed:
+          - Uniform baseline: mean pairwise L2 distance under fully uniform
+            attention over all N patches (no mask).
+
+        NOTE: The causal-uniform baseline has been removed since the model no
+        longer uses a causal mask. The relevant comparison is now purely
+        against the uniform (unmasked) baseline.
 
         Produces two figures:
           1. Heat-map of shape (depth, num_heads)  [filename]
@@ -214,30 +220,18 @@ class ModelInterpreter:
         coords = torch.stack([cy.flatten(), cx.flatten()], dim=-1)  # (N, 2)
         dist_mat = torch.cdist(coords, coords, p=2).numpy()          # (N, N)
 
-        # ── Exact baselines ────────────────────────────────────────────────
-        # 1. Uniform baseline: every (query, key) pair equally weighted
+        # ── Uniform baseline (no mask) ─────────────────────────────────────
+        # Every (query, key) pair is equally weighted — what you'd expect
+        # if the model attends uniformly over all N patches.
         uniform_baseline = dist_mat.mean()
-
-        # 2. Causal-uniform baseline: lower triangle only (key <= query),
-        #    matching what the causal mask allows.  Each row q has (q+1) valid
-        #    keys (0..q), so we weight accordingly.
-        causal_sum = 0.0
-        causal_count = 0
-        for q in range(N):
-            # keys 0..q are visible; key == q contributes distance 0
-            causal_sum += dist_mat[q, : q + 1].sum()
-            causal_count += q + 1
-        causal_baseline = causal_sum / causal_count
 
         print(f"\n── Mean Attention Distance Baselines (grid={gh}×{gw}, N={N}) ──")
         print(f"  Max possible L2 distance : {dist_mat.max():.4f}  "
               f"(corner-to-corner = {gh-1}√2 ≈ {(gh-1)*2**0.5:.4f})")
         print(f"  Uniform-attention baseline: {uniform_baseline:.4f}  "
-              f"(expected distance if model attends uniformly over all N patches)")
-        print(f"  Causal-uniform  baseline  : {causal_baseline:.4f}  "
-              f"(expected distance under uniform attention + causal mask)")
-        print(f"  → Values below {causal_baseline:.1f} indicate the model is MORE local than chance.")
-        print(f"  → Values above {causal_baseline:.1f} indicate the model is MORE global than chance.\n")
+              f"(expected distance if model attends uniformly, no mask)")
+        print(f"  → Values below {uniform_baseline:.1f} indicate the model is MORE local than chance.")
+        print(f"  → Values above {uniform_baseline:.1f} indicate the model is MORE global than chance.\n")
 
         # ── Compute per-(layer, head) mean attention distance ──────────────
         mean_dist = np.zeros((depth, self._blocks()[0].attn.num_heads))
@@ -260,9 +254,8 @@ class ModelInterpreter:
         ax.set_xlabel("Attention Head")
         ax.set_title(
             f"Mean Attention Distance (patch hops)  —  grid {gh}×{gw}\n"
-            f"Causal-uniform baseline = {causal_baseline:.2f}  |  "
             f"Uniform baseline = {uniform_baseline:.2f}  |  "
-            f"Max = {dist_mat.max():.2f}",
+            f"Max = {dist_mat.max():.2f}  |  (full bidirectional, no causal mask)",
             fontweight="bold", fontsize=9,
         )
         fig.colorbar(im, ax=ax, label="mean hop distance")
@@ -270,7 +263,6 @@ class ModelInterpreter:
         for l in range(depth):
             for h in range(H):
                 val = mean_dist[l, h]
-                # White text if cell is dark, black if light
                 text_col = "white" if val > dist_mat.max() * 0.6 else "black"
                 ax.text(h, l, f"{val:.1f}", ha="center", va="center",
                         fontsize=8, color=text_col, fontweight="bold")
@@ -278,7 +270,7 @@ class ModelInterpreter:
         plt.tight_layout()
         self._savefig(fig, filename)
 
-        # ── Figure 2: bar chart (mean across heads, per layer) + baselines ─
+        # ── Figure 2: bar chart (mean across heads, per layer) + baseline ──
         mean_per_layer = mean_dist.mean(axis=1)   # (depth,)
         bar_filename = "bar_" + filename
 
@@ -289,8 +281,6 @@ class ModelInterpreter:
 
         ax2.axhline(uniform_baseline, color="#E53935", linewidth=1.5,
                     linestyle="--", label=f"Uniform baseline ({uniform_baseline:.2f})")
-        ax2.axhline(causal_baseline, color="#FB8C00", linewidth=1.5,
-                    linestyle="-.", label=f"Causal-uniform baseline ({causal_baseline:.2f})")
         ax2.axhline(0, color="black", linewidth=0.6)
 
         for bar, val in zip(bars, mean_per_layer):
@@ -300,9 +290,9 @@ class ModelInterpreter:
         ax2.set_xlabel("Block")
         ax2.set_ylabel("Mean attention distance (patch hops)")
         ax2.set_title(
-            "Mean Attention Distance per Block vs Baselines\n"
-            "Below causal-uniform → more local than chance  |  "
-            "Above → more global than chance",
+            "Mean Attention Distance per Block vs Uniform Baseline\n"
+            "Below uniform → more local than chance  |  "
+            "Above → more global than chance  |  (no causal mask)",
             fontweight="bold",
         )
         ax2.set_xticks(x_pos)
@@ -406,6 +396,10 @@ class ModelInterpreter:
 
         Positive & large → model leans on spatial proximity (local).
         Near zero / negative → model ignores or suppresses locality bias.
+
+        With the normalised bias (values in [-1, 0]), locality_weight now acts
+        as a direct logit-units knob: locality_weight=k means the most distant
+        patch is suppressed by k logit units relative to the same patch.
         """
         blocks = self._blocks()
         weights = [blk.attn.locality_weight.item() for blk in blocks]
@@ -416,9 +410,10 @@ class ModelInterpreter:
         bars = ax.bar(x, weights, color=colors, edgecolor="white", linewidth=0.5)
         ax.axhline(0, color="black", linewidth=0.8)
         ax.set_xlabel("Block")
-        ax.set_ylabel("Locality weight")
+        ax.set_ylabel("Locality weight (logit units, normalised bias)")
         ax.set_title("Learned Locality Bias Weight per Block\n"
-                     "Green (+) = prefers local attention  |  Red (−) = suppresses it",
+                     "Green (+) = prefers local attention  |  Red (−) = suppresses it\n"
+                     "(bias normalised to [−1, 0]: weight = max logit suppression for farthest patch)",
                      fontweight="bold")
         ax.set_xticks(x)
         for bar, val in zip(bars, weights):
@@ -445,6 +440,11 @@ class ModelInterpreter:
           - bias_max    : max absolute value of (locality_weight × bias matrix)
           - ratio       : bias_max / logit_std  ← the key number
 
+        The bias is now normalised to [-1, 0], so bias_max = |locality_weight|.
+        The ratio interpretation is the same as before, but ratios should now be
+        much lower (~1× range) because the raw unnormalised bias (which reached
+        up to 1568 for a 29×29 grid) has been collapsed to [0, 1].
+
         Ratio interpretation
         --------------------
         < 1×   : bias is weak — locality barely affects attention
@@ -453,16 +453,12 @@ class ModelInterpreter:
         > 20×  : severe overfocusing — distant patches are effectively dead keys
 
         Also prints a per-block summary table to stdout.
-
-        If any block has ratio > 5, a warning is printed recommending that the
-        locality bias be normalised in transformer.py (see note in output).
         """
         blocks = self._blocks()
         depth  = len(blocks)
         gh, gw = self._grid()
         N      = gh * gw
 
-        # Storage
         logit_stds  = np.zeros(depth)
         logit_mins  = np.zeros(depth)
         logit_maxs  = np.zeros(depth)
@@ -480,9 +476,9 @@ class ModelInterpreter:
                 qkv = module.qkv(inp).reshape(B, N_, 3, module.num_heads, module.head_dim)
                 q, k, v = qkv.permute(2, 0, 3, 1, 4).unbind(0)
 
-                scale       = module.temperature.exp()                    # (H,1,1)
-                raw_logits  = (q @ k.transpose(-2, -1)) * scale           # (B,H,N,N)
-                loc         = module._locality_bias(inp.device)           # (N,N)
+                scale       = module.temperature.exp()
+                raw_logits  = (q @ k.transpose(-2, -1)) * scale
+                loc         = module._locality_bias(inp.device)           # (N,N) in [-1,0]
                 bias        = (module.locality_weight * loc).detach().cpu().numpy()
 
                 raw_np = raw_logits.detach().cpu().numpy()
@@ -491,7 +487,7 @@ class ModelInterpreter:
                 logit_mins[idx] = float(raw_np.min())
                 logit_maxs[idx] = float(raw_np.max())
                 bias_maxs[idx]  = float(np.abs(bias).max())
-                bias_mins[idx]  = float(bias.min())          # most negative = farthest patch
+                bias_mins[idx]  = float(bias.min())
                 lw_vals[idx]    = module.locality_weight.item()
                 ratios[idx]     = bias_maxs[idx] / (logit_stds[idx] + 1e-8)
             return hook
@@ -507,9 +503,8 @@ class ModelInterpreter:
 
         # ── Print table ───────────────────────────────────────────────────
         print("\n── Locality Bias Scale Diagnostic ──────────────────────────────────")
-        print(f"  Grid: {gh}×{gw}  |  N={N} patches")
-        print(f"  Raw bias range (unnormalised): 0  to  -{(gh-1)**2 + (gw-1)**2}  "
-              f"(= -[(G-1)²+(G-1)²])")
+        print(f"  Grid: {gh}×{gw}  |  N={N} patches  |  bias normalised to [−1, 0]")
+        print(f"  bias_max = |locality_weight| × 1.0  (normalised corner-to-corner)")
         print()
         header = (f"  {'Block':>5}  {'lw':>7}  {'logit_std':>10}  "
                   f"{'bias_max':>9}  {'bias_min':>9}  {'ratio':>7}  {'verdict':}")
@@ -530,49 +525,45 @@ class ModelInterpreter:
             if ratios[i] >= 5:
                 any_severe = True
             print(f"  {i+1:>5}  {lw_vals[i]:>7.4f}  {logit_stds[i]:>10.4f}  "
-                  f"{bias_maxs[i]:>9.2f}  {bias_mins[i]:>9.2f}  "
-                  f"{ratios[i]:>7.1f}x  {verdict}")
+                  f"{bias_maxs[i]:>9.4f}  {bias_mins[i]:>9.4f}  "
+                  f"{ratios[i]:>7.2f}x  {verdict}")
 
         print()
         if any_severe:
             print("  ⚠  One or more blocks have ratio ≥ 5.")
-            print("     The locality bias likely dominates the logits, causing overfocusing.")
-            print("     Recommended fix in transformer.py → _gaussian_distance_bias():")
-            print("         return -dist2 / dist2.max()   # normalise to [-1, 0]")
-            print("     This makes locality_weight a true [0,1] interpolation knob.")
+            print("     Consider reducing locality_strength initialisation or")
+            print("     adding a max-value clamp on locality_weight during training.")
         else:
             print("  ✓  All ratios < 5 — locality bias is not dominating.")
         print("─" * 68 + "\n")
 
-        # ── Figure: two subplots ──────────────────────────────────────────
+        # ── Figure ───────────────────────────────────────────────────────
         x_pos = np.arange(1, depth + 1)
 
         fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(max(8, depth + 2), 8),
                                         sharex=True)
 
-        # Top: logit std vs bias max (absolute scale)
         ax1.bar(x_pos - 0.2, logit_stds, width=0.35, label="Logit std (pre-bias)",
                 color="#5C8DD6", edgecolor="white")
-        ax1.bar(x_pos + 0.2, bias_maxs,  width=0.35, label="Bias max |lw × bias|",
+        ax1.bar(x_pos + 0.2, bias_maxs,  width=0.35, label="Bias max |lw × bias| (normalised)",
                 color="#E57373", edgecolor="white")
         ax1.set_ylabel("Magnitude")
         ax1.set_title("Attention Logit Std  vs  Locality Bias Magnitude\n"
-                      "If red bars >> blue bars → bias dominates → overfocusing",
+                      "Bias normalised to [−1,0]: red bars should now be ≤ blue bars",
                       fontweight="bold")
         ax1.legend(fontsize=8)
         ax1.grid(axis="y", alpha=0.3)
 
-        # Bottom: ratio with threshold bands
         ratio_colors = []
         for r in ratios:
             if r < 1:
-                ratio_colors.append("#4CAF50")    # green  — weak
+                ratio_colors.append("#4CAF50")
             elif r < 5:
-                ratio_colors.append("#FFC107")    # amber  — moderate
+                ratio_colors.append("#FFC107")
             elif r < 20:
-                ratio_colors.append("#FF7043")    # orange — strong
+                ratio_colors.append("#FF7043")
             else:
-                ratio_colors.append("#D32F2F")    # red    — severe
+                ratio_colors.append("#D32F2F")
 
         bars2 = ax2.bar(x_pos, ratios, color=ratio_colors, edgecolor="white")
         ax2.axhline(1,  color="#4CAF50", linewidth=1.2, linestyle="--",
@@ -582,8 +573,8 @@ class ModelInterpreter:
         ax2.axhline(20, color="#D32F2F", linewidth=1.2, linestyle="--",
                     label="20× — severe overfocusing")
         for bar, val in zip(bars2, ratios):
-            ax2.text(bar.get_x() + bar.get_width() / 2, val + 0.3,
-                     f"{val:.1f}×", ha="center", va="bottom", fontsize=8)
+            ax2.text(bar.get_x() + bar.get_width() / 2, val + 0.01,
+                     f"{val:.2f}×", ha="center", va="bottom", fontsize=8)
         ax2.set_xlabel("Block")
         ax2.set_ylabel("Ratio  bias_max / logit_std")
         ax2.set_title("Bias / Logit Ratio per Block  (higher = more overfocusing risk)",
@@ -658,11 +649,9 @@ def plot_fold_summary(
     fig = plt.figure(figsize=(max(18, 3 * n_folds), 12))
     gs = gridspec.GridSpec(3, n_folds, figure=fig, hspace=0.45, wspace=0.3)
 
-    # Rows 1 & 2: per-fold curves
     for i, fh in enumerate(all_fold_history):
         epochs = np.arange(1, len(fh["train_mse"]) + 1)
 
-        # MSE
         ax_mse = fig.add_subplot(gs[0, i])
         ax_mse.plot(epochs, fh["train_mse"], alpha=0.55, color=cmap(i), linewidth=1.2,
                     label="Train")
@@ -674,7 +663,6 @@ def plot_fold_summary(
         ax_mse.tick_params(labelsize=7)
         ax_mse.legend(fontsize=6)
 
-        # R²
         ax_r2 = fig.add_subplot(gs[1, i])
         r2_train = [t.item() if hasattr(t, "item") else t for t in fh["train_r2"]]
         r2_val   = [t.item() if hasattr(t, "item") else t for t in fh["val_r2"]]
@@ -686,7 +674,6 @@ def plot_fold_summary(
         ax_r2.set_xlabel("Epoch", fontsize=7)
         ax_r2.tick_params(labelsize=7)
 
-    # Row 3: final epoch comparison bar charts
     ax_bar_mse = fig.add_subplot(gs[2, : n_folds // 2])
     ax_bar_r2  = fig.add_subplot(gs[2, n_folds // 2 :])
 
