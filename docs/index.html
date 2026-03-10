@@ -513,8 +513,9 @@
                       QKV proj: 192 → 3×192 (no bias)<br>
                       heads=3 &nbsp;·&nbsp; head_dim=64<br>
                       temp: learnable per-head scalar<br>
-                      bias: locality_weight × −‖Δcoord‖²<br>
-                      causal mask (lower-triangular)<br>
+                      bias: locality_weight × −‖Δcoord‖² / max(‖Δcoord‖²)<br>
+                      bias range: [−1, 0] &nbsp;·&nbsp; locality_weight = logit-unit knob<br>
+                      full bidirectional attention (no causal mask)<br>
                       softmax → attn_drop=0.0<br>
                       out proj: 192 → 192
                     </div>
@@ -650,7 +651,7 @@
     </div>
     <div class="legend-item" style="border-top:3px solid #e64a19;">
       <b style="color:#bf360c;">LSA — Locality Self-Attention</b>
-      <p>Full causal attention (no window) with a learnable per-head temperature and a Gaussian distance bias that softly prefers nearby patches.</p>
+      <p>Full bidirectional attention (no causal mask) with a learnable per-head temperature and a Gaussian distance bias that softly prefers nearby patches.</p>
     </div>
     <div class="legend-item" style="border-top:3px solid #6a1b9a;">
       <b style="color:#4a148c;">LayerScale</b>
@@ -660,9 +661,9 @@
       <b style="color:#01579b;">DropPath (Stoch. Depth)</b>
       <p>Rate increases linearly across blocks (0 → 0.05). Acts as an ensemble of shallower networks at training time.</p>
     </div>
-    <div class="legend-item" style="border-top:3px solid #1565c0;">
-      <b style="color:#0d47a1;">Causal Mask</b>
-      <p>Upper-triangular −∞ mask enforces autoregressive ordering: patch i can only attend to patches 0…i.</p>
+    <div class="legend-item" style="border-top:3px solid #e64a19;">
+      <b style="color:#bf360c;">Normalised Locality Bias</b>
+      <p>Gaussian distance bias is normalised to [−1, 0], making <em>locality_weight</em> a direct logit-units knob: its value equals the suppression applied to the most distant patch pair.</p>
     </div>
     <div class="legend-item" style="border-top:3px solid #546e7a;">
       <b style="color:#37474f;">Padding &amp; Crop</b>

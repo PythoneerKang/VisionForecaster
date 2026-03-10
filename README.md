@@ -79,10 +79,11 @@ Each patch token is enriched with 4 diagonally-shifted neighbours before project
 ```
 
 ### Locality Self-Attention (LSA)
-Full causal self-attention with two small-data-friendly modifications:
+Full bidirectional self-attention with two small-data-friendly modifications:
 - **Learnable per-head temperature** scalar, rather than fixed `1/√d`.
-- **Gaussian distance bias** — `locality_weight × −‖Δcoord‖²` softly encourages attention to nearby patches.
-- **Causal (lower-triangular) mask** enforces autoregressive ordering: patch *i* may only attend to patches 0…*i*.
+- **Gaussian distance bias** — `locality_weight × −‖Δcoord‖² / max(‖Δcoord‖²)` normalised to `[−1, 0]`, softly encouraging attention to nearby patches. `locality_weight` acts as a direct logit-units knob: its value equals the suppression applied to the most distant patch.
+
+No causal mask is applied. The 841 tokens represent spatial patch positions within a single distance matrix snapshot (one trading day), not a temporal sequence — every patch attends freely to every other patch. Temporal ordering is enforced at the data level (input = day *t*, target = day *t+1*).
 
 ```
 QKV proj:  192 → 3 × 192  (no bias)
