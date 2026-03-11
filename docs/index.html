@@ -1211,9 +1211,11 @@
   }
 
   function openLightbox(src) {
-    document.getElementById('lightbox-img').src = src;
+    const img = document.getElementById('lightbox-img');
+    img.src = '';
     document.getElementById('lightbox').classList.add('active');
     document.body.style.overflow = 'hidden';
+    img.src = src;
   }
 
   function closeLightbox(event, force) {
