@@ -897,6 +897,14 @@
 
         <div class="gallery-grid" id="gallery-grid">
           <div class="gallery-card">
+            <img src="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/results_and_plots/dataset_train_val_split_viz/timeseries_split_viz.pdf" alt="ts train viz split" onclick="openLightbox(this.src)">
+            <div class="gallery-card-caption">
+              <b>Time-series Training/Validation Multi-fold CV Split Visualization</b>
+              Walk-forward · No random shuffling - avoids data leakage/cheating · Data period: 3 Jan 2017 - 28 Apr 2023
+            </div>
+          </div>
+        <div class="gallery-grid" id="gallery-grid">
+          <div class="gallery-card">
             <img src="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/results_and_plots/interpretable_results/w35/fold_summary.png" alt="w = 35 days fold summary" onclick="openLightbox(this.src)">
             <div class="gallery-card-caption">
               <b>Multi-fold CV results for w = 35 days</b>
@@ -957,6 +965,20 @@
             <div class="gallery-card-caption">
               <b>Combined attention maps with color contrasts (w = 35 days)</b>
               Last block (6) · Central patch (marked "X") · Combined plots
+            </div>
+          </div>
+          <div class="gallery-card">
+            <img src="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/results_and_plots/interpretable_results/w35/mean_attention_distance.png" alt="w = 35 days mean attention dist" onclick="openLightbox(this.src)">
+            <div class="gallery-card-caption">
+              <b>Mean attention distance across heads and blocks (w = 35 days)</b>
+              Mean L2 (Euclidean) pairwise distance across all 29 * 29 = 841 pairs ~ 15.11 units.
+            </div>
+          </div>
+          <div class="gallery-card">
+            <img src="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/results_and_plots/interpretable_results/w35/locality_bias_scale.png" alt="w = 35 days locality bias scale" onclick="openLightbox(this.src)">
+            <div class="gallery-card-caption">
+              <b>Locality bias scale for all blocks (w = 35 days)</b>
+              Check for overfocusing of attention heads for each block. 
             </div>
           </div>
         </div>
