@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>SmallDataDecoderViT — Architecture</title>
+<title>VisionForecaster — Architecture</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
 <style>
   :root {
@@ -287,7 +287,7 @@
   .mini-block {
     padding: 6px 10px; border-radius: 5px; font-size: 9px;
     border: 1px solid var(--border); color: var(--text-md);
-    background: #fff; line-height: 1.4;
+    background: #fff; line-height: 1.4; text-align: justify;
   }
   .mini-arrow { text-align: center; color: var(--dim); font-size: 11px; line-height: 1; }
   .residual-note {
@@ -307,7 +307,7 @@
     box-shadow: 0 1px 4px var(--shadow);
   }
   .legend-item b { display: block; margin-bottom: 5px; font-size: 11px; }
-  .legend-item p { color: var(--dim); line-height: 1.6; }
+  .legend-item p { color: var(--dim); line-height: 1.6; text-align: justify; }
 
   /* ── Gallery ── */
   .gallery-grid {
@@ -328,6 +328,7 @@
   .gallery-card-caption {
     padding: 9px 13px; border-top: 1px solid var(--border);
     font-size: 10px; color: var(--dim); background: #fafbfc;
+    text-align: justify;
   }
   .gallery-card-caption b { color: var(--text-md); display: block; margin-bottom: 2px; }
 
@@ -467,6 +468,22 @@
     border-radius: 3px; font-size: 10px; color: #bf360c;
   }
 
+  /* ── Copy button ── */
+  .code-wrap { position: relative; }
+  .copy-btn {
+    position: absolute; top: 7px; right: 8px;
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18);
+    color: #a0aec0; border-radius: 4px;
+    padding: 4px 5px; font-size: 9px; font-family: 'JetBrains Mono', monospace;
+    font-weight: 600; letter-spacing: 0.5px; cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    line-height: 1;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,0.18); color: #e2e8f0; border-color: rgba(255,255,255,0.35); }
+  .copy-btn.copied { background: rgba(104,211,145,0.18); color: #68d391; border-color: rgba(104,211,145,0.4); }
+  .copy-btn svg { flex-shrink: 0; }
+
   @keyframes fadeUp {
     from { opacity:0; transform: translateY(12px); }
     to   { opacity:1; transform: translateY(0); }
@@ -491,8 +508,8 @@
 <div class="page">
 
   <header>
-    <div class="tag">// Vision Transformer</div>
-    <h1>Small<span>Data</span>DecoderViT</h1>
+    <div class="tag">// Small High-Resolution Vision Transformer</div>
+    <h1>Vision<span>Forecaster</span></h1>
     <div class="subtitle">Decoder-only ViT with SPT · LSA · LayerScale · DropPath — tuned for ~2 000 samples</div>
     <div class="header-links">
       <a class="header-link header-link-gh" href="https://github.com/PythoneerKang/VisionForecaster" target="_blank" rel="noopener">
@@ -641,7 +658,7 @@
                         <div class="mini-arrow">↓</div>
                         <div class="mini-block" style="border-color:#f0a855;background:#fffaf3;">
                           <span style="color:#7b3a00;font-weight:700;">Locality Self-Attention (LSA)</span>
-                          <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;">
+                          <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;text-align:justify;">
                             QKV proj: 192 → 3×192 (no bias)<br>
                             heads=3 &nbsp;·&nbsp; head_dim=64<br>
                             temp: learnable per-head scalar<br>
@@ -679,7 +696,7 @@
                         <div class="mini-arrow">↓</div>
                         <div class="mini-block" style="border-color:#93d19b;background:#f4fbf5;">
                           <span style="color:#1b5e20;font-weight:700;">FeedForward MLP</span>
-                          <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;">
+                          <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;text-align:justify;">
                             Linear 192 → 768 (mlp_ratio=4×)<br>
                             GELU<br>
                             Dropout (0.1)<br>
@@ -1056,9 +1073,7 @@
       <div class="prereq-notes-card">
         <div class="prereq-notes-label">Notes</div>
         <div class="prereq-notes-text">
-          Code is optimized for execution on <b style="color:#1a202c;">CPU-only HPC</b>.
-          Modification will be needed for CUDA acceleration.<br>
-          HPC job submission uses the <b style="color:#1a202c;">PBS workload manager</b>.
+          The package is not ready yet. Section under construction.
         </div>
       </div>
     </div>
@@ -1072,9 +1087,12 @@
           <div class="step-title">Install dependencies</div>
         </div>
         <div class="prereq-step-body">
-          <div class="code-block">
-            <span class="prompt">$</span> cd <span class="var">&lt;repository-name&gt;</span><br>
-            <span class="prompt">$</span> poetry install
+          <div class="code-wrap">
+            <div class="code-block">
+              <span class="prompt">$</span> cd <span class="var">&lt;repository-name&gt;</span><br>
+              <span class="prompt">$</span> poetry install
+            </div>
+            <button class="copy-btn" onclick="copyCode(this, 'cd &lt;repository-name&gt;\npoetry install')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
           </div>
         </div>
       </div>
@@ -1087,13 +1105,19 @@
         </div>
         <div class="prereq-step-body">
           <div class="sub-label">Option A — activate shell</div>
-          <div class="code-block">
-            <span class="prompt">$</span> poetry shell<br>
-            <span class="prompt">$</span> python main.py
+          <div class="code-wrap">
+            <div class="code-block">
+              <span class="prompt">$</span> poetry shell<br>
+              <span class="prompt">$</span> python main.py
+            </div>
+            <button class="copy-btn" onclick="copyCode(this, 'poetry shell\npython main.py')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
           </div>
           <div class="sub-label" style="margin-top:2px;">Option B — run directly within virtual environment</div>
-          <div class="code-block">
-            <span class="prompt">$</span> poetry run python main.py
+          <div class="code-wrap">
+            <div class="code-block">
+              <span class="prompt">$</span> poetry run python main.py
+            </div>
+            <button class="copy-btn" onclick="copyCode(this, 'poetry run python main.py')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
           </div>
         </div>
       </div>
@@ -1109,11 +1133,14 @@
           <div style="font-size:10px;color:var(--text-md);line-height:1.6;">
             Modify <code class="inline">script.pbs</code> to match your cluster's resource requirements, then submit the job:
           </div>
-          <div class="code-block">
-            <span class="prompt">$</span> qsub script.pbs
+          <div class="code-wrap">
+            <div class="code-block">
+              <span class="prompt">$</span> qsub script.pbs
+            </div>
+            <button class="copy-btn" onclick="copyCode(this, 'qsub script.pbs')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
           </div>
           <div class="prereq-warning">
-            ⚠&nbsp; Code is optimized for CPU-only HPC. Additional changes are required to enable CUDA acceleration.
+            ⚠&nbsp; Code is optimized for CPU-only executions, on a HPC server. Additional changes are required to enable CUDA acceleration.
           </div>
         </div>
       </div>
@@ -1147,6 +1174,18 @@
     const isOpen = roller.classList.contains('open');
     roller.classList.toggle('open', !isOpen);
     roller.querySelector('.roller-toggle').setAttribute('aria-expanded', String(!isOpen));
+  }
+
+  function copyCode(btn, text) {
+    const decoded = text.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    navigator.clipboard.writeText(decoded).then(() => {
+      btn.classList.add('copied');
+      btn.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+      }, 2000);
+    });
   }
 
   function openLightbox(src) {
