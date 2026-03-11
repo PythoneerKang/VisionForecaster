@@ -68,8 +68,92 @@
   }
   .pill b { color: #1565c0; }
 
+  /* ── Roller Block ── */
+  .roller {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel);
+    box-shadow: 0 2px 10px var(--shadow);
+    margin-bottom: 18px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .roller:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.10); }
+
+  .roller-toggle {
+    width: 100%;
+    display: flex; align-items: center; gap: 14px;
+    padding: 15px 20px;
+    background: none; border: none; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    text-align: left;
+    transition: background 0.15s;
+  }
+  .roller-toggle:hover { background: rgba(21,101,192,0.04); }
+
+  .roller-icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .roller-title-wrap { flex: 1; }
+  .roller-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px; font-weight: 800; color: var(--text);
+    display: block;
+  }
+  .roller-subtitle {
+    font-size: 10px; color: var(--dim); margin-top: 2px; display: block;
+  }
+  .roller-badge {
+    font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 20px; font-weight: 700;
+    margin-right: 6px;
+  }
+  .roller-chevron {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #eef4ff; border: 1.5px solid #90b8f8;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: transform 0.3s ease, background 0.2s;
+  }
+  .roller-chevron svg {
+    transition: transform 0.3s ease;
+  }
+  .roller.open .roller-chevron { background: #1565c0; }
+  .roller.open .roller-chevron svg { transform: rotate(180deg); }
+  .roller.open .roller-chevron path { stroke: #fff; }
+
+  .roller-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .roller.open .roller-body {
+    max-height: 9000px;
+  }
+  .roller-body-inner {
+    padding: 0 20px 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Architecture specific */
+  .roller-arch .roller-toggle { background: linear-gradient(135deg, #f0f5ff 0%, #fafbff 100%); }
+  .roller-arch .roller-icon { background: #c5d8fb; color: #0d47a1; }
+  .roller-arch .roller-badge { background: #1565c0; color: #fff; }
+  .roller-arch .roller-title { color: #0d47a1; }
+
+  /* Gallery specific */
+  .roller-gallery .roller-toggle { background: linear-gradient(135deg, #f0f7f4 0%, #fbfffe 100%); }
+  .roller-gallery .roller-icon { background: #b9dfbe; color: #1b5e20; }
+  .roller-gallery .roller-badge { background: #2e7d32; color: #fff; }
+  .roller-gallery .roller-title { color: #1b5e20; }
+  .roller-gallery .roller-chevron { background: #e8f5e9; border-color: #93d19b; }
+  .roller-gallery.open .roller-chevron { background: #2e7d32; }
+  .roller-gallery.open .roller-chevron path { stroke: #fff; }
+
   /* ── Flow ── */
-  .flow { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .flow { display: flex; flex-direction: column; align-items: center; gap: 0; padding-top: 24px; }
 
   .arrow {
     width: 2px; height: 28px;
@@ -208,7 +292,7 @@
 
   /* ── Legend ── */
   .legend {
-    margin-top: 44px;
+    margin-top: 32px;
     display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px;
   }
   .legend-item {
@@ -218,6 +302,79 @@
   }
   .legend-item b { display: block; margin-bottom: 5px; font-size: 11px; }
   .legend-item p { color: var(--dim); line-height: 1.6; }
+
+  /* ── Gallery ── */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    padding-top: 24px;
+  }
+  .gallery-card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--panel);
+    box-shadow: 0 1px 5px var(--shadow);
+    transition: box-shadow 0.2s, transform 0.15s;
+  }
+  .gallery-card:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.11);
+    transform: translateY(-2px);
+  }
+  .gallery-card img {
+    width: 100%;
+    display: block;
+    cursor: zoom-in;
+    transition: opacity 0.2s;
+  }
+  .gallery-card img:hover { opacity: 0.92; }
+  .gallery-card-caption {
+    padding: 9px 13px;
+    border-top: 1px solid var(--border);
+    font-size: 10px;
+    color: var(--dim);
+    background: #fafbfc;
+  }
+  .gallery-card-caption b { color: var(--text-md); display: block; margin-bottom: 2px; }
+
+  /* Lightbox */
+  .lightbox {
+    display: none;
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.82);
+    align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .lightbox.active { display: flex; }
+  .lightbox img {
+    max-width: 92vw; max-height: 88vh;
+    border-radius: 8px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  }
+  .lightbox-close {
+    position: fixed; top: 18px; right: 22px;
+    background: #fff; border: none; border-radius: 50%;
+    width: 36px; height: 36px; font-size: 18px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    color: #1a202c;
+    transition: transform 0.15s;
+  }
+  .lightbox-close:hover { transform: scale(1.1); }
+
+  /* Gallery empty state */
+  .gallery-empty {
+    padding: 36px 20px;
+    text-align: center;
+    color: var(--dim);
+    font-size: 10px;
+    border: 1.5px dashed var(--border-md);
+    border-radius: 8px;
+    margin-top: 20px;
+    line-height: 1.8;
+  }
+  .gallery-empty .empty-icon { font-size: 28px; margin-bottom: 10px; display: block; }
 
   /* ── Citation ── */
   .citation-box {
@@ -244,35 +401,6 @@
     font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
     margin-right: 6px;
   }
-
-  /* tooltip */
-  .block[data-tip]:hover::after {
-    content: attr(data-tip); position: absolute;
-    bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%);
-    background: #1a202c; color: #fff; font-size: 10px;
-    padding: 6px 11px; border-radius: 5px; white-space: nowrap;
-    pointer-events: none; z-index: 10;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
-  }
-
-  @keyframes fadeUp {
-    from { opacity:0; transform: translateY(12px); }
-    to   { opacity:1; transform: translateY(0); }
-  }
-  .flow > * { animation: fadeUp 0.35s ease both; }
-  .flow > *:nth-child(1)  { animation-delay:0.04s; }
-  .flow > *:nth-child(2)  { animation-delay:0.09s; }
-  .flow > *:nth-child(3)  { animation-delay:0.14s; }
-  .flow > *:nth-child(4)  { animation-delay:0.19s; }
-  .flow > *:nth-child(5)  { animation-delay:0.24s; }
-  .flow > *:nth-child(6)  { animation-delay:0.29s; }
-  .flow > *:nth-child(7)  { animation-delay:0.34s; }
-  .flow > *:nth-child(8)  { animation-delay:0.39s; }
-  .flow > *:nth-child(9)  { animation-delay:0.44s; }
-  .flow > *:nth-child(10) { animation-delay:0.49s; }
-  .flow > *:nth-child(11) { animation-delay:0.54s; }
-  .flow > *:nth-child(12) { animation-delay:0.59s; }
-  .flow > *:nth-child(13) { animation-delay:0.64s; }
 
   /* ── Prerequisites ── */
   .prereq-section { margin-top: 44px; }
@@ -361,13 +489,32 @@
     background: #eef2f7; padding: 1px 6px;
     border-radius: 3px; font-size: 10px; color: #bf360c;
   }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(12px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+  .flow > * { animation: fadeUp 0.35s ease both; }
+  .flow > *:nth-child(1)  { animation-delay:0.04s; }
+  .flow > *:nth-child(2)  { animation-delay:0.09s; }
+  .flow > *:nth-child(3)  { animation-delay:0.14s; }
+  .flow > *:nth-child(4)  { animation-delay:0.19s; }
+  .flow > *:nth-child(5)  { animation-delay:0.24s; }
+  .flow > *:nth-child(6)  { animation-delay:0.29s; }
+  .flow > *:nth-child(7)  { animation-delay:0.34s; }
+  .flow > *:nth-child(8)  { animation-delay:0.39s; }
+  .flow > *:nth-child(9)  { animation-delay:0.44s; }
+  .flow > *:nth-child(10) { animation-delay:0.49s; }
+  .flow > *:nth-child(11) { animation-delay:0.54s; }
+  .flow > *:nth-child(12) { animation-delay:0.59s; }
+  .flow > *:nth-child(13) { animation-delay:0.64s; }
 </style>
 </head>
 <body>
 <div class="page">
 
   <header>
-    <div class="tag">// Vision Transformer · Architecture Diagram</div>
+    <div class="tag">// Vision Transformer</div>
     <h1>Small<span>Data</span>DecoderViT</h1>
     <div class="subtitle">Decoder-only ViT with SPT · LSA · LayerScale · DropPath — tuned for ~2 000 samples</div>
     <div class="header-links">
@@ -382,294 +529,385 @@
     </div>
   </header>
 
-  <div class="params-row">
-    <div class="pill">in_channels <b>1</b></div>
-    <div class="pill">img_size <b>457</b></div>
-    <div class="pill">padded_size <b>464</b></div>
-    <div class="pill">patch_size <b>16</b></div>
-    <div class="pill">grid <b>29 × 29</b></div>
-    <div class="pill">N patches <b>841</b></div>
-    <div class="pill">embed_dim <b>192</b></div>
-    <div class="pill">depth <b>6</b></div>
-    <div class="pill">num_heads <b>3</b></div>
-    <div class="pill">head_dim <b>64</b></div>
-    <div class="pill">mlp_ratio <b>4×</b></div>
-    <div class="pill">proj_drop <b>0.1</b></div>
-    <div class="pill">drop_path_rate <b>0.05</b></div>
-    <div class="pill">ls_init <b>1e-4</b></div>
-    <div class="pill">locality_strength <b>0.1</b></div>
+
+
+  <!-- ═══════════════════════════════════════════════════
+       ROLLER 1 — Architecture Diagram
+  ════════════════════════════════════════════════════ -->
+  <div class="roller roller-arch" id="roller-arch">
+    <button class="roller-toggle" onclick="toggleRoller('roller-arch')" aria-expanded="false">
+      <div class="roller-icon">🏗</div>
+      <div class="roller-title-wrap">
+        <span class="roller-title">Architecture Diagram</span>
+        <span class="roller-subtitle">Full forward-pass flow — input → SPT → positional embed → 6× DecoderBlock → head → output</span>
+      </div>
+      <span class="roller-badge">diagram</span>
+      <div class="roller-chevron">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9l6 6 6-6"/>
+        </svg>
+      </div>
+    </button>
+    <div class="roller-body" id="roller-arch-body">
+      <div class="roller-body-inner">
+
+        <div class="flow">
+
+          <!-- INPUT -->
+          <div class="block brd-blue" data-tip="Raw distance matrix for one trading day">
+            <div class="block-header bh-blue">
+              <div class="block-icon bi-blue">⬛</div>
+              <div class="block-title">Input Tensor</div>
+              <div class="block-badge bb-blue">entry point</div>
+            </div>
+            <div class="block-body">
+              <div class="sub-row">
+                <div class="sub-block sb-blue">B × 1 × 457 × 457</div>
+                <div class="sub-arrow">→</div>
+                <div class="formula">float32 &nbsp;z-scored distance matrix</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="arrow" style="position:relative">
+            <span class="arrow-label">reflect pad 457 → 464</span>
+          </div>
+
+          <!-- SPT -->
+          <div class="block brd-grn" data-tip="Shifted-patch tokenisation: 5 crops concatenated per patch">
+            <div class="block-header bh-grn">
+              <div class="block-icon bi-grn">🔲</div>
+              <div class="block-title">Shifted Patch Tokenization (SPT)</div>
+              <div class="block-badge bb-grn">patch embed</div>
+            </div>
+            <div class="block-body">
+              <div class="sub-row">
+                <div class="sub-block">original</div>
+                <div class="sub-block">shift ↑ p/2</div>
+                <div class="sub-block">shift ↓ p/2</div>
+                <div class="sub-block">shift ← p/2</div>
+                <div class="sub-block">shift → p/2</div>
+              </div>
+              <div class="sub-row">
+                <div class="formula">concat 5 crops → (B, 841, 5×1×16×16) = (B, 841, 1280)</div>
+              </div>
+              <div class="sub-row">
+                <div class="sub-block">LayerNorm</div>
+                <div class="sub-arrow">→</div>
+                <div class="sub-block">Linear 1280→384</div>
+                <div class="sub-arrow">→</div>
+                <div class="sub-block">GELU</div>
+                <div class="sub-arrow">→</div>
+                <div class="sub-block">Linear 384→192</div>
+              </div>
+              <div class="sub-row">
+                <div class="formula">output: (B, 841, 192)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="arrow" style="position:relative">
+            <span class="arrow-label">element-wise add</span>
+          </div>
+
+          <!-- POS EMBED -->
+          <div class="block brd-pur" data-tip="Learned absolute positional embeddings, one per patch">
+            <div class="block-header bh-pur">
+              <div class="block-icon bi-pur">📍</div>
+              <div class="block-title">Positional Embedding</div>
+              <div class="block-badge bb-pur">learned</div>
+            </div>
+            <div class="block-body">
+              <div class="sub-row">
+                <div class="sub-block sb-pur">nn.Parameter (1, 841, 192)</div>
+                <div class="sub-arrow">→</div>
+                <div class="formula">init: trunc_normal(std=0.02)</div>
+              </div>
+              <div class="sub-row">
+                <div class="formula">tokens = tokens + pos_embed &nbsp;→&nbsp; (B, 841, 192)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="arrow"></div>
+
+          <!-- ×6 DECODER BLOCKS -->
+          <div class="repeat-wrapper">
+            <div class="repeat-bracket">
+              <div class="repeat-label">× 6 blocks</div>
+            </div>
+            <div class="repeat-content">
+              <div class="block brd-org" style="max-width:100%" data-tip="One DecoderBlock: LSA + FFN with residuals">
+                <div class="block-header bh-org">
+                  <div class="block-icon bi-org">🔷</div>
+                  <div class="block-title">
+                    DecoderBlock
+                    <span style="color:#9e4a00;font-size:10px;font-weight:400"> &nbsp;(stoch-depth linearly spaced 0 → 0.05)</span>
+                  </div>
+                  <div class="block-badge bb-org">×6</div>
+                </div>
+                <div class="block-body">
+                  <div class="inner-row">
+
+                    <!-- Attention branch -->
+                    <div class="inner-col">
+                      <div class="inner-col-header" style="color:#7b3a00;background:#fff0e0;">
+                        Attention Branch
+                      </div>
+                      <div class="inner-col-body">
+                        <div class="mini-block">
+                          LayerNorm <span style="color:var(--dim)">(192)</span>
+                        </div>
+                        <div class="mini-arrow">↓</div>
+                        <div class="mini-block" style="border-color:#f0a855;background:#fffaf3;">
+                          <span style="color:#7b3a00;font-weight:700;">Locality Self-Attention (LSA)</span>
+                          <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;">
+                            QKV proj: 192 → 3×192 (no bias)<br>
+                            heads=3 &nbsp;·&nbsp; head_dim=64<br>
+                            temp: learnable per-head scalar<br>
+                            locality_weight: per-head (shape H) &nbsp;·&nbsp; init=0.1<br>
+                            bias: locality_weight_h × −‖Δcoord‖² / max(‖Δcoord‖²)<br>
+                            bias range: [−1, 0] per head &nbsp;·&nbsp; heads diverge independently<br>
+                            full bidirectional attention (no causal mask)<br>
+                            softmax → attn_drop=0.0<br>
+                            out proj: 192 → 192
+                          </div>
+                        </div>
+                        <div class="mini-arrow">↓</div>
+                        <div class="mini-block" style="border-color:#c49de8;background:#f9f2ff;">
+                          <span style="color:#5b1a8a;font-weight:700;">LayerScale γ₁</span>
+                          <span style="color:var(--dim);font-size:8px;"> (init 1e-4, shape 192)</span>
+                        </div>
+                        <div class="mini-arrow">↓</div>
+                        <div class="mini-block" style="border-color:#90b8f8;background:#f0f5ff;">
+                          DropPath <span style="color:var(--dim)">(stoch depth)</span>
+                        </div>
+                        <div class="mini-arrow">↓</div>
+                        <div class="residual-note">⤷ residual add to input x</div>
+                      </div>
+                    </div>
+
+                    <!-- FFN branch -->
+                    <div class="inner-col">
+                      <div class="inner-col-header" style="color:#1b5e20;background:#e8f5e9;">
+                        Feed-Forward Branch
+                      </div>
+                      <div class="inner-col-body">
+                        <div class="mini-block">
+                          LayerNorm <span style="color:var(--dim)">(192)</span>
+                        </div>
+                        <div class="mini-arrow">↓</div>
+                        <div class="mini-block" style="border-color:#93d19b;background:#f4fbf5;">
+                          <span style="color:#1b5e20;font-weight:700;">FeedForward MLP</span>
+                          <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;">
+                            Linear 192 → 768 (mlp_ratio=4×)<br>
+                            GELU<br>
+                            Dropout (0.1)<br>
+                            Linear 768 → 192<br>
+                            Dropout (0.1)
+                          </div>
+                        </div>
+                        <div class="mini-arrow">↓</div>
+                        <div class="mini-block" style="border-color:#c49de8;background:#f9f2ff;">
+                          <span style="color:#5b1a8a;font-weight:700;">LayerScale γ₂</span>
+                          <span style="color:var(--dim);font-size:8px;"> (init 1e-4, shape 192)</span>
+                        </div>
+                        <div class="mini-arrow">↓</div>
+                        <div class="mini-block" style="border-color:#90b8f8;background:#f0f5ff;">
+                          DropPath <span style="color:var(--dim)">(stoch depth)</span>
+                        </div>
+                        <div class="mini-arrow">↓</div>
+                        <div class="residual-note">⤷ residual add to post-attn x</div>
+                      </div>
+                    </div>
+
+                  </div>
+                  <div class="sub-row" style="margin-top:9px">
+                    <div class="formula">output shape unchanged: (B, 841, 192)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="arrow"></div>
+
+          <!-- FINAL NORM -->
+          <div class="block brd-pur">
+            <div class="block-header bh-pur">
+              <div class="block-icon bi-pur" style="font-style:normal;">≈</div>
+              <div class="block-title">Final LayerNorm</div>
+              <div class="block-badge bb-pur">post-transformer</div>
+            </div>
+            <div class="block-body">
+              <div class="sub-row">
+                <div class="sub-block sb-pur">LayerNorm (192)</div>
+                <div class="sub-arrow">→</div>
+                <div class="formula">(B, 841, 192)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="arrow"></div>
+
+          <!-- PIXEL HEAD -->
+          <div class="block brd-tel" data-tip="Projects each token back to pixel values for its patch">
+            <div class="block-header bh-tel">
+              <div class="block-icon bi-tel">🖼</div>
+              <div class="block-title">Pixel Reconstruction Head</div>
+              <div class="block-badge bb-tel">decoder head</div>
+            </div>
+            <div class="block-body">
+              <div class="sub-row">
+                <div class="sub-block">Linear 192→192</div>
+                <div class="sub-arrow">→</div>
+                <div class="sub-block">GELU</div>
+                <div class="sub-arrow">→</div>
+                <div class="sub-block">Linear 192→256</div>
+              </div>
+              <div class="sub-row">
+                <div class="formula">patch_dim = 1×16×16 = 256 &nbsp;→&nbsp; (B, 841, 256)</div>
+              </div>
+              <div class="sub-row" style="margin-top:3px">
+                <div class="sub-block sb-tel">unpatchify</div>
+                <div class="sub-arrow">→</div>
+                <div class="formula">(B, 1, 464, 464) &nbsp;then crop&nbsp; → &nbsp;(B, 1, 457, 457)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="arrow dim-arr"></div>
+
+          <!-- OUTPUT -->
+          <div class="block brd-blue">
+            <div class="block-header bh-blue">
+              <div class="block-icon bi-blue" style="font-style:normal;">✦</div>
+              <div class="block-title">Output Tensor</div>
+              <div class="block-badge bb-blue">prediction t+1</div>
+            </div>
+            <div class="block-body">
+              <div class="sub-row">
+                <div class="sub-block sb-blue">B × 1 × 457 × 457</div>
+                <div class="sub-arrow">→</div>
+                <div class="formula">predicted distance matrix at t+1 &nbsp;·&nbsp; MSE loss vs ground truth</div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /flow -->
+
+        <!-- Legend -->
+        <div class="legend">
+          <div class="legend-item" style="border-top:3px solid #2e7d32;">
+            <b style="color:#1b5e20;">SPT — Shifted Patch Tokenization</b>
+            <p>Each patch token is enriched with 4 shifted neighbours before projection, providing local context without relying on attention.</p>
+          </div>
+          <div class="legend-item" style="border-top:3px solid #e64a19;">
+            <b style="color:#bf360c;">LSA — Locality Self-Attention</b>
+            <p>Full bidirectional attention (no causal mask) with a learnable per-head temperature and a Gaussian distance bias that softly prefers nearby patches.</p>
+          </div>
+          <div class="legend-item" style="border-top:3px solid #6a1b9a;">
+            <b style="color:#4a148c;">LayerScale</b>
+            <p>Per-channel scalar γ on each residual branch, initialised at 1e-4. Stabilises early training on small datasets.</p>
+          </div>
+          <div class="legend-item" style="border-top:3px solid #0288d1;">
+            <b style="color:#01579b;">DropPath (Stoch. Depth)</b>
+            <p>Rate increases linearly across blocks (0 → 0.05). Acts as an ensemble of shallower networks at training time.</p>
+          </div>
+          <div class="legend-item" style="border-top:3px solid #e64a19;">
+            <b style="color:#bf360c;">Per-Head Locality Bias</b>
+            <p>Each head has its own learnable <em>locality_weight</em> scalar (init&nbsp;0.1), applied to the normalised Gaussian bias [−1,&nbsp;0]. Heads can independently learn how local or global to be, producing the diversity that multihead attention is designed to exploit. The low init keeps the bias weak early in training so random QKV projections drive head divergence first.</p>
+          </div>
+          <div class="legend-item" style="border-top:3px solid #546e7a;">
+            <b style="color:#37474f;">Padding &amp; Crop</b>
+            <p>457 is not divisible by 16. Reflect-pad to 464 before tokenisation, then crop back to 457×457 after reconstruction.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
   </div>
 
-  <div class="flow">
-
-    <!-- INPUT -->
-    <div class="block brd-blue" data-tip="Raw distance matrix for one trading day">
-      <div class="block-header bh-blue">
-        <div class="block-icon bi-blue">⬛</div>
-        <div class="block-title">Input Tensor</div>
-        <div class="block-badge bb-blue">entry point</div>
+  <!-- ═══════════════════════════════════════════════════
+       ROLLER 2 — Gallery
+  ════════════════════════════════════════════════════ -->
+  <div class="roller roller-gallery" id="roller-gallery">
+    <button class="roller-toggle" onclick="toggleRoller('roller-gallery')" aria-expanded="false">
+      <div class="roller-icon">🖼</div>
+      <div class="roller-title-wrap">
+        <span class="roller-title">Gallery</span>
+        <span class="roller-subtitle">Training results · loss curves · predictions vs ground truth · attention maps</span>
       </div>
-      <div class="block-body">
-        <div class="sub-row">
-          <div class="sub-block sb-blue">B × 1 × 457 × 457</div>
-          <div class="sub-arrow">→</div>
-          <div class="formula">float32 &nbsp;z-scored distance matrix</div>
-        </div>
+      <span class="roller-badge">results</span>
+      <div class="roller-chevron">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 9l6 6 6-6"/>
+        </svg>
       </div>
-    </div>
+    </button>
+    <div class="roller-body" id="roller-gallery-body">
+      <div class="roller-body-inner">
 
-    <div class="arrow" style="position:relative">
-      <span class="arrow-label">reflect pad 457 → 464</span>
-    </div>
-
-    <!-- SPT -->
-    <div class="block brd-grn" data-tip="Shifted-patch tokenisation: 5 crops concatenated per patch">
-      <div class="block-header bh-grn">
-        <div class="block-icon bi-grn">🔲</div>
-        <div class="block-title">Shifted Patch Tokenization (SPT)</div>
-        <div class="block-badge bb-grn">patch embed</div>
-      </div>
-      <div class="block-body">
-        <div class="sub-row">
-          <div class="sub-block">original</div>
-          <div class="sub-block">shift ↑ p/2</div>
-          <div class="sub-block">shift ↓ p/2</div>
-          <div class="sub-block">shift ← p/2</div>
-          <div class="sub-block">shift → p/2</div>
-        </div>
-        <div class="sub-row">
-          <div class="formula">concat 5 crops → (B, 841, 5×1×16×16) = (B, 841, 1280)</div>
-        </div>
-        <div class="sub-row">
-          <div class="sub-block">LayerNorm</div>
-          <div class="sub-arrow">→</div>
-          <div class="sub-block">Linear 1280→384</div>
-          <div class="sub-arrow">→</div>
-          <div class="sub-block">GELU</div>
-          <div class="sub-arrow">→</div>
-          <div class="sub-block">Linear 384→192</div>
-        </div>
-        <div class="sub-row">
-          <div class="formula">output: (B, 841, 192)</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="arrow" style="position:relative">
-      <span class="arrow-label">element-wise add</span>
-    </div>
-
-    <!-- POS EMBED -->
-    <div class="block brd-pur" data-tip="Learned absolute positional embeddings, one per patch">
-      <div class="block-header bh-pur">
-        <div class="block-icon bi-pur">📍</div>
-        <div class="block-title">Positional Embedding</div>
-        <div class="block-badge bb-pur">learned</div>
-      </div>
-      <div class="block-body">
-        <div class="sub-row">
-          <div class="sub-block sb-pur">nn.Parameter (1, 841, 192)</div>
-          <div class="sub-arrow">→</div>
-          <div class="formula">init: trunc_normal(std=0.02)</div>
-        </div>
-        <div class="sub-row">
-          <div class="formula">tokens = tokens + pos_embed &nbsp;→&nbsp; (B, 841, 192)</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="arrow"></div>
-
-    <!-- ×6 DECODER BLOCKS -->
-    <div class="repeat-wrapper">
-      <div class="repeat-bracket">
-        <div class="repeat-label">× 6 blocks</div>
-      </div>
-      <div class="repeat-content">
-        <div class="block brd-org" style="max-width:100%" data-tip="One DecoderBlock: LSA + FFN with residuals">
-          <div class="block-header bh-org">
-            <div class="block-icon bi-org">🔷</div>
-            <div class="block-title">
-              DecoderBlock
-              <span style="color:#9e4a00;font-size:10px;font-weight:400"> &nbsp;(stoch-depth linearly spaced 0 → 0.05)</span>
-            </div>
-            <div class="block-badge bb-org">×6</div>
-          </div>
-          <div class="block-body">
-            <div class="inner-row">
-
-              <!-- Attention branch -->
-              <div class="inner-col">
-                <div class="inner-col-header" style="color:#7b3a00;background:#fff0e0;">
-                  Attention Branch
-                </div>
-                <div class="inner-col-body">
-                  <div class="mini-block">
-                    LayerNorm <span style="color:var(--dim)">(192)</span>
-                  </div>
-                  <div class="mini-arrow">↓</div>
-                  <div class="mini-block" style="border-color:#f0a855;background:#fffaf3;">
-                    <span style="color:#7b3a00;font-weight:700;">Locality Self-Attention (LSA)</span>
-                    <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;">
-                      QKV proj: 192 → 3×192 (no bias)<br>
-                      heads=3 &nbsp;·&nbsp; head_dim=64<br>
-                      temp: learnable per-head scalar<br>
-                      locality_weight: per-head (shape H) &nbsp;·&nbsp; init=0.1<br>
-                      bias: locality_weight_h × −‖Δcoord‖² / max(‖Δcoord‖²)<br>
-                      bias range: [−1, 0] per head &nbsp;·&nbsp; heads diverge independently<br>
-                      full bidirectional attention (no causal mask)<br>
-                      softmax → attn_drop=0.0<br>
-                      out proj: 192 → 192
-                    </div>
-                  </div>
-                  <div class="mini-arrow">↓</div>
-                  <div class="mini-block" style="border-color:#c49de8;background:#f9f2ff;">
-                    <span style="color:#5b1a8a;font-weight:700;">LayerScale γ₁</span>
-                    <span style="color:var(--dim);font-size:8px;"> (init 1e-4, shape 192)</span>
-                  </div>
-                  <div class="mini-arrow">↓</div>
-                  <div class="mini-block" style="border-color:#90b8f8;background:#f0f5ff;">
-                    DropPath <span style="color:var(--dim)">(stoch depth)</span>
-                  </div>
-                  <div class="mini-arrow">↓</div>
-                  <div class="residual-note">⤷ residual add to input x</div>
-                </div>
-              </div>
-
-              <!-- FFN branch -->
-              <div class="inner-col">
-                <div class="inner-col-header" style="color:#1b5e20;background:#e8f5e9;">
-                  Feed-Forward Branch
-                </div>
-                <div class="inner-col-body">
-                  <div class="mini-block">
-                    LayerNorm <span style="color:var(--dim)">(192)</span>
-                  </div>
-                  <div class="mini-arrow">↓</div>
-                  <div class="mini-block" style="border-color:#93d19b;background:#f4fbf5;">
-                    <span style="color:#1b5e20;font-weight:700;">FeedForward MLP</span>
-                    <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;">
-                      Linear 192 → 768 (mlp_ratio=4×)<br>
-                      GELU<br>
-                      Dropout (0.1)<br>
-                      Linear 768 → 192<br>
-                      Dropout (0.1)
-                    </div>
-                  </div>
-                  <div class="mini-arrow">↓</div>
-                  <div class="mini-block" style="border-color:#c49de8;background:#f9f2ff;">
-                    <span style="color:#5b1a8a;font-weight:700;">LayerScale γ₂</span>
-                    <span style="color:var(--dim);font-size:8px;"> (init 1e-4, shape 192)</span>
-                  </div>
-                  <div class="mini-arrow">↓</div>
-                  <div class="mini-block" style="border-color:#90b8f8;background:#f0f5ff;">
-                    DropPath <span style="color:var(--dim)">(stoch depth)</span>
-                  </div>
-                  <div class="mini-arrow">↓</div>
-                  <div class="residual-note">⤷ residual add to post-attn x</div>
-                </div>
-              </div>
-
-            </div>
-            <div class="sub-row" style="margin-top:9px">
-              <div class="formula">output shape unchanged: (B, 841, 192)</div>
-            </div>
+        <div class="gallery-card">
+          <img src="results_and_plots_/interpretable_results/w35/fold_summart.png" alt="w = 35 days fold summary" onclick="openLightbox(this.src)">
+          <div class="gallery-card-caption">
+            <b>Multi-fold CV results for w = 35 days</b>
+            Fold 9 has the best results · train=solid · val=dotted
           </div>
         </div>
-      </div>
-    </div>
 
-    <div class="arrow"></div>
+        <!--
+          ══════════════════════════════════════════════════════
+          TO ADD YOUR TRAINING RESULT IMAGES:
+          1. Place your PNG files in the same folder as index.html
+          2. Duplicate a .gallery-card block below for each image
+          3. Update the src="..." and caption text accordingly
+          ══════════════════════════════════════════════════════
 
-    <!-- FINAL NORM -->
-    <div class="block brd-pur">
-      <div class="block-header bh-pur">
-        <div class="block-icon bi-pur" style="font-style:normal;">≈</div>
-        <div class="block-title">Final LayerNorm</div>
-        <div class="block-badge bb-pur">post-transformer</div>
-      </div>
-      <div class="block-body">
-        <div class="sub-row">
-          <div class="sub-block sb-pur">LayerNorm (192)</div>
-          <div class="sub-arrow">→</div>
-          <div class="formula">(B, 841, 192)</div>
+          Example card (uncomment and edit):
+
+          <div class="gallery-card">
+            <img src="loss_curve.png" alt="Training loss curve" onclick="openLightbox(this.src)">
+            <div class="gallery-card-caption">
+              <b>Training &amp; Validation Loss</b>
+              MSE loss over 100 epochs · train=blue · val=orange
+            </div>
+          </div>
+        -->
+
+        <div style="margin-top:20px;margin-bottom:6px;">
+          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#2e7d32;font-weight:700;margin-bottom:10px;">Hyperparameters used</div>
+          <div class="params-row" style="margin-bottom:0">
+            <div class="pill">in_channels <b>1</b></div>
+            <div class="pill">img_size <b>457</b></div>
+            <div class="pill">padded_size <b>464</b></div>
+            <div class="pill">patch_size <b>16</b></div>
+            <div class="pill">grid <b>29 × 29</b></div>
+            <div class="pill">N patches <b>841</b></div>
+            <div class="pill">embed_dim <b>192</b></div>
+            <div class="pill">depth <b>6</b></div>
+            <div class="pill">num_heads <b>3</b></div>
+            <div class="pill">head_dim <b>64</b></div>
+            <div class="pill">mlp_ratio <b>4×</b></div>
+            <div class="pill">proj_drop <b>0.1</b></div>
+            <div class="pill">drop_path_rate <b>0.05</b></div>
+            <div class="pill">ls_init <b>1e-4</b></div>
+            <div class="pill">locality_strength <b>0.1</b></div>
+          </div>
         </div>
-      </div>
-    </div>
 
-    <div class="arrow"></div>
-
-    <!-- PIXEL HEAD -->
-    <div class="block brd-tel" data-tip="Projects each token back to pixel values for its patch">
-      <div class="block-header bh-tel">
-        <div class="block-icon bi-tel">🖼</div>
-        <div class="block-title">Pixel Reconstruction Head</div>
-        <div class="block-badge bb-tel">decoder head</div>
-      </div>
-      <div class="block-body">
-        <div class="sub-row">
-          <div class="sub-block">Linear 192→192</div>
-          <div class="sub-arrow">→</div>
-          <div class="sub-block">GELU</div>
-          <div class="sub-arrow">→</div>
-          <div class="sub-block">Linear 192→256</div>
+        <div class="gallery-empty">
+          <span class="empty-icon">📂</span>
+          No images added yet.<br>
+          Place your training result PNGs in the same folder as <code style="background:#eef2f7;padding:1px 5px;border-radius:3px;font-size:10px;color:#bf360c;">index.html</code><br>
+          then add <code style="background:#eef2f7;padding:1px 5px;border-radius:3px;font-size:10px;color:#bf360c;">&lt;div class="gallery-card"&gt;</code> blocks inside the <code style="background:#eef2f7;padding:1px 5px;border-radius:3px;font-size:10px;color:#bf360c;">.gallery-grid</code> below.
         </div>
-        <div class="sub-row">
-          <div class="formula">patch_dim = 1×16×16 = 256 &nbsp;→&nbsp; (B, 841, 256)</div>
+
+        <div class="gallery-grid" id="gallery-grid">
+          <!-- paste your gallery-card blocks here -->
         </div>
-        <div class="sub-row" style="margin-top:3px">
-          <div class="sub-block sb-tel">unpatchify</div>
-          <div class="sub-arrow">→</div>
-          <div class="formula">(B, 1, 464, 464) &nbsp;then crop&nbsp; → &nbsp;(B, 1, 457, 457)</div>
-        </div>
+
       </div>
-    </div>
-
-    <div class="arrow dim-arr"></div>
-
-    <!-- OUTPUT -->
-    <div class="block brd-blue">
-      <div class="block-header bh-blue">
-        <div class="block-icon bi-blue" style="font-style:normal;">✦</div>
-        <div class="block-title">Output Tensor</div>
-        <div class="block-badge bb-blue">prediction t+1</div>
-      </div>
-      <div class="block-body">
-        <div class="sub-row">
-          <div class="sub-block sb-blue">B × 1 × 457 × 457</div>
-          <div class="sub-arrow">→</div>
-          <div class="formula">predicted distance matrix at t+1 &nbsp;·&nbsp; MSE loss vs ground truth</div>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /flow -->
-
-  <!-- Legend -->
-  <div class="legend">
-    <div class="legend-item" style="border-top:3px solid #2e7d32;">
-      <b style="color:#1b5e20;">SPT — Shifted Patch Tokenization</b>
-      <p>Each patch token is enriched with 4 shifted neighbours before projection, providing local context without relying on attention.</p>
-    </div>
-    <div class="legend-item" style="border-top:3px solid #e64a19;">
-      <b style="color:#bf360c;">LSA — Locality Self-Attention</b>
-      <p>Full bidirectional attention (no causal mask) with a learnable per-head temperature and a Gaussian distance bias that softly prefers nearby patches.</p>
-    </div>
-    <div class="legend-item" style="border-top:3px solid #6a1b9a;">
-      <b style="color:#4a148c;">LayerScale</b>
-      <p>Per-channel scalar γ on each residual branch, initialised at 1e-4. Stabilises early training on small datasets.</p>
-    </div>
-    <div class="legend-item" style="border-top:3px solid #0288d1;">
-      <b style="color:#01579b;">DropPath (Stoch. Depth)</b>
-      <p>Rate increases linearly across blocks (0 → 0.05). Acts as an ensemble of shallower networks at training time.</p>
-    </div>
-    <div class="legend-item" style="border-top:3px solid #e64a19;">
-      <b style="color:#bf360c;">Per-Head Locality Bias</b>
-      <p>Each head has its own learnable <em>locality_weight</em> scalar (init&nbsp;0.1), applied to the normalised Gaussian bias [−1,&nbsp;0]. Heads can independently learn how local or global to be, producing the diversity that multihead attention is designed to exploit. The low init keeps the bias weak early in training so random QKV projections drive head divergence first.</p>
-    </div>
-    <div class="legend-item" style="border-top:3px solid #546e7a;">
-      <b style="color:#37474f;">Padding &amp; Crop</b>
-      <p>457 is not divisible by 16. Reflect-pad to 464 before tokenisation, then crop back to 457×457 after reconstruction.</p>
     </div>
   </div>
 
@@ -771,6 +1009,47 @@
     &nbsp;<a href="https://ieeexplore.ieee.org/document/9957006" target="_blank" rel="noopener">→ View on IEEE Xplore</a>
   </div>
 
+</div><!-- /page -->
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <button class="lightbox-close" onclick="closeLightbox(null, true)" title="Close">✕</button>
+  <img id="lightbox-img" src="" alt="Gallery image">
 </div>
+
+<script>
+  function toggleRoller(id) {
+    const roller = document.getElementById(id);
+    const isOpen = roller.classList.contains('open');
+    roller.classList.toggle('open', !isOpen);
+    roller.querySelector('.roller-toggle').setAttribute('aria-expanded', String(!isOpen));
+  }
+
+  function openLightbox(src) {
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox(event, force) {
+    if (force || (event && event.target === document.getElementById('lightbox'))) {
+      document.getElementById('lightbox').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox(null, true);
+  });
+
+  // Hide empty state if gallery has cards
+  (function() {
+    const grid = document.getElementById('gallery-grid');
+    const empty = document.querySelector('.gallery-empty');
+    if (grid && grid.children.length > 0 && empty) {
+      empty.style.display = 'none';
+    }
+  })();
+</script>
 </body>
 </html>

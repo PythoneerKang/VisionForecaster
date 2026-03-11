@@ -1,5 +1,5 @@
 #Window widths
-w = 35
+w = 70
 
 #Git/GitHub Repo name
 repo_name = "VisionForecaster"
