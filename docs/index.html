@@ -1084,15 +1084,20 @@
       <div class="prereq-step">
         <div class="prereq-step-header">
           <div class="step-num">1</div>
-          <div class="step-title">Install dependencies</div>
+          <div class="step-title">Clone repo</div>
         </div>
         <div class="prereq-step-body">
           <div class="code-wrap">
             <div class="code-block">
-              <span class="prompt">$</span> cd <span class="var">&lt;repository-name&gt;</span><br>
-              <span class="prompt">$</span> poetry install
+              <span class="prompt">$</span> git clone https://github.com/PythoneerKang/VisionForecaster.git
             </div>
-            <button class="copy-btn" onclick="copyCode(this, 'cd &lt;repository-name&gt;\npoetry install')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <button class="copy-btn" onclick="copyCode(this, 'git clone https://github.com/PythoneerKang/VisionForecaster.git')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+          </div>
+          <div class="prereq-warning">
+            ⚠&nbsp; <b>Git</b> is required. It is pre-installed on most Linux systems by default.
+            If you are on <a href="https://git-scm.com/download/win" target="_blank" rel="noopener" style="color:#bf360c;text-decoration:none;border-bottom:1px dashed #f8b97a;">Windows</a>
+            or <a href="https://git-scm.com/download/mac" target="_blank" rel="noopener" style="color:#bf360c;text-decoration:none;border-bottom:1px dashed #f8b97a;">macOS</a>,
+            click the respective link to install Git first.
           </div>
         </div>
       </div>
@@ -1101,6 +1106,23 @@
       <div class="prereq-step">
         <div class="prereq-step-header">
           <div class="step-num">2</div>
+          <div class="step-title">Install dependencies</div>
+        </div>
+        <div class="prereq-step-body">
+          <div class="code-wrap">
+            <div class="code-block">
+              <span class="prompt">$</span> cd VisionForecaster<br>
+              <span class="prompt">$</span> poetry install
+            </div>
+            <button class="copy-btn" onclick="copyCode(this, 'cd VisionForecaster\npoetry install')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="prereq-step">
+        <div class="prereq-step-header">
+          <div class="step-num">3</div>
           <div class="step-title">Activate virtual environment &amp; run</div>
         </div>
         <div class="prereq-step-body">
@@ -1122,10 +1144,10 @@
         </div>
       </div>
 
-      <!-- Step 3 HPC -->
+      <!-- Step 4 HPC -->
       <div class="prereq-step hpc">
         <div class="prereq-step-header">
-          <div class="step-num">3</div>
+          <div class="step-num">4</div>
           <div class="step-title">HPC execution (PBS workload manager)</div>
           <div class="step-optional">optional</div>
         </div>
