@@ -2,7 +2,6 @@ from parameters import *
 from extract_distance_matrices import *
 from transformer import *
 from training_and_validation_functions import *
-from plot_train_val_res import *
 
 
 if __name__ == "__main__":
