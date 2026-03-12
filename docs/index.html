@@ -256,6 +256,13 @@
   .sb-tel { border-color: #70cbd6; color: #006064; background: #e7f9fb; }
   .brd-tel { border-color: #70cbd6 !important; }
 
+  /* new: teal-green for gate */
+  .bh-teal { background: #e0f2f1; }
+  .bi-teal { background: #a7d7d3; color: #004d40; }
+  .bb-teal { background: #00695c; color: #fff; }
+  .sb-teal { border-color: #4db6ac; color: #004d40; background: #e0f2f1; }
+  .brd-teal { border-color: #4db6ac !important; }
+
   /* ── Repeat bracket ── */
   .repeat-wrapper { width: 100%; max-width: 730px; display: flex; align-items: stretch; }
   .repeat-bracket { width: 20px; flex-shrink: 0; position: relative; }
@@ -365,7 +372,7 @@
 
   /* ── Citation ── */
   .citation-box {
-    margin-top: 28px; border: 1px solid var(--border);
+    margin-top: 16px; border: 1px solid var(--border);
     border-radius: 8px; background: var(--panel);
     padding: 14px 18px; font-size: 10px; color: var(--dim);
     box-shadow: 0 1px 4px var(--shadow); border-left: 3px solid #1565c0;
@@ -511,7 +518,7 @@
   <header>
     <div class="tag">// Small High-Resolution Vision Transformer</div>
     <h1>Vision<span>Forecaster</span></h1>
-    <div class="subtitle">Decoder-only ViT with Standard Patch Embed · LSA · LayerScale · DropPath — tuned for ~2 000 samples</div>
+    <div class="subtitle">Decoder-only ViT with Standard Patch Embed · Sector-GPSA · LayerScale · DropPath — tuned for ~2 000 samples</div>
     <div class="header-links">
       <a class="header-link header-link-gh" href="https://github.com/PythoneerKang/VisionForecaster" target="_blank" rel="noopener">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -540,7 +547,7 @@
       <div class="roller-icon">🏗</div>
       <div class="roller-title-wrap">
         <span class="roller-title">Architecture Diagram</span>
-        <span class="roller-subtitle">Full forward-pass flow — input → Standard Patch Embed → positional embed → 6× DecoderBlock → head → output</span>
+        <span class="roller-subtitle">Full forward-pass flow — input → Standard Patch Embed → positional embed → 6× DecoderBlock (Sector-GPSA) → head → output</span>
       </div>
       <span class="roller-badge">forward pass</span>
       <div class="roller-chevron">
@@ -555,7 +562,7 @@
         <div class="flow">
 
           <!-- INPUT -->
-          <div class="block brd-blue" data-tip="Raw distance matrix for one trading day">
+          <div class="block brd-blue">
             <div class="block-header bh-blue">
               <div class="block-icon bi-blue">⬛</div>
               <div class="block-title">Input Tensor</div>
@@ -575,7 +582,7 @@
           </div>
 
           <!-- STANDARD PATCH EMBED -->
-          <div class="block brd-grn" data-tip="Standard patch tokenisation: flatten each patch then project to embed_dim">
+          <div class="block brd-grn">
             <div class="block-header bh-grn">
               <div class="block-icon bi-grn">🔲</div>
               <div class="block-title">Standard Patch Embedding</div>
@@ -593,7 +600,6 @@
               <div class="sub-row">
                 <div class="formula">output: (B, 841, 192)</div>
               </div>
-
             </div>
           </div>
 
@@ -602,7 +608,7 @@
           </div>
 
           <!-- POS EMBED -->
-          <div class="block brd-pur" data-tip="Learned absolute positional embeddings, one per patch">
+          <div class="block brd-pur">
             <div class="block-header bh-pur">
               <div class="block-icon bi-pur">📍</div>
               <div class="block-title">Positional Embedding</div>
@@ -628,42 +634,49 @@
               <div class="repeat-label">× 6 blocks</div>
             </div>
             <div class="repeat-content">
-              <div class="block brd-org" style="max-width:100%" data-tip="One DecoderBlock: LSA + FFN with residuals">
+              <div class="block brd-org" style="max-width:100%">
                 <div class="block-header bh-org">
                   <div class="block-icon bi-org">🔷</div>
                   <div class="block-title">
                     DecoderBlock
                     <span style="color:#9e4a00;font-size:10px;font-weight:400"> &nbsp;(stoch-depth linearly spaced 0 → 0.05)</span>
                   </div>
-                  <div class="block-badge bb-org">LSA + FFN</div>
+                  <div class="block-badge bb-org">Sector-GPSA + FFN</div>
                 </div>
                 <div class="block-body">
                   <div class="inner-row">
 
                     <!-- Attention branch -->
                     <div class="inner-col">
-                      <div class="inner-col-header" style="color:#7b3a00;background:#fff0e0;">
-                        Attention Branch
+                      <div class="inner-col-header" style="color:#004d40;background:#e0f2f1;">
+                        Attention Branch — Sector-GPSA
                       </div>
                       <div class="inner-col-body">
                         <div class="mini-block">
                           LayerNorm <span style="color:var(--dim)">(192)</span>
                         </div>
                         <div class="mini-arrow">↓</div>
-                        <div class="mini-block" style="border-color:#f0a855;background:#fffaf3;">
-                          <span style="color:#7b3a00;font-weight:700;">Locality Self-Attention (LSA)</span>
-                          <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;text-align:justify;">
-                            QKV proj: 192 → 3×192 (no bias)<br>
-                            heads=3 &nbsp;·&nbsp; head_dim=64<br>
-                            temp: learnable per-head scalar<br>
-                            locality_weight: per-head (shape H) &nbsp;·&nbsp; init=0.1<br>
-                            bias: locality_weight_h × −‖Δcoord‖² / max(‖Δcoord‖²)<br>
-                            bias range: [−1, 0] per head &nbsp;·&nbsp; heads diverge independently<br>
-                            full bidirectional attention (no causal mask)<br>
-                            softmax → attn_drop=0.0<br>
+
+                        <!-- Sector-GPSA detail box -->
+                        <div class="mini-block" style="border-color:#4db6ac;background:#e0f2f1;">
+                          <span style="color:#004d40;font-weight:700;">Sector-Gated Positional Self-Attention</span>
+                          <div style="margin-top:6px;color:#555;font-size:8.5px;line-height:1.9;text-align:justify;">
+                            <b style="color:#004d40;">QKV proj:</b> 192 → 3×192 (no bias) · heads=3 · head_dim=64<br>
+
+                            <b style="color:#004d40;">A_content</b> = softmax(Q·Kᵀ / √64) &nbsp; (B, H, N, N)<br>
+
+                            <b style="color:#004d40;">A_pos</b> = sector-membership matrix &nbsp; (N, N)<br>
+                            &nbsp;&nbsp;A_pos[i,j] = 1/|sector(i)| if same GICS sector, else 0<br>
+                            &nbsp;&nbsp;Each row sums to 1 — uniform within-sector prior<br>
+
+                            <b style="color:#004d40;">g_h</b> = sigmoid(λ_h) per head · shape (H,) · init λ=+2 → g≈0.88<br>
+
+                            <b style="color:#004d40;">output_h</b> = g_h·(A_pos @ V) + (1−g_h)·(A_content @ V)<br>
+
                             out proj: 192 → 192
                           </div>
                         </div>
+
                         <div class="mini-arrow">↓</div>
                         <div class="mini-block" style="border-color:#c49de8;background:#f9f2ff;">
                           <span style="color:#5b1a8a;font-weight:700;">LayerScale γ₁</span>
@@ -742,7 +755,7 @@
           <div class="arrow"></div>
 
           <!-- PIXEL HEAD -->
-          <div class="block brd-tel" data-tip="Projects each token back to pixel values for its patch">
+          <div class="block brd-tel">
             <div class="block-header bh-tel">
               <div class="block-icon bi-tel">🖼</div>
               <div class="block-title">Pixel Reconstruction Head</div>
@@ -793,21 +806,21 @@
             <b style="color:#1b5e20;">Standard Patch Embedding</b>
             <p>Each (1×16×16) patch is flattened to 256 values, layer-normalised, and projected to 192 dimensions with a single linear layer.</p>
           </div>
-          <div class="legend-item" style="border-top:3px solid #e64a19;">
-            <b style="color:#bf360c;">LSA — Locality Self-Attention</b>
-            <p>Full bidirectional attention (no causal mask) with a learnable per-head temperature and a normalised Gaussian distance bias [−1, 0] that softly prefers nearby patches.</p>
+          <div class="legend-item" style="border-top:3px solid #00695c;">
+            <b style="color:#004d40;">Sector-GPSA Gate</b>
+            <p>g_h = sigmoid(λ_h) per head. g→1: head relies on the GICS sector prior (uniform within-sector attention). g→0: head is fully content-driven. Initialised at λ=+2 (g≈0.88) for stable early training on the small dataset.</p>
+          </div>
+          <div class="legend-item" style="border-top:3px solid #00695c;">
+            <b style="color:#004d40;">Sector Positional Prior A_pos</b>
+            <p>Row-normalised sector-membership matrix: each query patch attends uniformly over all patches in the same GICS sector. Directly encodes the block-diagonal structure of the GICS-reordered distance matrix — more principled than a Euclidean Gaussian prior (LSA) for categorical sector data.</p>
           </div>
           <div class="legend-item" style="border-top:3px solid #6a1b9a;">
             <b style="color:#4a148c;">LayerScale</b>
-            <p>Per-channel scalar γ on each residual branch, initialised at 1e-2. Stabilises early training on small datasets while providing a stronger gradient signal than the paper's 1e-4 (suited for deeper 12+ block networks).</p>
+            <p>Per-channel scalar γ on each residual branch, initialised at 1e-2. Stabilises early training on small datasets; 10× higher LR applied to γ parameters via a separate AdamW group.</p>
           </div>
           <div class="legend-item" style="border-top:3px solid #0288d1;">
             <b style="color:#01579b;">DropPath (Stoch. Depth)</b>
             <p>Rate increases linearly across blocks (0 → 0.05). Acts as an ensemble of shallower networks at training time.</p>
-          </div>
-          <div class="legend-item" style="border-top:3px solid #e64a19;">
-            <b style="color:#bf360c;">Per-Head Locality Bias</b>
-            <p>Each head has its own learnable <em>locality_weight</em> scalar (init&nbsp;0.1), applied to the normalised Gaussian bias [−1,&nbsp;0]. Heads can independently learn how local or global to be, producing the diversity that multihead attention is designed to exploit. The low init keeps the bias weak early in training so random QKV projections drive head divergence first.</p>
           </div>
           <div class="legend-item" style="border-top:3px solid #546e7a;">
             <b style="color:#37474f;">Padding &amp; Crop</b>
@@ -827,7 +840,7 @@
       <div class="roller-icon">🖼</div>
       <div class="roller-title-wrap">
         <span class="roller-title">Gallery</span>
-        <span class="roller-subtitle">Training results · loss curves · predictions vs ground truth · attention maps</span>
+        <span class="roller-subtitle">Training results · loss curves · predictions vs ground truth · gate values · attention maps</span>
       </div>
       <span class="roller-badge">results</span>
       <div class="roller-chevron">
@@ -856,7 +869,8 @@
             <div class="pill">proj_drop <b>0.1</b></div>
             <div class="pill">drop_path_rate <b>0.05</b></div>
             <div class="pill">ls_init <b>1e-2</b></div>
-            <div class="pill">locality_strength <b>0.1</b></div>
+            <div class="pill">gate_init λ <b>+2.0</b></div>
+            <div class="pill">gate_init g <b>≈0.88</b></div>
           </div>
         </div>
 
@@ -868,90 +882,7 @@
         </div>
 
         <div class="gallery-grid" id="gallery-grid">
-          <div class="gallery-card">
-            <img src="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/results_and_plots/dataset_train_val_split_viz/timeseries_split_viz.png" alt="ts train viz split" onclick="openLightbox(this.src)">
-            <div class="gallery-card-caption">
-              <b>Time-series Training/Validation Multi-fold CV Split Visualization</b>
-              Walk-forward · No random shuffling - avoids data leakage/cheating · Data period: 3 Jan 2017 - 28 Apr 2023
-            </div>
-          </div>
-          <div class="gallery-card">
-            <img src="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/results_and_plots/interpretable_results/w35/fold_summary.png" alt="w = 35 days fold summary" onclick="openLightbox(this.src)">
-            <div class="gallery-card-caption">
-              <b>Multi-fold CV results for w = 35 days</b>
-              Fold 9 has the best results · train=solid lines · val=dotted lines
-            </div>
-          </div>
-          <div class="gallery-card">
-            <img src="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/results_and_plots/interpretable_results/w35/prediction_error_map.png" alt="w = 35 days prediction-error check" onclick="openLightbox(this.src)">
-            <div class="gallery-card-caption">
-              <b>Example prediction-error check for w = 35 days</b>
-              An example instance of a prediction using the first day of the last validation set (fold 9).
-            </div>
-          </div>
-          <div class="gallery-card">
-            <img src="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/results_and_plots/interpretable_results/w35/attention_temperatures.png" alt="w = 35 days attention temperature" onclick="openLightbox(this.src)">
-            <div class="gallery-card-caption">
-              <b>Attention temperature plot for w = 35 days</b>
-              Displays sharpness of attention across decoder blocks and heads.
-            </div>
-          </div>
-          <div class="gallery-card">
-            <img src="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/results_and_plots/interpretable_results/w35/attention_maps.png" alt="w = 35 days ind attention map by mag" onclick="openLightbox(this.src)">
-            <div class="gallery-card-caption">
-              <b>Individual head attention maps by magnitude (w = 35 days)</b>
-              First block (1) · Central patch (marked "X") · Better magnitude contrast across heads
-            </div>
-          </div>
-          <div class="gallery-card">
-            <img src="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/results_and_plots/interpretable_results/w35/ind_attention_maps_overlay.png" alt="w = 35 days ind attention map by col" onclick="openLightbox(this.src)">
-            <div class="gallery-card-caption">
-              <b>Individual head attention maps with color contrasts (w = 35 days)</b>
-              First block (1) · Central patch (marked "X") · Better magnitude contrast within heads
-            </div>
-          </div>
-          <div class="gallery-card">
-            <img src="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/results_and_plots/interpretable_results/w35/attention_maps_overlay.png" alt="w = 35 days combined attention map" onclick="openLightbox(this.src)">
-            <div class="gallery-card-caption">
-              <b>Combined attention maps with color contrasts (w = 35 days)</b>
-              First block (1) · Central patch (marked "X") · Combined plots
-            </div>
-          </div>
-          <div class="gallery-card">
-            <img src="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/results_and_plots/interpretable_results/w35/attention_maps_last_block.png" alt="w = 35 days ind attention map by mag (last block)" onclick="openLightbox(this.src)">
-            <div class="gallery-card-caption">
-              <b>Individual head attention maps by magnitude (w = 35 days)</b>
-              Last block (6) · Central patch (marked "X") · Better magnitude contrast across heads
-            </div>
-          </div>
-          <div class="gallery-card">
-            <img src="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/results_and_plots/interpretable_results/w35/ind_attention_maps_overlay_last_block.png" alt="w = 35 days ind attention map by col (last block)" onclick="openLightbox(this.src)">
-            <div class="gallery-card-caption">
-              <b>Individual head attention maps with color contrasts (w = 35 days)</b>
-              Last block (6) · Central patch (marked "X") · Better magnitude contrast within heads
-            </div>
-          </div>
-          <div class="gallery-card">
-            <img src="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/results_and_plots/interpretable_results/w35/attention_maps_overlay_last_block.png" alt="w = 35 days combined attention map (last block)" onclick="openLightbox(this.src)">
-            <div class="gallery-card-caption">
-              <b>Combined attention maps with color contrasts (w = 35 days)</b>
-              Last block (6) · Central patch (marked "X") · Combined plots
-            </div>
-          </div>
-          <div class="gallery-card">
-            <img src="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/results_and_plots/interpretable_results/w35/mean_attention_distance.png" alt="w = 35 days mean attention dist" onclick="openLightbox(this.src)">
-            <div class="gallery-card-caption">
-              <b>Mean attention distance across heads and blocks (w = 35 days)</b>
-              Mean L2 (Euclidean) pairwise distance across all 29 * 29 = 841 pairs ~ 15.11 units.
-            </div>
-          </div>
-          <div class="gallery-card">
-            <img src="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/results_and_plots/interpretable_results/w35/locality_bias_scale.png" alt="w = 35 days locality bias scale" onclick="openLightbox(this.src)">
-            <div class="gallery-card-caption">
-              <b>Locality bias scale for all blocks (w = 35 days)</b>
-              Check for overfocusing of attention heads for each block.
-            </div>
-          </div>
+          <!-- Gallery cards go here after training -->
         </div>
 
       </div>
@@ -1074,7 +1005,6 @@
 
     <div class="prereq-steps">
 
-      <!-- Step 1 -->
       <div class="prereq-step">
         <div class="prereq-step-header">
           <div class="step-num">1</div>
@@ -1097,7 +1027,6 @@
         </div>
       </div>
 
-      <!-- Step 2 -->
       <div class="prereq-step">
         <div class="prereq-step-header">
           <div class="step-num">2</div>
@@ -1114,7 +1043,6 @@
         </div>
       </div>
 
-      <!-- Step 3 -->
       <div class="prereq-step">
         <div class="prereq-step-header">
           <div class="step-num">3</div>
@@ -1139,7 +1067,6 @@
         </div>
       </div>
 
-      <!-- Step 4 HPC -->
       <div class="prereq-step hpc">
         <div class="prereq-step-header">
           <div class="step-num">4</div>
@@ -1165,15 +1092,26 @@
     </div>
   </div>
 
-  <!-- Citation -->
+  <!-- Citations -->
   <div class="citation-box">
-    <div class="cite-label">// Inspiration</div>
+    <div class="cite-label">// Primary Reference — Attention Mechanism</div>
+    <div class="cite-title">ConViT: Improving Vision Transformers with Soft Convolutional Inductive Biases</div>
+    <div class="cite-authors">
+      Stéphane d'Ascoli, Hugo Touvron, Matthew Lerer, Armand Joulin, Piotr Bojanowski, Julien Garrigue &nbsp;·&nbsp; ICML 2021
+    </div>
+    <span class="cite-badge">arXiv: 2103.10697</span>
+    The Sector-GPSA gating mechanism is adapted from this work. The positional prior is replaced with a sector-membership matrix derived from GICS sector assignments, making the inductive bias domain-specific rather than relying on Euclidean grid distance.
+    &nbsp;<a href="https://arxiv.org/abs/2103.10697" target="_blank" rel="noopener">→ View on arXiv</a>
+  </div>
+
+  <div class="citation-box" style="margin-top:10px;">
+    <div class="cite-label">// Inspiration — Small-Data ViT</div>
     <div class="cite-title">Vision Transformer for Small-Size Datasets</div>
     <div class="cite-authors">
       Seung Hoon Lee, Seunghyun Lee, Byung Cheol Song &nbsp;·&nbsp; IEEE Access, 2022
     </div>
     <span class="cite-badge">DOI: 10.1109/ACCESS.2022.3220167</span>
-    The LSA technique used in this architecture is adapted from this work, which introduced locality inductive bias mechanisms enabling ViTs to train effectively on small datasets without large-scale pre-training.
+    Small-data motivation: LayerScale, DropPath, and the overall architecture scale follow this work, which demonstrated ViTs can train effectively on small datasets without large-scale pre-training.
     &nbsp;<a href="https://ieeexplore.ieee.org/document/9957006" target="_blank" rel="noopener">→ View on IEEE Xplore</a>
   </div>
 
@@ -1224,7 +1162,6 @@
     if (e.key === 'Escape') closeLightbox(null, true);
   });
 
-  // Hide empty state if gallery has cards
   (function() {
     const grid = document.getElementById('gallery-grid');
     const empty = document.querySelector('.gallery-empty');

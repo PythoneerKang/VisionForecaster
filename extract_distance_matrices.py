@@ -2,6 +2,7 @@ import parameters as p
 
 import pickle
 import numpy as np
+import torch
 
 
 def extract_distance_matrix():
@@ -17,44 +18,32 @@ def extract_distance_matrix():
         "Extract distance matrix (2017-2022) from pkl file/IQDw{}.pkl".format(p.w),
         "rb",
     ) as pkl_file:
-        # Load as float32 immediately to halve memory vs float64
         data1 = pickle.load(pkl_file).astype(np.float32)
 
-    # Clamp correlations to [−1, 1] before distance conversion.
-    # Upper clamp prevents imaginary sqrt; lower clamp prevents distances > 2.
     data1 = np.clip(data1, -1.0, 1.0)
 
     # Convert correlation → distance:  d = sqrt(2 * (1 − corr))
-    # Result is in [0, 2]; 0 = identical, 2 = perfectly anti-correlated.
     distance_matrix = (2 * (1 - data1)) ** np.float32(0.5)
 
-    # We no longer need the original correlation tensor
     del data1
 
-    # Assert expected raw stock count before deletion (463 − 6 = 457)
     assert distance_matrix.shape[1] == 457 + 6, (
         f"Unexpected stock count {distance_matrix.shape[1]} in pkl; "
         f"expected 463 (457 stocks + 6 to be removed)."
     )
 
-    # Remove nan-prone rows/cols — same indices on both stock axes.
-    # Using a single shared list ensures rows and cols are always in sync.
     # Removed tickers: ABMD (idx 6), CTVA (111), DOW (128), FOX (169),
-    #                  FOXA (170), IR (225) — all had insufficient history
-    #                  due to spin-offs / mergers within the 2017-2023 window.
+    #                  FOXA (170), IR (225)
     bad_indices = [6, 111, 128, 169, 170, 225]
     distance_matrix = np.delete(distance_matrix, bad_indices, axis=1)
     distance_matrix = np.delete(distance_matrix, bad_indices, axis=2)
 
-    # Assert final shape matches model expectation
     assert distance_matrix.shape[1] == 457 and distance_matrix.shape[2] == 457, (
         f"Distance matrix stock dimensions {distance_matrix.shape[1:]} != (457, 457) "
         f"after removing bad indices."
     )
 
-    # Global z-score standardisation (all T days and all N×N entries together).
-    # NOTE: This uses the global mean/std across all days — confirm with supervisor
-    # that global normalisation is intended rather than per-day z-scoring.
+    # Global z-score standardisation
     mean = np.mean(distance_matrix, dtype=np.float32)
     std  = np.std(distance_matrix,  dtype=np.float32)
     distance_matrix = (distance_matrix - mean) / std
@@ -66,10 +55,6 @@ def extract_distance_matrix():
 # GICS sector label file
 # ─────────────────────────────────────────────────────────────────────────────
 
-# Ordered list of the 457 surviving S&P 500 stock tickers (after removing the
-# 6 NaN-prone tickers: ABMD, CTVA, DOW, FOX, FOXA, IR).
-# Source: "20170103 SP500 label.txt" supplied with the dataset, which lists the
-# 463 S&P 500 constituents as of 3 Jan 2017 (dataset start date).
 SP500_TICKERS_457 = [
     "A", "AAL", "AAP", "AAPL", "ABBV", "ABC", "ABT", "ACN", "ADBE", "ADI",
     "ADM", "ADP", "ADSK", "AEE", "AEP", "AES", "AFL", "AIG", "AIV", "AIZ",
@@ -251,8 +236,6 @@ _GICS_SECTOR_MAP: dict[str, list[str]] = {
     ],
 }
 
-# Canonical sector ordering (alphabetical within each sector — consistent
-# with most finance literature that uses GICS block-diagonal visualisations)
 GICS_SECTOR_ORDER: list[str] = sorted(_GICS_SECTOR_MAP.keys())
 
 
@@ -268,49 +251,17 @@ def reorder_by_gics(
     Parameters
     ----------
     distance_matrix : np.ndarray
-        Shape (T, 457, 457) or (457, 457).  The z-scored distance matrices
-        produced by extract_distance_matrix().
+        Shape (T, 457, 457) or (457, 457).
     tickers : list[str] | None
         The 457 ticker labels corresponding to axis-1 / axis-2.
-        Defaults to SP500_TICKERS_457 defined in this module.
+        Defaults to SP500_TICKERS_457.
 
     Returns
     -------
     reordered_matrix : np.ndarray
-        Same dtype and number of dimensions as the input, with rows and
-        columns permuted so stocks are grouped by GICS sector.
     reordered_tickers : list[str]
-        Ticker labels in the new (GICS-sorted) order.
     sector_labels : list[str]
-        Per-stock sector string, aligned with reordered_tickers.  Useful
-        for annotating heatmap axes or constructing block-diagonal masks.
-
-    Raises
-    ------
-    ValueError
-        If any ticker in `tickers` is missing from the GICS map, or if the
-        matrix spatial dimensions do not match len(tickers).
-
-    Notes
-    -----
-    The GICS sector data embedded in _GICS_SECTOR_MAP is sourced from:
-      - Wikipedia "List of S&P 500 companies"
-        https://en.wikipedia.org/wiki/List_of_S%26P_500_companies
-        (snapshot consistent with the 3 Jan 2017 dataset start date)
-      - MSCI GICS® methodology: https://www.msci.com/indexes/index-resources/gics
-      - S&P DJI GICS page: https://www.spglobal.com/spdji/en/landing/topic/gics/
-
-    Sector assignments reflect the GICS structure as of Jan 2017.  The Sep 2018
-    reclassification (Telecom → Communication Services expansion) is NOT applied
-    so that the labels match the period covered by the dataset.
-
-    Examples
-    --------
-    >>> dm = extract_distance_matrix()          # (T, 457, 457)
-    >>> dm_gics, tickers_new, sectors = reorder_by_gics(dm)
-    >>> print(dm_gics.shape)                    # (T, 457, 457)
-    >>> print(tickers_new[:5])                  # first 5 GICS-ordered tickers
-    >>> print(sectors[:5])                      # their sector labels
+        Per-stock sector string, aligned with reordered_tickers.
     """
     if tickers is None:
         tickers = SP500_TICKERS_457
@@ -318,23 +269,17 @@ def reorder_by_gics(
     n = len(tickers)
     ndim = distance_matrix.ndim
     if ndim == 2:
-        assert distance_matrix.shape == (n, n), (
-            f"2-D matrix shape {distance_matrix.shape} != ({n}, {n})"
-        )
+        assert distance_matrix.shape == (n, n)
     elif ndim == 3:
-        assert distance_matrix.shape[1] == n and distance_matrix.shape[2] == n, (
-            f"3-D matrix spatial dims {distance_matrix.shape[1:]} != ({n}, {n})"
-        )
+        assert distance_matrix.shape[1] == n and distance_matrix.shape[2] == n
     else:
         raise ValueError(f"distance_matrix must be 2-D or 3-D, got {ndim}-D")
 
-    # Build ticker → sector lookup
     ticker_to_sector: dict[str, str] = {}
     for sector in GICS_SECTOR_ORDER:
         for t in _GICS_SECTOR_MAP[sector]:
             ticker_to_sector[t] = sector
 
-    # Validate every ticker in the list has a sector assignment
     missing_tickers = [t for t in tickers if t not in ticker_to_sector]
     if missing_tickers:
         raise ValueError(
@@ -342,8 +287,6 @@ def reorder_by_gics(
             "Update _GICS_SECTOR_MAP in extract_distance_matrices.py."
         )
 
-    # Build the permutation index: group tickers by sector (GICS_SECTOR_ORDER),
-    # preserving original relative order within each sector group.
     ticker_index = {t: i for i, t in enumerate(tickers)}
     perm: list[int] = []
     reordered_tickers: list[str] = []
@@ -360,10 +303,9 @@ def reorder_by_gics(
 
     perm_arr = np.array(perm, dtype=np.intp)
 
-    # Apply permutation to both axes simultaneously
     if ndim == 2:
         reordered = distance_matrix[np.ix_(perm_arr, perm_arr)]
-    else:  # (T, N, N)
+    else:
         reordered = distance_matrix[:, perm_arr, :][:, :, perm_arr]
 
     return reordered, reordered_tickers, sector_labels
@@ -377,11 +319,6 @@ def get_gics_sector_boundaries(sector_labels: list[str]) -> list[tuple[str, int,
     Returns
     -------
     list of (sector_name, start_idx, end_idx) tuples  (end_idx is exclusive)
-
-    Useful for drawing block-diagonal lines on heatmap visualisations, e.g.:
-        for name, start, end in get_gics_sector_boundaries(sectors):
-            ax.axhline(end - 0.5, color='white', lw=0.8)
-            ax.axvline(end - 0.5, color='white', lw=0.8)
     """
     boundaries: list[tuple[str, int, int]] = []
     current_sector = sector_labels[0]
@@ -393,3 +330,83 @@ def get_gics_sector_boundaries(sector_labels: list[str]) -> list[tuple[str, int,
             start = i
     boundaries.append((current_sector, start, len(sector_labels)))
     return boundaries
+
+
+def build_patch_sector_ids(
+    sector_labels: list[str],
+    patch_size: int = 16,
+    img_size: int = 457,
+) -> torch.Tensor:
+    """
+    Build a (N,) integer tensor mapping each image patch to its dominant
+    GICS sector index.  Required by SectorGPSA in transformer.py.
+
+    The 457×457 GICS-reordered distance matrix is padded to padded_size
+    (= ceil(457/patch_size) * patch_size) before patchification.  Each
+    patch covers patch_size stocks along both the row and column axes.
+    The dominant sector for a patch is the GICS sector that covers the
+    majority of the stock-rows within that patch.
+
+    Parameters
+    ----------
+    sector_labels : list[str]
+        Per-stock sector string in GICS order, as returned by
+        reorder_by_gics().  Length must be 457.
+    patch_size    : int
+        Patch size used by the model (default 16).
+    img_size      : int
+        Original image size before padding (default 457).
+
+    Returns
+    -------
+    sector_ids : torch.Tensor  shape (N,) dtype=torch.long
+        Integer sector index for each patch.  N = grid_h * grid_w.
+        Sector index follows GICS_SECTOR_ORDER (alphabetical).
+
+    Notes
+    -----
+    Because the matrix is symmetric and GICS-reordered, a patch at grid
+    position (r, c) covers stocks [r*p, (r+1)*p) on the row axis and
+    [c*p, (c+1)*p) on the column axis.  For the sector ID we use the
+    row axis only (stocks correspond to rows after GICS reordering),
+    which gives a consistent spatial sector map aligned with the
+    block-diagonal structure.
+
+    Padded rows (beyond stock index 456) inherit the last stock's sector,
+    keeping the boundary patches consistent.
+    """
+    import math
+
+    assert len(sector_labels) == img_size, (
+        f"sector_labels length {len(sector_labels)} != img_size {img_size}"
+    )
+
+    padded_size = math.ceil(img_size / patch_size) * patch_size
+    grid        = padded_size // patch_size   # grid_h == grid_w
+    N           = grid * grid
+
+    # Build per-pixel (per-stock-row) sector index, padded to padded_size
+    sector_to_idx = {s: i for i, s in enumerate(GICS_SECTOR_ORDER)}
+    # Map each stock index → integer sector index
+    stock_sector_idx = [sector_to_idx[s] for s in sector_labels]
+    # Pad with the last stock's sector for reflect-padded rows beyond img_size
+    last_sector_idx = stock_sector_idx[-1]
+    padded_stock_sector = stock_sector_idx + [last_sector_idx] * (padded_size - img_size)
+
+    # For each patch row r, find the majority sector among stocks
+    # in rows [r*patch_size, (r+1)*patch_size)
+    patch_row_sector = []
+    for r in range(grid):
+        row_stocks = padded_stock_sector[r * patch_size: (r + 1) * patch_size]
+        # Majority vote (Counter-style)
+        from collections import Counter
+        majority_sector = Counter(row_stocks).most_common(1)[0][0]
+        patch_row_sector.append(majority_sector)
+
+    # Each patch (r, c) inherits the sector of its row
+    sector_ids = []
+    for r in range(grid):
+        for c in range(grid):
+            sector_ids.append(patch_row_sector[r])
+
+    return torch.tensor(sector_ids, dtype=torch.long)
