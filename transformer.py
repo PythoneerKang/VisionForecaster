@@ -517,8 +517,8 @@ class SmallDataDecoderViT(nn.Module):
 # Recommended configs
 # ============================================================
 
-def small_data_vit_tiny(in_channels: int = 3, **kwargs) -> SmallDataDecoderViT:
-    """~6 M params — fastest to train, good baseline."""
+def small_data_vit_tiny(in_channels: int = 1, **kwargs) -> SmallDataDecoderViT:
+    """~6 M params — used in training; suited for single-channel inputs (~2 000 samples)."""
     return SmallDataDecoderViT(
         in_channels=in_channels,
         embed_dim=192, depth=6, num_heads=3,
@@ -528,7 +528,7 @@ def small_data_vit_tiny(in_channels: int = 3, **kwargs) -> SmallDataDecoderViT:
 
 
 def small_data_vit_small(in_channels: int = 3, **kwargs) -> SmallDataDecoderViT:
-    """~22 M params — recommended for 2 000-image datasets."""
+    """~22 M params — larger variant for 3-channel inputs or bigger datasets."""
     return SmallDataDecoderViT(
         in_channels=in_channels,
         embed_dim=384, depth=8, num_heads=6,
@@ -557,40 +557,56 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}\n")
 
+    # Test tiny (the actual training config) and small across two patch sizes
+    configs = [
+        ("tiny",  small_data_vit_tiny,  1),   # in_channels=1, matches training
+        ("small", small_data_vit_small, 3),   # in_channels=3, larger variant
+    ]
+
     for patch_size in (16, 32):
-        model = small_data_vit_small(in_channels=3, patch_size=patch_size).to(device)
-        x = torch.randn(2, 3, 457, 457, device=device)
+        for name, factory, in_ch in configs:
+            model = factory(in_channels=in_ch, patch_size=patch_size).to(device)
+            x = torch.randn(2, in_ch, 457, 457, device=device)
 
-        t0 = time.time()
-        with torch.no_grad():
-            y = model(x)
-        elapsed = time.time() - t0
+            t0 = time.time()
+            with torch.no_grad():
+                y = model(x)
+            elapsed = time.time() - t0
 
-        assert x.shape == y.shape, f"Shape mismatch: {x.shape} vs {y.shape}"
+            assert x.shape == y.shape, f"Shape mismatch: {x.shape} vs {y.shape}"
 
-        n_params = sum(p.numel() for p in model.parameters())
-        print(
-            f"patch_size={patch_size:2d} | "
-            f"padded={model.padded_size} | "
-            f"grid={model.grid_h}×{model.grid_w} | "
-            f"N={model.num_patches:4d} patches | "
-            f"params={n_params:,} | "
-            f"forward={elapsed*1000:.1f} ms | "
-            f"output={tuple(y.shape)} ✓"
-        )
+            n_params = sum(p.numel() for p in model.parameters())
+            print(
+                f"[{name:5s}] patch_size={patch_size:2d} | "
+                f"padded={model.padded_size} | "
+                f"grid={model.grid_h}×{model.grid_w} | "
+                f"N={model.num_patches:4d} patches | "
+                f"params={n_params:,} | "
+                f"forward={elapsed*1000:.1f} ms | "
+                f"output={tuple(y.shape)} ✓"
+            )
+        print()
 
-    print("\nAll checks passed.")
+    print("All checks passed.")
 
     # -----------------------------------------------------------------
-    # Training-recipe hint
+    # Training-recipe hint (reflects actual training config in main.py)
     # -----------------------------------------------------------------
     print("""
-Recommended training recipe for 2 000 images
----------------------------------------------
-optimizer   : AdamW, lr=1e-3, weight_decay=0.05
-scheduler   : cosine decay with 5-epoch warmup, 200 epochs total
-augmentation: RandAugment(n=2, m=9) + Mixup(alpha=0.2) + CutMix(alpha=1.0)
-batch size  : 32–64 (gradient accumulation if memory constrained)
-loss        : task-specific (e.g. L1 / MSE for reconstruction, CE for labels)
-extra       : EMA of weights (decay=0.999) for better generalisation
+Actual training config (main.py / training_and_validation_functions.py)
+------------------------------------------------------------------------
+model       : small_data_vit_tiny  (embed_dim=192, depth=6, num_heads=3)
+in_channels : 1  (single-channel z-scored distance matrix)
+img_size    : 457  (padded to 464 = 29×16 before tokenisation)
+optimizer   : AdamW — 3 param groups:
+                decay    lr=1e-4, wd=1e-2  (weight matrices)
+                no-decay lr=1e-4, wd=0     (biases, LayerNorm)
+                gamma    lr=1e-3, wd=0     (LayerScale γ — 10× boost)
+scheduler   : none (early stopping, patience=10)
+epochs      : up to 100 per fold (early stopping typically triggers earlier)
+batch size  : configured via parameters.BATCH_SIZE
+cv          : TimeSeriesSplit(n_splits=9, max_train_size=504, test_size=126)
+loss        : MSE
+ls_init     : 1e-2  (raised from paper's 1e-4 — safe for 6-block nets)
+locality    : per-head weight, init=0.1, bias normalised to [-1, 0]
 """)

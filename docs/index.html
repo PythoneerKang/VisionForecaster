@@ -676,9 +676,10 @@
                           </div>
                         </div>
                         <div class="mini-arrow">↓</div>
+                        <!-- FIX: ls_init corrected from 1e-4 to 1e-2 -->
                         <div class="mini-block" style="border-color:#c49de8;background:#f9f2ff;">
                           <span style="color:#5b1a8a;font-weight:700;">LayerScale γ₁</span>
-                          <span style="color:var(--dim);font-size:8px;"> (init 1e-4, shape 192)</span>
+                          <span style="color:var(--dim);font-size:8px;"> (init 1e-2, shape 192)</span>
                         </div>
                         <div class="mini-arrow">↓</div>
                         <div class="mini-block" style="border-color:#90b8f8;background:#f0f5ff;">
@@ -710,9 +711,10 @@
                           </div>
                         </div>
                         <div class="mini-arrow">↓</div>
+                        <!-- FIX: ls_init corrected from 1e-4 to 1e-2 -->
                         <div class="mini-block" style="border-color:#c49de8;background:#f9f2ff;">
                           <span style="color:#5b1a8a;font-weight:700;">LayerScale γ₂</span>
-                          <span style="color:var(--dim);font-size:8px;"> (init 1e-4, shape 192)</span>
+                          <span style="color:var(--dim);font-size:8px;"> (init 1e-2, shape 192)</span>
                         </div>
                         <div class="mini-arrow">↓</div>
                         <div class="mini-block" style="border-color:#90b8f8;background:#f0f5ff;">
@@ -808,9 +810,10 @@
             <b style="color:#bf360c;">LSA — Locality Self-Attention</b>
             <p>Full bidirectional attention (no causal mask) with a learnable per-head temperature and a Gaussian distance bias that softly prefers nearby patches.</p>
           </div>
+          <!-- FIX: ls_init corrected from 1e-4 to 1e-2 in legend description -->
           <div class="legend-item" style="border-top:3px solid #6a1b9a;">
             <b style="color:#4a148c;">LayerScale</b>
-            <p>Per-channel scalar γ on each residual branch, initialised at 1e-4. Stabilises early training on small datasets.</p>
+            <p>Per-channel scalar γ on each residual branch, initialised at 1e-2. Stabilises early training on small datasets while providing a stronger gradient signal than the paper's 1e-4 (suited for deeper 12+ block networks).</p>
           </div>
           <div class="legend-item" style="border-top:3px solid #0288d1;">
             <b style="color:#01579b;">DropPath (Stoch. Depth)</b>
@@ -852,6 +855,7 @@
 
         <div style="margin-top:20px;margin-bottom:6px;">
           <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#2e7d32;font-weight:700;margin-bottom:10px;">Hyperparameters used</div>
+          <!-- FIX: ls_init pill corrected from 1e-4 to 1e-2 -->
           <div class="params-row" style="margin-bottom:0">
             <div class="pill">in_channels <b>1</b></div>
             <div class="pill">img_size <b>457</b></div>
@@ -866,7 +870,7 @@
             <div class="pill">mlp_ratio <b>4×</b></div>
             <div class="pill">proj_drop <b>0.1</b></div>
             <div class="pill">drop_path_rate <b>0.05</b></div>
-            <div class="pill">ls_init <b>1e-4</b></div>
+            <div class="pill">ls_init <b>1e-2</b></div>
             <div class="pill">locality_strength <b>0.1</b></div>
           </div>
         </div>

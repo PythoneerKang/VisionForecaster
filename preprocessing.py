@@ -35,10 +35,16 @@ def generate_multi_fold_cv_dataloaders(distance_matrix):
         X_train_cv, X_test_cv = X[train_index], X[test_index]
         y_train_cv, y_test_cv = y[train_index], y[test_index]
 
-        # You can now convert these NumPy arrays to PyTorch tensors
-        # and use them with a PyTorch DataLoader
-        train_dataset = TensorDataset(torch.tensor(X_train_cv).float(), torch.tensor(y_train_cv).float())
-        test_dataset = TensorDataset(torch.tensor(X_test_cv).float(), torch.tensor(y_test_cv).float())
+        # Use torch.from_numpy() rather than torch.tensor() to avoid an
+        # unnecessary data copy and the associated UserWarning in PyTorch ≥ 1.8.
+        train_dataset = TensorDataset(
+            torch.from_numpy(X_train_cv).float(),
+            torch.from_numpy(y_train_cv).float(),
+        )
+        test_dataset = TensorDataset(
+            torch.from_numpy(X_test_cv).float(),
+            torch.from_numpy(y_test_cv).float(),
+        )
 
         train_loader = DataLoader(train_dataset, batch_size=p.BATCH_SIZE)
         test_loader = DataLoader(test_dataset, batch_size=p.BATCH_SIZE)
@@ -71,5 +77,3 @@ def printshape(train_loader,test_loader):
 
         print(f"Training set shape: {Training_set_shape}")
         print(f"Testing set shape: {Testing_set_shape}")
-
-
