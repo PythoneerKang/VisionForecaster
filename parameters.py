@@ -3,9 +3,7 @@
 # =============================================================================
 
 # Window width for correlation computation.
-# NOTE: w=70 is currently set, but confirm with supervisor —
-# the comment in main.py says "Dr. Cheong says only focus on w = 35 days."
-# Update this value before running if w=35 is intended.
+# Confirmed with supervisor (Dr. Cheong): use w=35 days only.
 w = 35
 
 # Git/GitHub Repo name
@@ -43,9 +41,9 @@ USE_GPU = False
 # Model & training hyperparameters
 # -----------------------------------------------------------------------------
 
-# BATCH_SIZE: with max 504 training samples per fold, batch_size=128 gives
-# only ~4 gradient steps per epoch — too few for stable convergence.
-# Recommended range: 4–16.  Start with 8 and increase if training is stable.
+# BATCH_SIZE: with max 504 training samples per fold and BATCH_SIZE=8,
+# each epoch produces ~63 gradient steps — a healthy number for convergence.
+# Recommended range: 4–16. Increase cautiously if training is stable.
 BATCH_SIZE = 8
 
 # -----------------------------------------------------------------------------

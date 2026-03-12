@@ -244,6 +244,10 @@ class SectorGPSA(nn.Module):
         #   - moves with .to(device) automatically (no device-check overhead)
         #   - is excluded from state_dict (rebuilt from sector_ids on load)
         #   - is computed exactly once at construction, not every forward pass
+        #
+        # NOTE: _GPSAHook in model_interpretability.py accesses _a_pos directly
+        # and re-derives the attention computation.  If this forward() method
+        # changes, update the hook accordingly to keep them in sync.
         self.register_buffer(
             "_a_pos",
             _build_sector_positional_attn(sector_ids, sector_ids.device),
@@ -612,13 +616,15 @@ if __name__ == "__main__":
 
             assert x.shape == y.shape, f"Shape mismatch: {x.shape} vs {y.shape}"
 
-            n_params = sum(p.numel() for p in model.parameters())
+            # Use num_params to avoid shadowing the `p` name from any
+            # enclosing scope (e.g. `import parameters as p`).
+            num_params = sum(param.numel() for param in model.parameters())
             print(
                 f"[{name:5s}] patch_size={patch_size:2d} | "
                 f"padded={model.padded_size} | "
                 f"grid={model.grid_h}×{model.grid_w} | "
                 f"N={model.num_patches:4d} patches | "
-                f"params={n_params:,} | "
+                f"params={num_params:,} | "
                 f"attn=SectorGPSA | "
                 f"forward={elapsed*1000:.1f} ms | "
                 f"output={tuple(y.shape)} ✓"

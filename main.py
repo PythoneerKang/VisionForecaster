@@ -8,6 +8,9 @@ from extract_distance_matrices import (
 from transformer import *
 from training_and_validation_functions import *
 
+import numpy as np
+from sklearn.model_selection import TimeSeriesSplit
+
 
 if __name__ == "__main__":
     # ── Step 1: Extract distance matrices from pkl file ───────────────────────

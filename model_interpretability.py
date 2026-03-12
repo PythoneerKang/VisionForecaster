@@ -48,6 +48,7 @@ Removed (LSA-specific, no longer applicable)
 
 Usage
 -----
+    from transformer import SmallDataDecoderViT
     from model_interpretability import ModelInterpreter, plot_fold_summary
 
     model = SmallDataDecoderViT(..., sector_ids=sector_ids)
@@ -89,8 +90,11 @@ class _GPSAHook:
         - content_attn   : (B, H, N, N) content-only attention weights
         - gate_values    : (H,) gate scalars g = sigmoid(lambda)
 
-    These are re-derived inside the hook from the module's own weights
-    so the captured values are always consistent with the forward pass.
+    IMPORTANT: The attention computation below must stay in sync with
+    SectorGPSA.forward() in transformer.py.  If the forward pass changes
+    (e.g. different scaling, masking, or gate formula), update this hook
+    accordingly — it re-derives attention from weights rather than tapping
+    the live computation, so divergence will be silent.
     """
 
     def __init__(self):
@@ -133,6 +137,15 @@ class _GPSAHook:
     def remove(self):
         if self._handle is not None:
             self._handle.remove()
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Utility
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _to_float(val) -> float:
+    """Safely convert a tensor scalar or plain Python float to float."""
+    return val.item() if hasattr(val, "item") else float(val)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -774,6 +787,10 @@ def plot_fold_summary(
     Row 1: per-fold train vs val MSE curves
     Row 2: per-fold train vs val R² curves
     Row 3: final-epoch MSE and R² bar charts (fold comparison)
+
+    Note: R² values stored in fold_history are plain Python floats
+    (returned by _r2_from_scalars).  _to_float() is used throughout
+    to safely handle both floats and any future tensor values.
     """
     n_folds = len(all_fold_history)
     cmap    = plt.cm.tab10
@@ -796,8 +813,8 @@ def plot_fold_summary(
         ax_mse.legend(fontsize=6)
 
         ax_r2 = fig.add_subplot(gs[1, i])
-        r2_train = [t.item() if hasattr(t, "item") else t for t in fh["train_r2"]]
-        r2_val   = [t.item() if hasattr(t, "item") else t for t in fh["val_r2"]]
+        r2_train = [_to_float(t) for t in fh["train_r2"]]
+        r2_val   = [_to_float(t) for t in fh["val_r2"]]
         ax_r2.plot(epochs, r2_train, alpha=0.55, color=cmap(i), linewidth=1.2)
         ax_r2.plot(epochs, r2_val,   color=cmap(i), linewidth=1.8, linestyle="--")
         ax_r2.axhline(0, color="gray", linewidth=0.7, linestyle=":")
@@ -811,11 +828,7 @@ def plot_fold_summary(
 
     fold_labels   = [f"F{i+1}" for i in range(n_folds)]
     final_val_mse = [fh["val_mse"][-1] for fh in all_fold_history]
-    final_val_r2  = [
-        (fh["val_r2"][-1].item() if hasattr(fh["val_r2"][-1], "item")
-         else fh["val_r2"][-1])
-        for fh in all_fold_history
-    ]
+    final_val_r2  = [_to_float(fh["val_r2"][-1]) for fh in all_fold_history]
 
     best_mse_idx = int(np.argmin(final_val_mse))
     best_r2_idx  = int(np.argmax(final_val_r2))

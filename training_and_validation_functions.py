@@ -1,9 +1,11 @@
+import numpy as np
+from sklearn.model_selection import TimeSeriesSplit
+
 import parameters as p
 import torch
 from transformer import *
-from sklearn.model_selection import TimeSeriesSplit
 from torch.utils.data import DataLoader, TensorDataset
-import numpy as np
+
 
 class EarlyStopping:
     def __init__(self, patience=7, path='best_model.pt'):
@@ -114,6 +116,11 @@ def _check_gamma_gradients(model):
 def _r2_from_scalars(ss_res: float, ss_tot: float) -> float:
     """Compute R² from running sum-of-squares accumulators."""
     return 1.0 - ss_res / ss_tot if ss_tot > 0.0 else 0.0
+
+
+def _to_float(val) -> float:
+    """Safely convert a tensor scalar or plain float to a Python float."""
+    return val.item() if hasattr(val, "item") else float(val)
 
 
 def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
@@ -347,12 +354,14 @@ def diff_model_multi_fold_cv_train_test(
 
         fold += 1
 
-    model_lowest_val_mse = np.argmin(
-        [fh["val_mse"][-1] for fh in all_fold_history]
-    )
-    model_highest_val_r2 = np.argmax(
-        [fh["val_r2"][-1].item() for fh in all_fold_history]
-    )
+    # _r2_from_scalars returns a plain Python float, so use _to_float()
+    # rather than .item() to safely handle both tensor scalars and floats.
+    final_val_mse = [fh["val_mse"][-1] for fh in all_fold_history]
+    final_val_r2  = [_to_float(fh["val_r2"][-1]) for fh in all_fold_history]
+
+    model_lowest_val_mse = int(np.argmin(final_val_mse))
+    model_highest_val_r2 = int(np.argmax(final_val_r2))
+
     if model_lowest_val_mse == model_highest_val_r2:
         print("Lowest val_mse model = highest val_r2 model, all good.")
         print(f"Model {model_lowest_val_mse + 1} has the lowest val_MSE and highest val_R^2.")
