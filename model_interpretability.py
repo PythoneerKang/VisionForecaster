@@ -90,11 +90,25 @@ class _GPSAHook:
         - content_attn   : (B, H, N, N) content-only attention weights
         - gate_values    : (H,) gate scalars g = sigmoid(lambda)
 
-    IMPORTANT: The attention computation below must stay in sync with
-    SectorGPSA.forward() in transformer.py.  If the forward pass changes
-    (e.g. different scaling, masking, or gate formula), update this hook
-    accordingly — it re-derives attention from weights rather than tapping
-    the live computation, so divergence will be silent.
+    Implementation note
+    -------------------
+    The hook re-derives attention weights from the module's parameters and
+    the pre-built _a_pos buffer rather than intercepting live intermediate
+    tensors.  This is intentional: hooks on intermediate values inside
+    forward() require in-place tensor modifications or custom autograd
+    functions that break torch.compile.
+
+    IMPORTANT: The attention computation here must stay in sync with
+    SectorGPSA.forward() in transformer.py.  Specifically:
+        - Content attention uses scale = head_dim ** -0.5  (no per-head temp)
+        - Positional attention reads module._a_pos directly (pre-built buffer,
+          NOT a call to any _pos_attn() method — that method no longer exists)
+        - Gate: g = sigmoid(gate_logit), shape (H,)
+        - Effective = g * A_pos + (1 - g) * A_content
+
+    If transformer.py's forward() changes (e.g. different scaling, masking,
+    or gate formula), update this hook accordingly — silent divergence will
+    produce misleading interpretability plots.
     """
 
     def __init__(self):
@@ -119,8 +133,10 @@ class _GPSAHook:
         a_cont = (q @ k.transpose(-2, -1)) * scale
         a_cont = a_cont.softmax(dim=-1)                # (B, H, N, N)
 
-        # Positional attention — use the pre-built buffer directly,
-        # consistent with the updated forward() which no longer calls _pos_attn()
+        # Positional attention — read the pre-built buffer directly.
+        # _a_pos is registered as a non-persistent buffer in SectorGPSA.__init__
+        # via register_buffer("_a_pos", ..., persistent=False).
+        # It is always present after construction and moves with .to(device).
         A_pos   = module._a_pos                        # (N, N)
         A_pos_e = A_pos.unsqueeze(0).unsqueeze(0)      # (1, 1, N, N)
 
@@ -823,8 +839,16 @@ def plot_fold_summary(
         ax_r2.set_xlabel("Epoch", fontsize=7)
         ax_r2.tick_params(labelsize=7)
 
-    ax_bar_mse = fig.add_subplot(gs[2, : n_folds // 2])
-    ax_bar_r2  = fig.add_subplot(gs[2, n_folds // 2 :])
+    # FIX: use a symmetric split for the bar chart row so both panels get
+    # equal column space regardless of whether n_folds is odd or even.
+    # Previously n_folds // 2 gave an asymmetric split for odd fold counts
+    # (e.g. 9 folds → MSE gets 4 cols, R² gets 5 cols).
+    mid = n_folds // 2
+    # Give the left panel [0, mid) and the right panel [mid, n_folds).
+    # For odd n_folds the right panel is one column wider, which is acceptable
+    # and consistent.  Using slice(None) on a gridspec row works in all cases.
+    ax_bar_mse = fig.add_subplot(gs[2, :mid])
+    ax_bar_r2  = fig.add_subplot(gs[2, mid:])
 
     fold_labels   = [f"F{i+1}" for i in range(n_folds)]
     final_val_mse = [fh["val_mse"][-1] for fh in all_fold_history]

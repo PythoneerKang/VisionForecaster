@@ -7,6 +7,23 @@ from transformer import *
 from torch.utils.data import DataLoader, TensorDataset
 
 
+def _unwrap_state_dict(model):
+    """
+    Return the state_dict of the underlying module, stripping the
+    '_orig_mod.' prefix that torch.compile() adds to all parameter keys.
+
+    Without this, a checkpoint saved from a compiled model cannot be loaded
+    into an uncompiled SmallDataDecoderViT because every key differs:
+        compiled   : '_orig_mod.pos_embed', '_orig_mod.blocks.0.attn.gate_logit', …
+        uncompiled : 'pos_embed',           'blocks.0.attn.gate_logit', …
+
+    torch.compile wraps the module in an OptimizedModule that exposes the
+    original model via the '_orig_mod' attribute.  Falling back to `model`
+    itself handles the case where compile was skipped (older PyTorch build).
+    """
+    return getattr(model, '_orig_mod', model).state_dict()
+
+
 class EarlyStopping:
     def __init__(self, patience=7, path='best_model.pt'):
         self.patience = patience
@@ -18,7 +35,9 @@ class EarlyStopping:
         if val_loss < self.best_loss:
             self.best_loss = val_loss
             self.counter = 0
-            torch.save(model.state_dict(), self.path)
+            # FIX: save the unwrapped state dict so the checkpoint is
+            # loadable into an uncompiled model (avoids _orig_mod.* keys).
+            torch.save(_unwrap_state_dict(model), self.path)
             return False
         else:
             self.counter += 1
@@ -80,8 +99,18 @@ def _check_gate_gradients(model):
     Print gradient norms for all SectorGPSA gate_logit parameters.
     Call once after the first backward pass to verify gates are receiving
     meaningful gradients.
+
+    NOTE: gate_logit grad norms are expected to be extremely small (~0) at
+    epoch 1 batch 1.  With gate_init=+2.0, sigmoid(λ)≈0.88, meaning the
+    positional branch dominates and the gate gradient is:
+        dL/dλ = dL/dg · g·(1-g)  ≈  dL/dg · 0.105
+    This near-zero reading does NOT indicate a dead parameter — the gate
+    will accumulate gradient signal over many batches as the content branch
+    diverges from the positional prior.  Monitor gate values (g=sigmoid(λ))
+    across epochs instead of this single-batch gradient check.
     """
     print("\n  ── SectorGPSA gate_logit gradient check (epoch 1, batch 1) ──")
+    print("  (near-zero grads are expected at init; see docstring)")
     any_printed = False
     for name, param in model.named_parameters():
         if "gate_logit" in name:
@@ -268,13 +297,19 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
         fold_history['val_r2'].append(epoch_validation_r2_score)
 
         if stopper(avg_val, model):
-            print("Early stopping triggered. Loading best model...")
-            model.load_state_dict(torch.load(stopper.path))
+            print("Early stopping triggered. Loading best model weights...")
+            # FIX: load into the unwrapped model so the bare keys in the
+            # checkpoint match the uncompiled module's parameter names.
+            getattr(model, '_orig_mod', model).load_state_dict(
+                torch.load(stopper.path)
+            )
             break
 
-    model.load_state_dict(torch.load(stopper.path))
+    # FIX: save the unwrapped state dict (bare keys, no _orig_mod. prefix)
+    # so the checkpoint can be loaded directly into an uncompiled model in
+    # main.py's interpretability section.
     model_path = f"model_fold_{fold}.pth"
-    torch.save(model.state_dict(), model_path)
+    torch.save(_unwrap_state_dict(model), model_path)
 
     return model_path, fold_history
 

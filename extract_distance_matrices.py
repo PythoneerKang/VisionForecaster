@@ -337,7 +337,7 @@ def get_gics_sector_boundaries(sector_labels: list[str]) -> list[tuple[str, int,
 def build_patch_sector_ids(
     sector_labels: list[str],
     patch_size: int = 16,
-    img_size: int = 457,
+    img_size: int = None,
 ) -> torch.Tensor:
     """
     Build a (N,) integer tensor mapping each image patch to its dominant
@@ -353,11 +353,13 @@ def build_patch_sector_ids(
     ----------
     sector_labels : list[str]
         Per-stock sector string in GICS order, as returned by
-        reorder_by_gics().  Length must be 457.
+        reorder_by_gics().  Length must equal img_size.
     patch_size    : int
         Patch size used by the model (default 16).
-    img_size      : int
-        Original image size before padding (default 457).
+    img_size      : int | None
+        Original image size before padding.  Defaults to len(sector_labels)
+        so callers never need to pass it explicitly, and it stays correct if
+        the stock universe size ever changes.
 
     Returns
     -------
@@ -377,6 +379,12 @@ def build_patch_sector_ids(
     Padded rows (beyond stock index 456) inherit the last stock's sector,
     keeping the boundary patches consistent.
     """
+    # FIX: derive img_size from sector_labels rather than relying on a
+    # hardcoded default.  This keeps the function correct if the stock
+    # universe size changes and removes a fragile implicit coupling.
+    if img_size is None:
+        img_size = len(sector_labels)
+
     assert len(sector_labels) == img_size, (
         f"sector_labels length {len(sector_labels)} != img_size {img_size}"
     )
