@@ -8,8 +8,10 @@ Usage
     from model_interpretability import ModelInterpreter
 
     # After training, load a saved fold model
-    model = SmallDataDecoderViT(in_channels=1, embed_dim=192, depth=6, num_heads=3,
-                                 proj_drop=0.1, drop_path_rate=0.05)
+    model = SmallDataDecoderViT(
+        in_channels=1, embed_dim=192, depth=6, num_heads=3,
+        proj_drop=0.1, drop_path_rate=0.05, ls_init_value=1e-2,
+    )
     model.load_state_dict(torch.load("model_fold_1.pth", map_location="cpu"))
 
     interp = ModelInterpreter(model)
@@ -50,6 +52,9 @@ class _AttentionHook:
 
     NOTE: No causal mask is applied here, matching the updated model which uses
     full bidirectional attention within each spatial frame.
+
+    NOTE: If LocalitySelfAttention internals change (e.g. new projection layers,
+    changed attribute names), this hook must be updated to match.
     """
 
     def __init__(self):
@@ -370,7 +375,9 @@ class ModelInterpreter:
         print(f"  → Values above {uniform_baseline:.1f} indicate the model is MORE global than chance.\n")
 
         # ── Compute per-(layer, head) mean attention distance ──────────────
-        mean_dist = np.zeros((depth, self._blocks()[0].attn.num_heads))
+        # num_heads is uniform across all blocks in this architecture
+        num_heads = self._blocks()[0].attn.num_heads
+        mean_dist = np.zeros((depth, num_heads))
 
         for layer in range(depth):
             attn = self._get_attn_weights(x, layer)  # (1, H, N, N)
@@ -380,6 +387,7 @@ class ModelInterpreter:
                 mean_dist[layer, h] = (w * dist_mat).sum(axis=-1).mean()
 
         # ── Figure 1: heat-map ─────────────────────────────────────────────
+        H = num_heads
         fig, ax = plt.subplots(figsize=(max(6, H), depth + 1))
         im = ax.imshow(mean_dist, cmap="RdYlGn_r", aspect="auto",
                        vmin=0, vmax=dist_mat.max())
@@ -566,9 +574,8 @@ class ModelInterpreter:
         for l in range(depth):
             for h in range(H):
                 val = weights[l, h]
-                text_col = "black"
                 ax.text(h, l, f"{val:.3f}", ha="center", va="center",
-                        fontsize=8, color=text_col)
+                        fontsize=8, color="black")
 
         plt.tight_layout()
         self._savefig(fig, filename)
@@ -614,7 +621,7 @@ class ModelInterpreter:
         bias_maxs   = np.zeros(depth)
         bias_mins   = np.zeros(depth)
         ratios      = np.zeros(depth)
-        lw_means    = np.zeros(depth)   # mean locality_weight across heads per block
+        lw_means    = np.zeros(depth)
 
         handles = []
 
@@ -625,11 +632,11 @@ class ModelInterpreter:
                 qkv = module.qkv(inp).reshape(B, N_, 3, module.num_heads, module.head_dim)
                 q, k, v = qkv.permute(2, 0, 3, 1, 4).unbind(0)
 
-                scale       = module.temperature.exp()                         # (H,1,1)
-                raw_logits  = (q @ k.transpose(-2, -1)) * scale               # (B,H,N,N)
-                loc         = module._locality_bias(inp.device)               # (N,N) in [-1,0]
-                lw          = module.locality_weight.view(module.num_heads, 1, 1)  # (H,1,1)
-                bias_vol    = (lw * loc).detach().cpu().numpy()               # (H,N,N)
+                scale       = module.temperature.exp()
+                raw_logits  = (q @ k.transpose(-2, -1)) * scale
+                loc         = module._locality_bias(inp.device)
+                lw          = module.locality_weight.view(module.num_heads, 1, 1)
+                bias_vol    = (lw * loc).detach().cpu().numpy()
 
                 raw_np = raw_logits.detach().cpu().numpy()
 
@@ -877,19 +884,21 @@ from transformer import SmallDataDecoderViT
 # 1. Training summary across all folds
 plot_fold_summary(all_fold_history, save_path="fold_summary.png")
 
-# 2. Load the best model
+# 2. Load the best model.
+#    ls_init_value passed explicitly for consistency — gamma values come from
+#    the loaded weights, but being explicit avoids silent default mismatches.
 best_model = SmallDataDecoderViT(
     in_channels=1, embed_dim=192, depth=6, num_heads=3,
-    proj_drop=0.1, drop_path_rate=0.05,
+    proj_drop=0.1, drop_path_rate=0.05, ls_init_value=1e-2,
 )
 best_model.load_state_dict(torch.load(model_path, map_location="cpu"))
 
 interp = ModelInterpreter(best_model, save_dir=".")
 
-# 3. Get one sample from the last val_loader fold (rebuild quickly)
+# 3. Get one sample from the last val_loader fold (rebuild quickly).
+#    TimeSeriesSplit config must match diff_model_multi_fold_cv_train_test exactly.
 import torch
 import numpy as np
-from torch.utils.data import TensorDataset, DataLoader
 from sklearn.model_selection import TimeSeriesSplit
 
 X = distance_matrix[:-1][:, np.newaxis, :]
@@ -904,16 +913,16 @@ sample_y = y_t[last_val_idx[:1]]
 
 # 4. Generate all interpretation plots
 interp.plot_attention_maps(sample_x, layer=0)
-interp.plot_attention_maps(sample_x, layer=best_model.blocks.__len__() - 1,
+interp.plot_attention_maps(sample_x, layer=len(best_model.blocks) - 1,
                            filename="attention_maps_last_block.png")
 interp.plot_attention_maps_overlay(sample_x, layer=0)
-interp.plot_attention_maps_overlay(sample_x, layer=best_model.blocks.__len__() - 1,
+interp.plot_attention_maps_overlay(sample_x, layer=len(best_model.blocks) - 1,
                                    filename="attention_maps_overlay_last_block.png")
 interp.plot_mean_attention_distance(sample_x)
 interp.plot_layerscale_gammas()
 interp.plot_attention_temperatures()
 interp.plot_locality_weights()
-interp.plot_locality_bias_scale(sample_x)   # ← diagnoses overfocusing risk
+interp.plot_locality_bias_scale(sample_x)
 interp.plot_prediction_error_map(sample_x, sample_y)
 """
 

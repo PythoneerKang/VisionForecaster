@@ -61,7 +61,7 @@ For the full interactive diagram, open [`docs/index.html`](https://pythoneerkang
 | `mlp_ratio`        | 4×           |
 | `proj_drop`        | 0.1          |
 | `drop_path_rate`   | 0.05         |
-| `ls_init`          | 1e-4         |
+| `ls_init`          | 1e-2         |
 | `locality_strength`| 0.1          |
 
 ---
@@ -69,7 +69,7 @@ For the full interactive diagram, open [`docs/index.html`](https://pythoneerkang
 ## Key Components
 
 ### Shifted Patch Tokenization (SPT)
-Each patch token is enriched with 4 diagonally-shifted neighbours before projection, providing local context without relying solely on attention. Five crops (original + 4 shifts of p/2) are concatenated:
+Each patch token is enriched with 4 axis-aligned shifted neighbours before projection, providing local context without relying solely on attention. Five crops (original + shifts of p/2 in each of up, down, left, right) are concatenated:
 
 ```
 (B, 841, 5 × 1 × 16 × 16) = (B, 841, 1280)
@@ -93,7 +93,9 @@ out proj:  192 → 192
 ```
 
 ### LayerScale
-A per-channel learnable scalar γ (shape 192, init `1e-4`) is applied to each residual branch output before the residual add. This stabilises gradient flow during early training on small datasets.
+A per-channel learnable scalar γ (shape 192, init `1e-2`) is applied to each residual branch output before the residual add. This stabilises gradient flow during early training on small datasets.
+
+> **Note on init value:** The original paper uses `1e-4`, which is conservative for very deep networks (12+ blocks). With only 6 blocks, `1e-2` is safe and gives the optimizer a much stronger gradient signal, preventing gammas from staying frozen during training. A dedicated 10× higher learning rate is also applied to the gamma parameters via a separate AdamW parameter group.
 
 ### DropPath (Stochastic Depth)
 Drop probability increases linearly across the 6 blocks from 0 → 0.05. At training time the network behaves as an ensemble of shallower subnetworks, reducing over-fitting.

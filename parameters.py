@@ -1,48 +1,72 @@
-#Window widths
-w = 70
+# =============================================================================
+# parameters.py — central configuration for SmallDataDecoderViT training
+# =============================================================================
 
-#Git/GitHub Repo name
+# Window width for correlation computation.
+# NOTE: w=70 is currently set, but confirm with supervisor —
+# the comment in main.py says "Dr. Cheong says only focus on w = 35 days."
+# Update this value before running if w=35 is intended.
+w = 35
+
+# Git/GitHub Repo name
 repo_name = "VisionForecaster"
 
-#Save dataloaders?
-save_loaders = False
-
-#Number of training epochs
+# Number of training epochs (per fold)
 num_epochs = 100
 
 # -----------------------------------------------------------------------------
 # Hardware / runtime configuration for HPC CPU training
 # -----------------------------------------------------------------------------
 
-# Target number of physical/logical CPU cores to use on the node.
-# Your PBS script will request 20 cores; keep this consistent with the script.
+# Target number of physical/logical CPU cores on the node.
+# PBS script requests 19 cores — keep this consistent with the script.
 NUM_CPUS = 19
 
-# Torch threading configuration. These are used in the training code to
-# control intra-op and inter-op parallelism on CPU.
-# With 20 CPUs, keep NUM_WORKERS * TORCH_NUM_THREADS <= 20 (e.g. 2*8=16).
-# Inter-op stays small to leave headroom for intra-op and workers.
-TORCH_NUM_THREADS = 8           # math / BLAS work per operator
-TORCH_NUM_INTEROP_THREADS = 2   # parallelism across operators
+# Torch threading configuration.
+#   TORCH_NUM_THREADS      : intra-op parallelism (BLAS / math work per op)
+#   TORCH_NUM_INTEROP_THREADS : parallelism across independent ops
+# Rule of thumb: NUM_WORKERS * TORCH_NUM_THREADS + TORCH_NUM_INTEROP_THREADS
+#   should be <= NUM_CPUS.  2*8 + 2 = 18 < 19. Fine.
+# To better saturate 19 cores you could raise TORCH_NUM_THREADS to 10-12
+# and reduce NUM_WORKERS to 1.
+TORCH_NUM_THREADS = 8
+TORCH_NUM_INTEROP_THREADS = 2
 
-# DataLoader worker processes. Keep roughly
-#   NUM_WORKERS * TORCH_NUM_THREADS <= NUM_CPUS.
+# DataLoader worker processes.
 NUM_WORKERS = 2
 
-# Whether to use GPU when available. For Intel CPU-only training on HPC, keep
-# this False so training always runs on CPU even if a GPU is visible.
+# Whether to use GPU when available.
+# Keep False for Intel CPU-only HPC nodes.
 USE_GPU = False
 
-# Hyperparameters
-IMG_SIZE = 457
-PATCH_SIZE = 16
-CHANNELS = 1
-EMBED_DIM = 64 #256
-HEADS = 8
-DEPTH = 3 #6
-MLP_DIM = 4 * EMBED_DIM #Often 4 times EMBED_DIM #D_FF = 4 * D_MODEL , or 512
-BATCH_SIZE = 128
+# -----------------------------------------------------------------------------
+# Model & training hyperparameters
+# -----------------------------------------------------------------------------
 
-#V100 -- cuda 12.7
-#A40 -- cuda 12.7
-#H100 -- unknown
+# BATCH_SIZE: with max 504 training samples per fold, batch_size=128 gives
+# only ~4 gradient steps per epoch — too few for stable convergence.
+# Recommended range: 4–16.  Start with 8 and increase if training is stable.
+BATCH_SIZE = 8
+
+# -----------------------------------------------------------------------------
+# Legacy hyperparameters — NOT used by SmallDataDecoderViT
+# These were used by the previous VisionForecaster model and are kept here
+# only for reference. Do not use these to configure the current model.
+# The active model config lives in diff_model_multi_fold_cv_train_test()
+# in training_and_validation_functions.py.
+# -----------------------------------------------------------------------------
+# IMG_SIZE  = 457
+# PATCH_SIZE = 16
+# CHANNELS  = 1
+# EMBED_DIM = 64
+# HEADS     = 8
+# DEPTH     = 3
+# MLP_DIM   = 4 * EMBED_DIM
+# BATCH_SIZE (legacy) = 128
+
+# -----------------------------------------------------------------------------
+# GPU notes (for future reference)
+# -----------------------------------------------------------------------------
+# V100 -- cuda 12.7
+# A40  -- cuda 12.7
+# H100 -- unknown

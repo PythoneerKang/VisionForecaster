@@ -32,6 +32,11 @@ Key modifications for small-data regimes
    Per-channel learnable scale on residual branches stabilises training on
    small data by initialising residual contributions near zero.
 
+   ls_init_value default is 1e-2 (not the 1e-4 used in the original paper).
+   The paper's 1e-4 is tuned for very deep networks (12+ blocks); with only
+   6 blocks the residual branches are unlikely to destabilise, and the larger
+   init gives gammas a stronger gradient signal so they don't stay frozen.
+
 5. Explicit padding + crop
    457 → padded to nearest multiple of patch_size before patchification,
    cropped back after reconstruction.  Works for any patch_size in [16, 32].
@@ -45,7 +50,6 @@ References
 """
 
 import math
-from functools import partial
 from typing import Optional
 
 import torch
@@ -309,10 +313,15 @@ class FeedForward(nn.Module):
 class LayerScale(nn.Module):
     """
     Learnable per-channel scale on residual branches.
-    Initialised near zero so early training is stable (Touvron et al., 2021).
+
+    init_value is set to 1e-2 by default (changed from the paper's 1e-4).
+    The original 1e-4 is tuned for very deep networks (12+ blocks) where
+    large residual contributions early in training cause instability.
+    With only 6 blocks, 1e-2 is safe and gives the optimizer a much
+    stronger gradient signal, preventing gammas from staying frozen.
     """
 
-    def __init__(self, dim: int, init_value: float = 1e-4):
+    def __init__(self, dim: int, init_value: float = 1e-2):
         super().__init__()
         self.gamma = nn.Parameter(torch.full((dim,), init_value))
 
@@ -335,7 +344,7 @@ class DecoderBlock(nn.Module):
         attn_drop:    float = 0.0,
         proj_drop:    float = 0.0,
         drop_path:    float = 0.0,
-        ls_init:      float = 1e-4,
+        ls_init:      float = 1e-2,   # changed default from 1e-4 → 1e-2
         locality_strength: float = 0.1,
     ):
         super().__init__()
@@ -379,22 +388,25 @@ class SmallDataDecoderViT(nn.Module):
     drop_path_rate     : Maximum stochastic-depth drop probability
                          (linearly increases across blocks).
     ls_init_value      : LayerScale initialisation value.
+                         Default 1e-2 (raised from paper's 1e-4) — safe for
+                         6-block networks, gives gammas a stronger gradient
+                         signal so they don't stay frozen during training.
     locality_strength  : Initial weight of the locality bias.
     """
 
     def __init__(
         self,
-        in_channels:       int   = 3,
+        in_channels:       int   = 1,      # distance matrices are single-channel
         img_size:          int   = 457,
         patch_size:        int   = 16,
-        embed_dim:         int   = 384,
-        depth:             int   = 8,
-        num_heads:         int   = 6,
+        embed_dim:         int   = 192,    # matches training config (tiny variant)
+        depth:             int   = 6,      # matches training config
+        num_heads:         int   = 3,      # matches training config
         mlp_ratio:         float = 4.0,
         attn_drop:         float = 0.0,
         proj_drop:         float = 0.1,
-        drop_path_rate:    float = 0.1,
-        ls_init_value:     float = 1e-4,
+        drop_path_rate:    float = 0.05,   # matches training config
+        ls_init_value:     float = 1e-2,   # raised from paper's 1e-4, safe for 6-block nets
         locality_strength: float = 0.1,
     ):
         super().__init__()
@@ -404,6 +416,8 @@ class SmallDataDecoderViT(nn.Module):
         self.img_size     = img_size
         self.patch_size   = patch_size
         self.padded_size  = _next_multiple(img_size, patch_size)
+        # Input is always square (457×457 distance matrix) so grid_h == grid_w.
+        # If non-square inputs are ever needed, split into separate grid_h / grid_w.
         self.grid_h = self.grid_w = self.padded_size // patch_size
         self.num_patches  = self.grid_h * self.grid_w
 
