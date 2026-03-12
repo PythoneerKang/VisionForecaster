@@ -1,6 +1,8 @@
 import parameters as p
 
 import pickle
+import math
+from collections import Counter
 import numpy as np
 import torch
 
@@ -375,8 +377,6 @@ def build_patch_sector_ids(
     Padded rows (beyond stock index 456) inherit the last stock's sector,
     keeping the boundary patches consistent.
     """
-    import math
-
     assert len(sector_labels) == img_size, (
         f"sector_labels length {len(sector_labels)} != img_size {img_size}"
     )
@@ -398,8 +398,6 @@ def build_patch_sector_ids(
     patch_row_sector = []
     for r in range(grid):
         row_stocks = padded_stock_sector[r * patch_size: (r + 1) * patch_size]
-        # Majority vote (Counter-style)
-        from collections import Counter
         majority_sector = Counter(row_stocks).most_common(1)[0][0]
         patch_row_sector.append(majority_sector)
 

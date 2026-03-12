@@ -1,6 +1,5 @@
 import parameters as p
 import torch
-from torchmetrics import R2Score
 from transformer import *
 from sklearn.model_selection import TimeSeriesSplit
 from torch.utils.data import DataLoader, TensorDataset
@@ -112,10 +111,24 @@ def _check_gamma_gradients(model):
     print("  ── end gamma check ──\n")
 
 
+def _r2_from_scalars(ss_res: float, ss_tot: float) -> float:
+    """Compute R² from running sum-of-squares accumulators."""
+    return 1.0 - ss_res / ss_tot if ss_tot > 0.0 else 0.0
+
+
 def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
 
     device = torch.device("cuda" if p.USE_GPU and torch.cuda.is_available() else "cpu")
     model.to(device)
+
+    # torch.compile fuses elementwise ops (gate interpolation, LayerScale,
+    # residuals) into optimised kernels.  Falls back gracefully on older
+    # PyTorch builds via the try/except.
+    try:
+        model = torch.compile(model)
+        print("  torch.compile: enabled")
+    except Exception as e:
+        print(f"  torch.compile: skipped ({e})")
 
     optimizer = _build_optimizer(model)
     criterion = nn.MSELoss()
@@ -130,9 +143,16 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
 
         # --- TRAINING PHASE ---
         model.train()
-        train_targets     = []
-        train_predictions = []
-        train_loss        = 0
+        # Incremental R² accumulators — avoids storing all predictions/targets
+        # in memory (~460 MB of CPU tensors per epoch for the 504-sample
+        # training set at 464×464 float32).
+        # We keep flattened 1-D CPU copies (much cheaper than 4-D tensors)
+        # only until the end of the epoch, then immediately discard them.
+        train_loss  = 0.0
+        train_n     = 0
+        train_sum_y = 0.0
+        y_batches:    list[torch.Tensor] = []
+        pred_batches: list[torch.Tensor] = []
         print("Training begins")
 
         for batch_idx, (inputs, labels) in enumerate(train_loader):
@@ -150,39 +170,51 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
 
-            train_targets.append(y.detach().cpu())
-            train_predictions.append(outputs.detach().cpu())
-            train_loss += loss.item()
+            train_loss  += loss.item()
+            y_cpu        = y.detach().cpu().view(-1)
+            out_cpu      = outputs.detach().cpu().view(-1)
+            y_batches.append(y_cpu)
+            pred_batches.append(out_cpu)
+            train_sum_y += y_cpu.sum().item()
+            train_n     += y_cpu.numel()
+
+        # Single-pass R² over already-CPU 1-D tensors
+        y_all   = torch.cat(y_batches)
+        p_all   = torch.cat(pred_batches)
+        y_mean  = train_sum_y / train_n
+        train_ss_res = ((p_all - y_all) ** 2).sum().item()
+        train_ss_tot = ((y_all - y_mean) ** 2).sum().item()
+        epoch_training_r2_score = _r2_from_scalars(train_ss_res, train_ss_tot)
+        del y_batches, pred_batches, y_all, p_all
 
         # --- VALIDATION PHASE ---
         model.eval()
-        val_targets     = []
-        val_predictions = []
-        val_loss        = 0
+        val_loss  = 0.0
+        val_n     = 0
+        val_sum_y = 0.0
+        vy_batches: list[torch.Tensor] = []
+        vp_batches: list[torch.Tensor] = []
         print("Validation begins")
 
         with torch.no_grad():
             for batch_idx, (x, y) in enumerate(val_loader):
-                x, y = x.to(device), y.to(device)
-                outputs = model(x)
-                val_targets.append(y.detach().cpu())
-                val_predictions.append(outputs.detach().cpu())
+                x, y    = x.to(device), y.to(device)
+                outputs  = model(x)
                 val_loss += criterion(outputs, y).item()
+                y_cpu    = y.detach().cpu().view(-1)
+                out_cpu  = outputs.detach().cpu().view(-1)
+                vy_batches.append(y_cpu)
+                vp_batches.append(out_cpu)
+                val_sum_y += y_cpu.sum().item()
+                val_n     += y_cpu.numel()
 
-        # --- METRICS ---
-        train_targets     = torch.cat(train_targets)
-        train_predictions = torch.cat(train_predictions)
-        r2score           = R2Score(multioutput='uniform_average')
-        epoch_training_r2_score = r2score(
-            train_predictions.view(-1), train_targets.view(-1)
-        )
-
-        val_targets     = torch.cat(val_targets)
-        val_predictions = torch.cat(val_predictions)
-        r2score         = R2Score(multioutput='uniform_average')
-        epoch_validation_r2_score = r2score(
-            val_predictions.view(-1), val_targets.view(-1)
-        )
+        vy_all  = torch.cat(vy_batches)
+        vp_all  = torch.cat(vp_batches)
+        vy_mean = val_sum_y / val_n
+        val_ss_res = ((vp_all - vy_all) ** 2).sum().item()
+        val_ss_tot = ((vy_all - vy_mean) ** 2).sum().item()
+        epoch_validation_r2_score = _r2_from_scalars(val_ss_res, val_ss_tot)
+        del vy_batches, vp_batches, vy_all, vp_all
 
         avg_train = train_loss / len(train_loader)
         avg_val   = val_loss   / len(val_loader)
@@ -282,11 +314,11 @@ def diff_model_multi_fold_cv_train_test(
 
         train_loader = DataLoader(
             train_dataset, batch_size=p.BATCH_SIZE, shuffle=False,
-            num_workers=p.NUM_WORKERS, pin_memory=False,
+            num_workers=p.NUM_WORKERS, pin_memory=True,
         )
         val_loader = DataLoader(
             val_dataset, batch_size=p.BATCH_SIZE, shuffle=False,
-            num_workers=p.NUM_WORKERS, pin_memory=False,
+            num_workers=p.NUM_WORKERS, pin_memory=True,
         )
 
         # Sector-GPSA model: sector_ids drives the positional attention prior.
