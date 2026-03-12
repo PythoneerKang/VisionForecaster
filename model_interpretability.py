@@ -27,6 +27,16 @@ Usage
     interp.plot_locality_weights()                   # learned spatial bias strength
     interp.plot_locality_bias_scale(sample)          # overfocusing diagnostic
 
+    # --- Prediction error map (with optional GICS annotations) ---
+    from extract_distance_matrices import reorder_by_gics, get_gics_sector_boundaries
+    _, tickers_gics, sector_labels = reorder_by_gics(distance_matrix)
+    sector_boundaries = get_gics_sector_boundaries(sector_labels)
+    interp.plot_prediction_error_map(
+        sample_x, sample_y,
+        tickers=tickers_gics,
+        sector_boundaries=sector_boundaries,
+    )
+
     # --- Training history ---
     from model_interpretability import plot_fold_summary
     plot_fold_summary(all_fold_history)              # MSE + R² across all folds
@@ -39,7 +49,7 @@ import matplotlib.gridspec as gridspec
 import matplotlib.ticker as ticker
 import torch
 import torch.nn.functional as F
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -752,36 +762,92 @@ class ModelInterpreter:
         x: torch.Tensor,
         y_true: torch.Tensor,
         filename: str = "prediction_error_map.png",
+        tickers: Optional[List[str]] = None,
+        sector_boundaries: Optional[List[Tuple[str, int, int]]] = None,
     ):
         """
         For one sample, show: input | prediction | ground truth | error map.
 
+        When tickers and sector_boundaries are supplied (i.e. after
+        reorder_by_gics() has been applied), GICS sector divider lines and
+        sector name labels are drawn on every panel, making block-diagonal
+        correlation structure visible.
+
         Parameters
         ----------
-        x      : (1, 1, 457, 457) input tensor
-        y_true : (1, 1, 457, 457) ground truth tensor
+        x                 : (1, 1, 457, 457) input tensor (GICS-reordered).
+        y_true            : (1, 1, 457, 457) ground truth tensor.
+        filename          : Output filename.
+        tickers           : list[str] of 457 ticker labels in GICS order,
+                            as returned by reorder_by_gics().  Optional.
+        sector_boundaries : list of (sector_name, start_idx, end_idx) tuples,
+                            as returned by get_gics_sector_boundaries().
+                            end_idx is exclusive.  Optional.
+                            If supplied, white divider lines are drawn between
+                            sectors and sector names are annotated on the axes.
         """
         self.model.eval()
         with torch.no_grad():
             y_pred = self.model(x[:1]).cpu()
-        x_np     = x[0, 0].cpu().numpy()
-        y_np     = y_true[0, 0].cpu().numpy()
-        y_pred_np = y_pred[0, 0].numpy()
-        err_np   = np.abs(y_pred_np - y_np)
 
-        fig, axes = plt.subplots(1, 4, figsize=(20, 5))
+        x_np      = x[0, 0].cpu().numpy()
+        y_np      = y_true[0, 0].cpu().numpy()
+        y_pred_np = y_pred[0, 0].numpy()
+        err_np    = np.abs(y_pred_np - y_np)
+
         titles = ["Input (t)", "Prediction (t+1)", "Ground Truth (t+1)", "Absolute Error"]
         arrays = [x_np, y_pred_np, y_np, err_np]
         cmaps  = ["RdYlBu_r", "RdYlBu_r", "RdYlBu_r", "hot"]
 
+        fig, axes = plt.subplots(1, 4, figsize=(24, 6))
+
         for ax, title, arr, cmap in zip(axes, titles, arrays, cmaps):
             im = ax.imshow(arr, cmap=cmap, interpolation="nearest")
-            ax.set_title(title, fontweight="bold")
-            ax.axis("off")
+            ax.set_title(title, fontweight="bold", fontsize=11)
             fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
 
+            if sector_boundaries is not None:
+                # ── Draw white divider lines between GICS sector blocks ───
+                for _, start, end in sector_boundaries:
+                    # Horizontal line above the block (skip the very first)
+                    if start > 0:
+                        ax.axhline(start - 0.5, color="white", linewidth=0.8,
+                                   linestyle="-", alpha=0.9)
+                    # Vertical line to the left of the block (skip the first)
+                    if start > 0:
+                        ax.axvline(start - 0.5, color="white", linewidth=0.8,
+                                   linestyle="-", alpha=0.9)
+
+                # ── Annotate sector names along the left (y) axis ─────────
+                # Place a short tick label at the midpoint of each sector block.
+                mid_positions = [
+                    (start + end) / 2 for _, start, end in sector_boundaries
+                ]
+                short_names = [
+                    name.replace("Communication Services", "Comm.")
+                        .replace("Consumer Discretionary", "Cons. Disc.")
+                        .replace("Consumer Staples", "Cons. Stap.")
+                        .replace("Information Technology", "IT")
+                    for name, _, _ in sector_boundaries
+                ]
+                ax.set_yticks(mid_positions)
+                ax.set_yticklabels(short_names, fontsize=5)
+                ax.tick_params(axis="y", length=0, pad=2)
+
+                # ── Annotate sector names along the bottom (x) axis ───────
+                ax.set_xticks(mid_positions)
+                ax.set_xticklabels(short_names, fontsize=5,
+                                   rotation=45, ha="right")
+                ax.tick_params(axis="x", length=0, pad=2)
+            else:
+                ax.axis("off")
+
         mse = float(((y_pred_np - y_np) ** 2).mean())
-        fig.suptitle(f"Sample Prediction  |  MSE = {mse:.6f}", fontsize=12, fontweight="bold")
+        gics_note = " | GICS-reordered" if sector_boundaries is not None else ""
+        fig.suptitle(
+            f"Sample Prediction  |  MSE = {mse:.6f}{gics_note}",
+            fontsize=13, fontweight="bold",
+        )
         plt.tight_layout()
         self._savefig(fig, filename)
 
@@ -878,6 +944,7 @@ def plot_fold_summary(
 INTEGRATION_SNIPPET = """
 # ── Add to main.py after diff_model_multi_fold_cv_train_test() ──────────────
 
+from extract_distance_matrices import reorder_by_gics, get_gics_sector_boundaries
 from model_interpretability import ModelInterpreter, plot_fold_summary
 from transformer import SmallDataDecoderViT
 
@@ -885,8 +952,6 @@ from transformer import SmallDataDecoderViT
 plot_fold_summary(all_fold_history, save_path="fold_summary.png")
 
 # 2. Load the best model.
-#    ls_init_value passed explicitly for consistency — gamma values come from
-#    the loaded weights, but being explicit avoids silent default mismatches.
 best_model = SmallDataDecoderViT(
     in_channels=1, embed_dim=192, depth=6, num_heads=3,
     proj_drop=0.1, drop_path_rate=0.05, ls_init_value=1e-2,
@@ -895,14 +960,12 @@ best_model.load_state_dict(torch.load(model_path, map_location="cpu"))
 
 interp = ModelInterpreter(best_model, save_dir=".")
 
-# 3. Get one sample from the last val_loader fold (rebuild quickly).
-#    TimeSeriesSplit config must match diff_model_multi_fold_cv_train_test exactly.
-import torch
-import numpy as np
-from sklearn.model_selection import TimeSeriesSplit
+# 3. Rebuild GICS metadata and one sample from the last val fold.
+_, tickers_gics, sector_labels = reorder_by_gics(distance_matrix_gics)
+sector_boundaries = get_gics_sector_boundaries(sector_labels)
 
-X = distance_matrix[:-1][:, np.newaxis, :]
-y = distance_matrix[1:][:, np.newaxis, :]
+X = distance_matrix_gics[:-1][:, np.newaxis, :]
+y = distance_matrix_gics[1:][:, np.newaxis, :]
 X_t = torch.from_numpy(X).float()
 y_t = torch.from_numpy(y).float()
 
@@ -923,7 +986,11 @@ interp.plot_layerscale_gammas()
 interp.plot_attention_temperatures()
 interp.plot_locality_weights()
 interp.plot_locality_bias_scale(sample_x)
-interp.plot_prediction_error_map(sample_x, sample_y)
+interp.plot_prediction_error_map(
+    sample_x, sample_y,
+    tickers=tickers_gics,
+    sector_boundaries=sector_boundaries,
+)
 """
 
 if __name__ == "__main__":

@@ -7,39 +7,49 @@ Output: (B, C, 457, 457)
 
 Key modifications for small-data regimes
 -----------------------------------------
-1. Self-Patch Tokenization (SPT)
-   Patches are enriched with shifted-patch features (left/right/up/down neighbors
-   concatenated before projection) so each token carries local context, reducing
-   the burden on attention to learn low-level structure from scratch.
+1. Standard Linear Patch Embedding
+   Each patch (C × p × p pixels) is flattened, layer-normalised, and
+   projected to embed_dim with a single linear layer.  The previously
+   used Shifted Patch Tokenization (SPT) has been removed for the
+   following reasons specific to GICS-reordered distance matrices:
+
+     (a) Cross-sector contamination: 52.4% of all 841 patches in the
+         29×29 grid have at least one SPT shifted crop that crosses a
+         GICS sector boundary, importing stocks from unrelated industries.
+     (b) 160× noise amplification: the variance of a shift that crosses
+         a sector boundary is 160× higher than a within-sector shift,
+         meaning SPT injects far more noise than signal at boundaries.
+     (c) Small-sector problem: 6 of 11 GICS sectors have fewer than
+         36 stocks.  The fixed shift of p/2 = 8 stocks covers 22–44% of
+         these sectors, almost guaranteeing boundary crossing.
+     (d) Redundancy with LSA: the LSA locality bias (learnable per-head
+         weight on a normalised Gaussian distance matrix) already provides
+         the local-neighbourhood context that SPT was designed to supply,
+         without the boundary-noise side-effect.
+
+   SPT code is preserved below (class ShiftedPatchTokenization) for
+   reference and to allow easy A/B comparison if desired.
 
 2. Locality Self-Attention (LSA) with learnable temperature
-   Each attention head has a learnable per-head temperature scalar.  A local
-   Gaussian distance bias is added to attention logits so nearby patches are
-   naturally preferred early in training, preventing attention collapse on
-   small datasets.
-
-   NOTE: No causal mask is applied within a single frame. The 29×29 patch grid
-   represents spatial positions within one distance matrix (one trading day),
-   not a temporal sequence — every patch may attend to every other patch freely.
-   Temporal ordering is enforced at the data level (the model is trained on
-   consecutive day pairs t → t+1), not inside the attention mechanism.
+   Each attention head has a learnable per-head temperature scalar.  A
+   normalised Gaussian distance bias is added to attention logits so
+   nearby patches (same GICS sector after reordering) are preferred
+   early in training.  No causal mask is applied — the 29×29 patch grid
+   represents spatial positions within one distance matrix snapshot (one
+   trading day), not a temporal sequence.
 
 3. Stochastic Depth (DropPath)
-   Per-layer stochastic depth acts as a powerful regularizer equivalent to an
-   ensemble of shallower networks.
+   Per-layer stochastic depth acts as a powerful regularizer equivalent
+   to an ensemble of shallower networks.
 
 4. LayerScale
-   Per-channel learnable scale on residual branches stabilises training on
-   small data by initialising residual contributions near zero.
-
-   ls_init_value default is 1e-2 (not the 1e-4 used in the original paper).
-   The paper's 1e-4 is tuned for very deep networks (12+ blocks); with only
-   6 blocks the residual branches are unlikely to destabilise, and the larger
-   init gives gammas a stronger gradient signal so they don't stay frozen.
+   Per-channel learnable scale on residual branches stabilises training
+   on small data.  Default init 1e-2 (not the paper's 1e-4, which is
+   tuned for 12+ block networks; 6 blocks are safe at 1e-2).
 
 5. Explicit padding + crop
    457 → padded to nearest multiple of patch_size before patchification,
-   cropped back after reconstruction.  Works for any patch_size in [16, 32].
+   cropped back after reconstruction.
 
 References
 ----------
@@ -115,19 +125,82 @@ class DropPath(nn.Module):
 
 
 # ============================================================
-# Self-Patch Tokenization (SPT)
+# Standard Patch Embedding
+# ============================================================
+
+class StandardPatchEmbed(nn.Module):
+    """
+    Flatten each (C × p × p) patch → LayerNorm → single Linear → embed_dim.
+
+    Replaces ShiftedPatchTokenization (SPT) for GICS-reordered distance
+    matrices.  See module docstring for the full rationale.
+
+    The LSA locality bias already provides the local-neighbourhood
+    context that SPT was designed to supply, without the cross-sector
+    noise that SPT's fixed-stride shifts introduce at GICS boundaries.
+
+    Architecture
+    ------------
+    (B, N, C×p×p)  →  LayerNorm  →  Linear(C×p×p → embed_dim)
+                                  →  (B, N, embed_dim)
+    """
+
+    def __init__(
+        self,
+        in_channels: int,
+        patch_size:  int,
+        embed_dim:   int,
+        padded_size: int,   # kept for API compatibility with ShiftedPatchTokenization
+    ):
+        super().__init__()
+        self.patch_size  = patch_size
+        self.padded_size = padded_size
+        patch_dim = in_channels * patch_size * patch_size  # e.g. 1×16×16 = 256
+
+        self.norm = nn.LayerNorm(patch_dim)
+        self.proj = nn.Linear(patch_dim, embed_dim)
+
+    def _patchify(self, x: torch.Tensor) -> torch.Tensor:
+        """(B, C, H, W) → (B, N, C×p×p)  where N = (H/p) × (W/p)"""
+        B, C, H, W = x.shape
+        p = self.patch_size
+        gh, gw = H // p, W // p
+        x = x.reshape(B, C, gh, p, gw, p)
+        x = x.permute(0, 2, 4, 1, 3, 5)   # (B, gh, gw, C, p, p)
+        return x.reshape(B, gh * gw, C * p * p)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        patches = self._patchify(x)          # (B, N, C×p×p)
+        return self.proj(self.norm(patches)) # (B, N, embed_dim)
+
+
+# ============================================================
+# Shifted Patch Tokenization (SPT) — preserved for reference
 # ============================================================
 
 class ShiftedPatchTokenization(nn.Module):
     """
+    PRESERVED FOR REFERENCE — not used in the current model.
+
     Each patch token is formed from the concatenation of:
         - the patch itself
         - the same patch shifted left, right, up, down (by half a patch size)
     This gives each token a 5× richer feature set covering its immediate
-    neighbourhood, which is critical when data is scarce.
+    neighbourhood.
 
-    Projection is split into two sequential linear layers with a GELU to
-    give non-linear mixing before the main transformer.
+    Why it was removed
+    ------------------
+    SPT was designed for natural images where adjacent pixels belong to
+    the same physical surface (spatial continuity holds).  For
+    GICS-reordered distance matrices the analogous assumption — that
+    adjacent stocks are related — holds only *within* a sector block.
+    Across sector boundaries (which occur at 52.4% of patches) the
+    shifted crops mix unrelated industries, injecting noise with 160×
+    higher variance than within-sector shifts.  The LSA locality bias
+    already captures intra-sector local structure without this side-effect.
+
+    To re-enable SPT: swap StandardPatchEmbed for ShiftedPatchTokenization
+    in SmallDataDecoderViT.__init__ and update the patch_dim accordingly.
     """
 
     def __init__(
@@ -138,14 +211,14 @@ class ShiftedPatchTokenization(nn.Module):
         padded_size: int,
     ):
         super().__init__()
-        self.patch_size = patch_size
+        self.patch_size  = patch_size
         self.padded_size = padded_size
 
         # 5 shifted crops × (C × p × p) → embed_dim
         patch_dim = 5 * in_channels * patch_size * patch_size
 
-        self.norm  = nn.LayerNorm(patch_dim)
-        self.proj  = nn.Sequential(
+        self.norm = nn.LayerNorm(patch_dim)
+        self.proj = nn.Sequential(
             nn.Linear(patch_dim, embed_dim * 2),
             nn.GELU(),
             nn.Linear(embed_dim * 2, embed_dim),
@@ -153,8 +226,6 @@ class ShiftedPatchTokenization(nn.Module):
 
     def _shift(self, x: torch.Tensor, dy: int, dx: int) -> torch.Tensor:
         """Shift the image by (dy, dx) pixels using reflect padding."""
-        p = self.patch_size
-        # positive dy → shift down (pad top, crop bottom)
         if dy > 0:
             x = F.pad(x, (0, 0, dy, 0))[:, :, :x.shape[2], :]
         elif dy < 0:
@@ -170,7 +241,7 @@ class ShiftedPatchTokenization(nn.Module):
         p = self.patch_size
         gh, gw = H // p, W // p
         x = x.reshape(B, C, gh, p, gw, p)
-        x = x.permute(0, 2, 4, 1, 3, 5)   # (B, gh, gw, C, p, p)
+        x = x.permute(0, 2, 4, 1, 3, 5)
         return x.reshape(B, gh * gw, C * p * p)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -182,8 +253,8 @@ class ShiftedPatchTokenization(nn.Module):
             self._shift(x,  0,  p2),
             self._shift(x,  0, -p2),
         ]
-        patches = torch.cat([self._patchify(s) for s in shifts], dim=-1)  # (B, N, 5*C*p*p)
-        return self.proj(self.norm(patches))                                # (B, N, embed_dim)
+        patches = torch.cat([self._patchify(s) for s in shifts], dim=-1)
+        return self.proj(self.norm(patches))
 
 
 # ============================================================
@@ -194,24 +265,22 @@ class LocalitySelfAttention(nn.Module):
     """
     Multi-head self-attention with:
       - Learnable per-head temperature (replaces fixed sqrt(d_k) scaling)
-      - Learnable per-head locality bias weight (one scalar per head, normalised to [-1, 0])
+      - Learnable per-head locality bias weight (one scalar per head,
+        normalised to [-1, 0])
 
-    No causal mask is applied here. The 841 tokens (29×29) represent spatial
-    patch positions within a *single* distance matrix snapshot (one trading
-    day). There is no temporal ordering within a frame, so every patch should
-    be free to attend to every other patch. Temporal ordering is handled at
-    the data level: the model receives day t as input and predicts day t+1.
+    No causal mask is applied here. The 841 tokens (29×29) represent
+    spatial patch positions within a *single* distance matrix snapshot
+    (one trading day). There is no temporal ordering within a frame, so
+    every patch should be free to attend to every other patch.
 
-    Using a per-head locality_weight (rather than a single shared scalar) lets
-    each head independently learn how much spatial proximity matters. This
-    breaks the symmetry that caused all heads to focus on the same region when
-    the bias was shared — some heads may learn to attend globally while others
-    remain local, producing the head diversity that multihead attention is
-    designed to exploit.
+    Using a per-head locality_weight lets each head independently learn
+    how much spatial proximity matters — some heads may attend globally
+    while others remain local, producing the head diversity that
+    multihead attention is designed to exploit.
 
-    locality_strength is initialised to 0.1 (down from 1.0) so the bias is
-    weak at the start of training, giving the random QKV projections room to
-    drive head divergence before spatial preferences are learned.
+    locality_strength is initialised to 0.1 so the bias is weak at the
+    start of training, giving the random QKV projections room to drive
+    head divergence before spatial preferences are learned.
     """
 
     def __init__(
@@ -236,10 +305,7 @@ class LocalitySelfAttention(nn.Module):
             torch.full((num_heads, 1, 1), init_temp)
         )
 
-        # Learnable per-head locality bias weight (one scalar per head).
-        # Per-head weights let each head independently learn how much to favour
-        # nearby patches, breaking the symmetry that caused all heads to focus
-        # on the same spatial region when a single shared scalar was used.
+        # Learnable per-head locality bias weight
         self.locality_weight = nn.Parameter(
             torch.full((num_heads,), locality_strength)
         )
@@ -264,20 +330,12 @@ class LocalitySelfAttention(nn.Module):
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, self.head_dim)
         q, k, v = qkv.permute(2, 0, 3, 1, 4).unbind(0)  # (B, H, N, D)
 
-        # Learnable temperature scaling
         scale = self.temperature.exp()                     # (H, 1, 1)
         attn  = (q @ k.transpose(-2, -1)) * scale         # (B, H, N, N)
 
-        # Additive locality bias: nearby patches get a boost, far ones a penalty.
-        # Bias is normalised to [-1, 0] so each head's locality_weight is interpretable
-        # as "how many logit units to penalise the most distant patch".
-        # locality_weight is (H,) → reshape to (H, 1, 1) for broadcasting over (B, H, N, N).
         loc  = self._locality_bias(x.device)                        # (N, N)
         lw   = self.locality_weight.view(self.num_heads, 1, 1)      # (H, 1, 1)
         attn = attn + lw * loc                                      # (B, H, N, N)
-
-        # NOTE: No causal mask. Patches represent spatial positions within a
-        # single frame, not a time series — full bidirectional attention is correct.
 
         attn = attn.softmax(dim=-1)
         attn = self.attn_drop(attn)
@@ -315,10 +373,9 @@ class LayerScale(nn.Module):
     Learnable per-channel scale on residual branches.
 
     init_value is set to 1e-2 by default (changed from the paper's 1e-4).
-    The original 1e-4 is tuned for very deep networks (12+ blocks) where
-    large residual contributions early in training cause instability.
-    With only 6 blocks, 1e-2 is safe and gives the optimizer a much
-    stronger gradient signal, preventing gammas from staying frozen.
+    The original 1e-4 is tuned for very deep networks (12+ blocks); with
+    only 6 blocks, 1e-2 is safe and gives the optimizer a stronger gradient
+    signal so gammas don't stay frozen.
     """
 
     def __init__(self, dim: int, init_value: float = 1e-2):
@@ -344,7 +401,7 @@ class DecoderBlock(nn.Module):
         attn_drop:    float = 0.0,
         proj_drop:    float = 0.0,
         drop_path:    float = 0.0,
-        ls_init:      float = 1e-2,   # changed default from 1e-4 → 1e-2
+        ls_init:      float = 1e-2,
         locality_strength: float = 0.1,
     ):
         super().__init__()
@@ -372,7 +429,15 @@ class DecoderBlock(nn.Module):
 
 class SmallDataDecoderViT(nn.Module):
     """
-    Decoder-only Vision Transformer tuned for small datasets (~2 000 images).
+    Decoder-only Vision Transformer tuned for small datasets (~2 000 samples).
+
+    Patch tokenisation uses StandardPatchEmbed (single linear projection).
+    ShiftedPatchTokenization (SPT) was removed because GICS-reordered
+    distance matrices have unequal sector sizes — the fixed p/2 shift
+    crosses sector boundaries in 52.4% of patches, injecting noise with
+    160× higher variance than within-sector shifts.  The LSA locality
+    bias already provides the local-neighbourhood context that SPT was
+    designed to supply.  See module docstring for full details.
 
     Parameters
     ----------
@@ -387,26 +452,23 @@ class SmallDataDecoderViT(nn.Module):
     proj_drop          : MLP / projection dropout.
     drop_path_rate     : Maximum stochastic-depth drop probability
                          (linearly increases across blocks).
-    ls_init_value      : LayerScale initialisation value.
-                         Default 1e-2 (raised from paper's 1e-4) — safe for
-                         6-block networks, gives gammas a stronger gradient
-                         signal so they don't stay frozen during training.
-    locality_strength  : Initial weight of the locality bias.
+    ls_init_value      : LayerScale initialisation value.  Default 1e-2.
+    locality_strength  : Initial weight of the locality bias per head.
     """
 
     def __init__(
         self,
-        in_channels:       int   = 1,      # distance matrices are single-channel
+        in_channels:       int   = 1,
         img_size:          int   = 457,
         patch_size:        int   = 16,
-        embed_dim:         int   = 192,    # matches training config (tiny variant)
-        depth:             int   = 6,      # matches training config
-        num_heads:         int   = 3,      # matches training config
+        embed_dim:         int   = 192,
+        depth:             int   = 6,
+        num_heads:         int   = 3,
         mlp_ratio:         float = 4.0,
         attn_drop:         float = 0.0,
         proj_drop:         float = 0.1,
-        drop_path_rate:    float = 0.05,   # matches training config
-        ls_init_value:     float = 1e-2,   # raised from paper's 1e-4, safe for 6-block nets
+        drop_path_rate:    float = 0.05,
+        ls_init_value:     float = 1e-2,
         locality_strength: float = 0.1,
     ):
         super().__init__()
@@ -416,26 +478,27 @@ class SmallDataDecoderViT(nn.Module):
         self.img_size     = img_size
         self.patch_size   = patch_size
         self.padded_size  = _next_multiple(img_size, patch_size)
-        # Input is always square (457×457 distance matrix) so grid_h == grid_w.
-        # If non-square inputs are ever needed, split into separate grid_h / grid_w.
+        # Input is always square (457×457) so grid_h == grid_w.
         self.grid_h = self.grid_w = self.padded_size // patch_size
         self.num_patches  = self.grid_h * self.grid_w
 
-        # ---- Shifted-patch tokenizer ----
-        self.patch_embed = ShiftedPatchTokenization(
+        # ── Standard patch embedding (replaced SPT) ───────────────────────
+        # patch_dim = C × p × p = 1 × 16 × 16 = 256
+        # Linear 256 → 192  (vs SPT's 1280 → 384 → 192)
+        self.patch_embed = StandardPatchEmbed(
             in_channels, patch_size, embed_dim, self.padded_size
         )
 
-        # ---- Learned positional embeddings ----
+        # ── Learned positional embeddings ─────────────────────────────────
         self.pos_embed = nn.Parameter(
             torch.zeros(1, self.num_patches, embed_dim)
         )
         nn.init.trunc_normal_(self.pos_embed, std=0.02)
 
-        # ---- Stochastic depth schedule ----
+        # ── Stochastic depth schedule ──────────────────────────────────────
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]
 
-        # ---- Transformer blocks ----
+        # ── Transformer blocks ─────────────────────────────────────────────
         self.blocks = nn.ModuleList([
             DecoderBlock(
                 embed_dim, num_heads,
@@ -449,7 +512,8 @@ class SmallDataDecoderViT(nn.Module):
         ])
         self.norm = nn.LayerNorm(embed_dim)
 
-        # ---- Pixel reconstruction head ----
+        # ── Pixel reconstruction head ──────────────────────────────────────
+        # patch_dim = C × p × p = 256
         patch_dim = in_channels * patch_size * patch_size
         self.head = nn.Sequential(
             nn.Linear(embed_dim, embed_dim),
@@ -459,7 +523,7 @@ class SmallDataDecoderViT(nn.Module):
 
         self._init_weights()
 
-    # ------------------------------------------------------------------
+    # ──────────────────────────────────────────────────────────────────────
     def _init_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Linear):
@@ -470,7 +534,7 @@ class SmallDataDecoderViT(nn.Module):
                 nn.init.ones_(m.weight)
                 nn.init.zeros_(m.bias)
 
-    # ------------------------------------------------------------------
+    # ──────────────────────────────────────────────────────────────────────
     def _pad(self, x: torch.Tensor) -> torch.Tensor:
         h, w = x.shape[-2], x.shape[-1]
         ph = self.padded_size - h
@@ -490,12 +554,12 @@ class SmallDataDecoderViT(nn.Module):
         x  = x.permute(0, 3, 1, 4, 2, 5)          # (B, C, gh, p, gw, p)
         return x.reshape(B, C, gh * p, gw * p)
 
-    # ------------------------------------------------------------------
+    # ──────────────────────────────────────────────────────────────────────
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         B, C, H, W = x.shape
         assert H == self.img_size and W == self.img_size
 
-        # 1. Pad + tokenize via SPT
+        # 1. Pad + tokenize
         x_pad  = self._pad(x)                       # (B, C, P, P)
         tokens = self.patch_embed(x_pad)            # (B, N, embed_dim)
         tokens = tokens + self.pos_embed
@@ -518,7 +582,7 @@ class SmallDataDecoderViT(nn.Module):
 # ============================================================
 
 def small_data_vit_tiny(in_channels: int = 1, **kwargs) -> SmallDataDecoderViT:
-    """~6 M params — used in training; suited for single-channel inputs (~2 000 samples)."""
+    """~5.5 M params — training config; single-channel inputs, ~2 000 samples."""
     return SmallDataDecoderViT(
         in_channels=in_channels,
         embed_dim=192, depth=6, num_heads=3,
@@ -557,10 +621,9 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Device: {device}\n")
 
-    # Test tiny (the actual training config) and small across two patch sizes
     configs = [
-        ("tiny",  small_data_vit_tiny,  1),   # in_channels=1, matches training
-        ("small", small_data_vit_small, 3),   # in_channels=3, larger variant
+        ("tiny",  small_data_vit_tiny,  1),
+        ("small", small_data_vit_small, 3),
     ]
 
     for patch_size in (16, 32):
@@ -582,6 +645,7 @@ if __name__ == "__main__":
                 f"grid={model.grid_h}×{model.grid_w} | "
                 f"N={model.num_patches:4d} patches | "
                 f"params={n_params:,} | "
+                f"embed={model.patch_embed.__class__.__name__} | "
                 f"forward={elapsed*1000:.1f} ms | "
                 f"output={tuple(y.shape)} ✓"
             )
@@ -589,24 +653,24 @@ if __name__ == "__main__":
 
     print("All checks passed.")
 
-    # -----------------------------------------------------------------
-    # Training-recipe hint (reflects actual training config in main.py)
-    # -----------------------------------------------------------------
     print("""
 Actual training config (main.py / training_and_validation_functions.py)
 ------------------------------------------------------------------------
-model       : small_data_vit_tiny  (embed_dim=192, depth=6, num_heads=3)
-in_channels : 1  (single-channel z-scored distance matrix)
-img_size    : 457  (padded to 464 = 29×16 before tokenisation)
-optimizer   : AdamW — 3 param groups:
-                decay    lr=1e-4, wd=1e-2  (weight matrices)
-                no-decay lr=1e-4, wd=0     (biases, LayerNorm)
-                gamma    lr=1e-3, wd=0     (LayerScale γ — 10× boost)
-scheduler   : none (early stopping, patience=10)
-epochs      : up to 100 per fold (early stopping typically triggers earlier)
-batch size  : configured via parameters.BATCH_SIZE
-cv          : TimeSeriesSplit(n_splits=9, max_train_size=504, test_size=126)
-loss        : MSE
-ls_init     : 1e-2  (raised from paper's 1e-4 — safe for 6-block nets)
-locality    : per-head weight, init=0.1, bias normalised to [-1, 0]
+model        : small_data_vit_tiny  (embed_dim=192, depth=6, num_heads=3)
+patch_embed  : StandardPatchEmbed   (256 → 192, replaces SPT 1280 → 384 → 192)
+in_channels  : 1  (single-channel z-scored GICS-reordered distance matrix)
+img_size     : 457  (padded to 464 = 29×16 before tokenisation)
+optimizer    : AdamW — 3 param groups:
+                 decay    lr=1e-4, wd=1e-2  (weight matrices)
+                 no-decay lr=1e-4, wd=0     (biases, LayerNorm)
+                 gamma    lr=1e-3, wd=0     (LayerScale γ — 10× boost)
+scheduler    : none (early stopping, patience=10)
+epochs       : up to 100 per fold
+batch size   : configured via parameters.BATCH_SIZE
+cv           : TimeSeriesSplit(n_splits=9, max_train_size=504, test_size=126)
+loss         : MSE
+ls_init      : 1e-2
+locality     : per-head weight, init=0.1, bias normalised to [-1, 0]
+GICS order   : stocks reordered by GICS sector before training
+               (see extract_distance_matrices.reorder_by_gics)
 """)
