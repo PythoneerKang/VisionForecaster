@@ -7,7 +7,7 @@
 #PBS -P as_spms_cheongsa
 
 ## Queue Name
-#PBS -q qintel_wfly
+#PBS -q qamd_wfly
 
 ## Output and error files
 #PBS -o transformer.out

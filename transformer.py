@@ -236,21 +236,19 @@ class SectorGPSA(nn.Module):
         self.proj      = nn.Linear(embed_dim, embed_dim)
         self.attn_drop = nn.Dropout(attn_drop)
 
-        # Register sector_ids as a non-trainable buffer so .to(device) works
+        # sector_ids: non-trainable buffer, moves with .to(device) automatically
         self.register_buffer("sector_ids", sector_ids.long())
 
-        # Cache the positional attention matrix (recomputed if device changes)
-        self._cached_pos_attn: Optional[torch.Tensor] = None
-        self._cached_device:   Optional[torch.device] = None
-
-    def _pos_attn(self, device: torch.device) -> torch.Tensor:
-        """Return (N, N) sector-membership attention, rebuilt on device change."""
-        if self._cached_pos_attn is None or self._cached_device != device:
-            self._cached_pos_attn = _build_sector_positional_attn(
-                self.sector_ids, device
-            )
-            self._cached_device = device
-        return self._cached_pos_attn   # (N, N)
+        # _a_pos: pre-built (N, N) sector-membership attention matrix.
+        # Stored as a non-persistent buffer so it:
+        #   - moves with .to(device) automatically (no device-check overhead)
+        #   - is excluded from state_dict (rebuilt from sector_ids on load)
+        #   - is computed exactly once at construction, not every forward pass
+        self.register_buffer(
+            "_a_pos",
+            _build_sector_positional_attn(sector_ids, sector_ids.device),
+            persistent=False,
+        )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         B, N, C = x.shape
@@ -262,17 +260,19 @@ class SectorGPSA(nn.Module):
         attn_content = (q @ k.transpose(-2, -1)) * self.scale   # (B, H, N, N)
         attn_content = attn_content.softmax(dim=-1)
         attn_content = self.attn_drop(attn_content)
-        v_content = attn_content @ v                             # (B, H, N, D)
+        v_content    = attn_content @ v                          # (B, H, N, D)
 
         # ── Positional attention ───────────────────────────────────────────
-        A_pos  = self._pos_attn(x.device)                        # (N, N)
-        # Expand to (B, H, N, N) for batch/head broadcasting
-        A_pos  = A_pos.unsqueeze(0).unsqueeze(0)                 # (1, 1, N, N)
-        v_pos  = A_pos @ v                                       # (B, H, N, D)
+        # _a_pos is a pre-built (N, N) buffer — no device check, no rebuild.
+        # einsum avoids unsqueeze+broadcast: PyTorch/BLAS sees a single
+        # (N, N) × (B*H, N, D) call and picks the optimal BLAS path,
+        # avoiding the implicit tensor replication that @ with (1,1,N,N)
+        # would cause on CPU.
+        v_pos = torch.einsum("mn,bhnd->bhmd", self._a_pos, v)   # (B, H, N, D)
 
         # ── Gate interpolation ─────────────────────────────────────────────
         # g shape: (H,) → (1, H, 1, 1) for broadcasting
-        g = self.gate_logit.sigmoid().view(1, self.num_heads, 1, 1)
+        g   = self.gate_logit.sigmoid().view(1, self.num_heads, 1, 1)
         out = g * v_pos + (1.0 - g) * v_content                 # (B, H, N, D)
 
         out = out.transpose(1, 2).reshape(B, N, C)

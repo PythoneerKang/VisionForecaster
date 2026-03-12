@@ -111,16 +111,17 @@ class _GPSAHook:
         q, k, v = qkv.permute(2, 0, 3, 1, 4).unbind(0)
 
         # Content attention (no dropout for deterministic visualisation)
-        scale   = module.head_dim ** -0.5
-        a_cont  = (q @ k.transpose(-2, -1)) * scale
-        a_cont  = a_cont.softmax(dim=-1)               # (B, H, N, N)
+        scale  = module.head_dim ** -0.5
+        a_cont = (q @ k.transpose(-2, -1)) * scale
+        a_cont = a_cont.softmax(dim=-1)                # (B, H, N, N)
 
-        # Positional attention
-        A_pos   = module._pos_attn(x.device)           # (N, N)
+        # Positional attention — use the pre-built buffer directly,
+        # consistent with the updated forward() which no longer calls _pos_attn()
+        A_pos   = module._a_pos                        # (N, N)
         A_pos_e = A_pos.unsqueeze(0).unsqueeze(0)      # (1, 1, N, N)
 
         # Gate
-        g = module.gate_logit.sigmoid()                # (H,)
+        g   = module.gate_logit.sigmoid()              # (H,)
         g_e = g.view(1, module.num_heads, 1, 1)        # (1, H, 1, 1)
 
         effective = g_e * A_pos_e + (1.0 - g_e) * a_cont  # (B, H, N, N)
@@ -465,11 +466,11 @@ class ModelInterpreter:
         uniform_baseline = dist_mat.mean()
 
         # ── Positional baseline (pure sector attention, g=1) ──────────────
-        # A_pos[i,j] = 1/|sector_i| if same sector, else 0.
-        # Mean positional distance = (A_pos * dist_mat).sum() / N
+        # Use the pre-built _a_pos buffer directly — consistent with forward()
         A_pos_np = (
             self._blocks()[0]
-            .attn._pos_attn(torch.device("cpu"))
+            .attn._a_pos
+            .cpu()
             .numpy()
         )   # (N, N)
         positional_baseline = (A_pos_np * dist_mat).sum(axis=-1).mean()
