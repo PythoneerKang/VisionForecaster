@@ -1,6 +1,6 @@
 # SmallDataDecoderViT
 
-> Decoder-only Vision Transformer with SPT · LSA · LayerScale · DropPath — tuned for ~2,000 samples
+> Decoder-only Vision Transformer with Standard Patch Embed · LSA · LayerScale · DropPath — tuned for ~2,000 samples
 
 A compact ViT architecture designed for predicting distance matrices on small datasets. Given a z-scored distance matrix at time *t*, the model outputs a predicted distance matrix at *t+1*.
 
@@ -13,7 +13,7 @@ Input (B × 1 × 457 × 457)
         │
         │  reflect-pad 457 → 464
         ▼
-Shifted Patch Tokenization (SPT)
+Standard Patch Embedding
         │
         │  element-wise add
         ▼
@@ -68,21 +68,19 @@ For the full interactive diagram, open [`docs/index.html`](https://pythoneerkang
 
 ## Key Components
 
-### Shifted Patch Tokenization (SPT)
-Each patch token is enriched with 4 axis-aligned shifted neighbours before projection, providing local context without relying solely on attention. Five crops (original + shifts of p/2 in each of up, down, left, right) are concatenated:
+### Standard Patch Embedding
+Each patch is flattened, layer-normalised, and projected to `embed_dim` with a single linear layer:
 
 ```
-(B, 841, 5 × 1 × 16 × 16) = (B, 841, 1280)
+(B, 841, 1 × 16 × 16) = (B, 841, 256)
     → LayerNorm
-    → Linear 1280 → 384
-    → GELU
-    → Linear 384 → 192
+    → Linear 256 → 192
 ```
 
 ### Locality Self-Attention (LSA)
 Full bidirectional self-attention with two small-data-friendly modifications:
 - **Learnable per-head temperature** scalar, rather than fixed `1/√d`.
-- **Learnable per-head locality bias weight** — each head has its own `locality_weight` scalar (shape `(H,)`, init `0.1`), applied as `locality_weight_h × −‖Δcoord‖² / max(‖Δcoord‖²)`. The bias is normalised to `[−1, 0]`, so each head's weight is a direct logit-units knob: its value equals the suppression applied to the most distant patch for that head. Using a per-head weight lets heads independently learn how much spatial proximity matters, producing the head diversity that multihead attention is designed to exploit. The low init (`0.1` vs the previous `1.0`) keeps the bias weak at the start of training, giving the random QKV projections room to drive head divergence before spatial preferences are learned.
+- **Learnable per-head locality bias weight** — each head has its own `locality_weight` scalar (shape `(H,)`, init `0.1`), applied as `locality_weight_h × −‖Δcoord‖² / max(‖Δcoord‖²)`. The bias is normalised to `[−1, 0]`, so each head's weight is a direct logit-units knob: its value equals the suppression applied to the most distant patch for that head. Using a per-head weight lets heads independently learn how much spatial proximity matters, producing the head diversity that multihead attention is designed to exploit. The low init (`0.1`) keeps the bias weak at the start of training, giving the random QKV projections room to drive head divergence before spatial preferences are learned.
 
 No causal mask is applied. The 841 tokens represent spatial patch positions within a single distance matrix snapshot (one trading day), not a temporal sequence — every patch attends freely to every other patch. Temporal ordering is enforced at the data level (input = day *t*, target = day *t+1*).
 
@@ -121,7 +119,7 @@ unpatchify → (B, 1, 464, 464) → crop → (B, 1, 457, 457)
 |---|---|
 | Raw input | `(B, 1, 457, 457)` |
 | After reflect-pad | `(B, 1, 464, 464)` |
-| After SPT | `(B, 841, 192)` |
+| After patch embed | `(B, 841, 192)` |
 | After pos. embed | `(B, 841, 192)` |
 | After 6 DecoderBlocks | `(B, 841, 192)` |
 | After final LayerNorm | `(B, 841, 192)` |
@@ -143,4 +141,4 @@ unpatchify → (B, 1, 464, 464) → crop → (B, 1, 457, 457)
 > Seung Hoon Lee, Seunghyun Lee, Byung Cheol Song. **Vision Transformer for Small-Size Datasets.** IEEE Access, 2022.
 > DOI: [10.1109/ACCESS.2022.3220167](https://ieeexplore.ieee.org/document/9957006)
 
-The SPT and LSA techniques used in this architecture are adapted from this work, which introduced locality inductive bias mechanisms enabling ViTs to train effectively on small datasets without large-scale pre-training.
+The LSA technique used in this architecture is adapted from this work, which introduced locality inductive bias mechanisms enabling ViTs to train effectively on small datasets without large-scale pre-training.
