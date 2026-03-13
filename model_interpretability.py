@@ -788,25 +788,23 @@ class ModelInterpreter:
         baseline_pred_np = x_np
         baseline_err_np  = np.abs(baseline_pred_np - y_np)
 
-        # ── Compute MSE over the correct scope ────────────────────────────
-        use_full_val = (X_val is not None) and (y_val is not None)
+        # ── Compute MSE over the full validation set (required) ───────────
+        if (X_val is None) or (y_val is None):
+            raise ValueError(
+                "plot_prediction_error_map now requires X_val and y_val so "
+                "baseline/model MSE is computed on the full validation set "
+                "(single-sample MSE was removed due to high variance)."
+            )
 
-        if use_full_val:
-            # Full validation set — matches training val_mse exactly
-            mse_scope_label = f"full val set (N={len(X_val)} samples)"
-            with torch.no_grad():
-                y_pred_val = self.model(X_val).cpu()
-            y_val_np       = y_val[:, 0].numpy()           # (N, 457, 457)
-            y_pred_val_np  = y_pred_val[:, 0].numpy()      # (N, 457, 457)
-            X_val_np       = X_val[:, 0].numpy()           # (N, 457, 457)
+        mse_scope_label = f"full val set (N={len(X_val)} samples)"
+        with torch.no_grad():
+            y_pred_val = self.model(X_val).cpu()
+        y_val_np       = y_val[:, 0].numpy()           # (N, 457, 457)
+        y_pred_val_np  = y_pred_val[:, 0].numpy()      # (N, 457, 457)
+        X_val_np       = X_val[:, 0].numpy()           # (N, 457, 457)
 
-            mse_model    = float(((y_pred_val_np - y_val_np) ** 2).mean())
-            mse_baseline = float(((X_val_np      - y_val_np) ** 2).mean())
-        else:
-            # Single sample — quick spot check only
-            mse_scope_label = "single displayed sample"
-            mse_model    = float(((y_pred_np - y_np) ** 2).mean())
-            mse_baseline = float(((baseline_pred_np - y_np) ** 2).mean())
+        mse_model    = float(((y_pred_val_np - y_val_np) ** 2).mean())
+        mse_baseline = float(((X_val_np      - y_val_np) ** 2).mean())
 
         rel_improve = (
             1.0 - mse_model / mse_baseline if mse_baseline > 0.0 else 0.0
@@ -816,22 +814,8 @@ class ModelInterpreter:
         print(f"\n── Naive baseline check ({mse_scope_label}) ─────────────────")
         print("  Baseline: ŷ_{t+1} = x_t  (persistence / copy-last-step)")
         print(f"  MSE scope : {mse_scope_label}")
-
-        if not use_full_val:
-            # Extra diagnostics only meaningful for the single-sample case
-            diff_xy  = baseline_pred_np - y_np
-            max_abs  = float(np.max(np.abs(diff_xy)))
-            mean_abs = float(np.mean(np.abs(diff_xy)))
-            frac_eq  = float(np.mean(baseline_pred_np == y_np))
-            print(f"  Debug: max|x_t - y_t+1|          = {max_abs:.6e}")
-            print(f"  Debug: mean|x_t - y_t+1|         = {mean_abs:.6e}")
-            print(f"  Debug: fraction exactly-equal entries = {frac_eq:.6f}")
-            print("  NOTE: MSEs are computed on ONE sample — high variance.")
-            print("        Pass X_val / y_val for a val-set comparison that")
-            print("        matches the training val_mse metric.")
-        else:
-            print("  NOTE: MSEs are averaged over the full validation set,")
-            print("        matching the val_mse reported during training.")
+        print("  NOTE: MSEs are averaged over the full validation set,")
+        print("        matching the val_mse reported during training.")
 
         print(f"  Baseline MSE : {mse_baseline:.6e}")
         print(f"  Model MSE    : {mse_model:.6e}")

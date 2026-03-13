@@ -63,6 +63,7 @@ import sys
 
 import numpy as np
 import torch
+from sklearn.model_selection import TimeSeriesSplit
 
 # ── Make sure the project root is on sys.path so imports work whether
 #    this file lives in test/ or in the root itself. ─────────────────────────
@@ -463,6 +464,20 @@ def main():
     sample_idx = args.sample_idx if args.sample_idx >= 0 else T - 2
     print(f"  T={T} time steps.  Using sample index {sample_idx}.")
 
+    # Build the full validation fold so baseline/model MSE is computed over the
+    # same scope as training val_mse (single-sample MSE is intentionally avoided).
+    X_all = distance_matrix_gics[:-1][:, np.newaxis, :]   # (T-1, 1, 457, 457)
+    y_all = distance_matrix_gics[1:][:,  np.newaxis, :]
+    X_t   = torch.from_numpy(X_all).float()
+    y_t   = torch.from_numpy(y_all).float()
+
+    tscv = TimeSeriesSplit(n_splits=9, max_train_size=504, test_size=126)
+    *_, (_, last_val_idx) = tscv.split(X_t)
+    X_val = X_t[last_val_idx]
+    y_val = y_t[last_val_idx]
+
+    # Single displayed sample (still used for the heatmaps), but MSE comparison
+    # is computed over X_val/y_val.
     sample_x, sample_y = _build_sample(distance_matrix_gics, sample_idx)
     print(f"  sample_x shape: {tuple(sample_x.shape)}")
 
@@ -505,6 +520,8 @@ def main():
         filename="prediction_error_map.png",
         tickers=tickers_gics,
         sector_boundaries=sector_boundaries,
+        X_val=X_val,
+        y_val=y_val,
     )
 
     print(f"\n{'='*60}")
