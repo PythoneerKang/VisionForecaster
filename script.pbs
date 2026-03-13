@@ -17,7 +17,8 @@
 #PBS -l walltime=48:00:00
 
 ## 1 CPU-only node, 19 cores, ~100GB memory for Intel HPC training
-#PBS -l select=1:ncpus=2:mem=100gb
+## ncpus must match NUM_CPUS in parameters.py (19).
+#PBS -l select=1:ncpus=19:mem=100gb
 
 ## Load application environment (uncomment if conda is available on this node)
 #module load anaconda2025/2025
@@ -25,7 +26,7 @@
 #conda activate my-own-conda-env
 
 ## Capture number of allocated cores
-NCPUS=${PBS_NP:-2}
+NCPUS=${PBS_NP:-19}
 echo "Using $NCPUS CPU cores on this node."
 
 ## OpenMP / BLAS threading for NumPy operations (extract_distance_matrices.py)

@@ -227,7 +227,9 @@ class SectorGPSA(nn.Module):
         self.scale     = self.head_dim ** -0.5
 
         # Learnable gate per head: g_h = sigmoid(lambda_h)
-        # Initialised so heads start nearly fully positional
+        # Initialised so heads start nearly fully positional.
+        # gate_logit lives in its own AdamW param group (lr=1e-2, wd=0)
+        # in _build_optimizer() — see training_and_validation_functions.py.
         self.gate_logit = nn.Parameter(
             torch.full((num_heads,), gate_init)
         )
@@ -616,8 +618,6 @@ if __name__ == "__main__":
 
             assert x.shape == y.shape, f"Shape mismatch: {x.shape} vs {y.shape}"
 
-            # Use num_params to avoid shadowing the `p` name from any
-            # enclosing scope (e.g. `import parameters as p`).
             num_params = sum(param.numel() for param in model.parameters())
             print(
                 f"[{name:5s}] patch_size={patch_size:2d} | "
@@ -644,11 +644,11 @@ attention    : SectorGPSA  (sector-gated positional self-attention)
 patch_embed  : StandardPatchEmbed  (256 → 192)
 in_channels  : 1  (single-channel z-scored GICS-reordered distance matrix)
 img_size     : 457  (padded to 464 = 29×16 before tokenisation)
-optimizer    : AdamW — 3 param groups:
+optimizer    : AdamW — 4 param groups:
                  decay    lr=1e-4, wd=1e-2  (weight matrices)
                  no-decay lr=1e-4, wd=0     (biases, LayerNorm)
                  gamma    lr=1e-3, wd=0     (LayerScale γ — 10× boost)
-               Note: gate_logit params fall in no-decay group (1-D)
+                 gate     lr=1e-2, wd=0     (gate_logit — 100× boost)
 scheduler    : none (early stopping, patience=10)
 epochs       : up to 100 per fold
 batch size   : configured via parameters.BATCH_SIZE

@@ -5,12 +5,28 @@ from extract_distance_matrices import (
     get_gics_sector_boundaries,
     build_patch_sector_ids,
 )
-from transformer import *
-from training_and_validation_functions import *
+from transformer import SmallDataDecoderViT
+from training_and_validation_functions import diff_model_multi_fold_cv_train_test
 
 import numpy as np
 from sklearn.model_selection import TimeSeriesSplit
 import torch
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Model hyperparameters — single source of truth shared by training and
+# interpretability so the loaded checkpoint always matches training config.
+# ─────────────────────────────────────────────────────────────────────────────
+MODEL_CFG = dict(
+    in_channels=1,
+    embed_dim=192,
+    depth=6,
+    num_heads=3,
+    proj_drop=0.1,
+    drop_path_rate=0.05,
+    ls_init_value=1e-2,
+    gate_init=2.0,
+)
 
 
 if __name__ == "__main__":
@@ -62,16 +78,10 @@ if __name__ == "__main__":
     # 5a. Training summary across all folds
     plot_fold_summary(all_fold_history, save_path="fold_summary.png")
 
-    # 5b. Load the best model
+    # 5b. Load the best model — use the same config as training to ensure
+    #     the architecture and gate_init match the saved checkpoint exactly.
     best_model = SmallDataDecoderViT(
-        in_channels=1,
-        embed_dim=192,
-        depth=6,
-        num_heads=3,
-        proj_drop=0.1,
-        drop_path_rate=0.05,
-        ls_init_value=1e-2,
-        gate_init=0.0,
+        **MODEL_CFG,
         sector_ids=sector_ids,
     )
     best_model.load_state_dict(torch.load(model_path, map_location="cpu"))
