@@ -14,8 +14,8 @@ from transformer import SmallDataDecoderViT
 # Constants
 # ─────────────────────────────────────────────────────────────────────────────
 
-GATE_WARMUP_EPOCHS       = 20
-GATE_ENTROPY_WEIGHT      = 1e-3
+GATE_WARMUP_EPOCHS       = 5
+GATE_ENTROPY_WEIGHT      = 0.0
 BASELINE_PENALTY_WEIGHT  = 1.0   # λ in BaselineRegularisedMSE (see below)
 
 
