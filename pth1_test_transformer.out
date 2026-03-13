@@ -39,6 +39,16 @@ Saved → interp_outputs/layerscale_gammas.png
 ── Loading distance matrix …
   Reordering by GICS …
   T=1575 time steps.  Using sample index 1573.
+
+── Full validation baseline check ───────────────────────────────
+  Scope        : last CV validation fold (N=126 samples)
+  Baseline     : ŷ_{t+1} = x_t  (persistence / copy-last-step)
+  Baseline MSE : 1.676095e-03
+  Model MSE    : 6.195177e-01
+  Rel. improve : -36861.97%
+  ✗ WARNING: model is worse than persistence on full validation fold.
+    This often indicates a fundamental issue (signal/model/data),
+    but also double-check scaling/checkpoint/eval settings.
   NOTE: sample_idx had x_t == y_t+1 exactly; backtracked 35 step(s) to idx=1538 for a non-degenerate sample.
   sample_x shape: (1, 1, 457, 457)
 
@@ -72,42 +82,33 @@ Saved → interp_outputs/attention_weights.png
 
 ── Prediction error map …
 
-── Naive baseline check (single displayed sample) ─────────────────
+── Naive baseline check (full val set (N=126 samples)) ─────────────────
   Baseline: ŷ_{t+1} = x_t  (persistence / copy-last-step)
-  MSE scope : single displayed sample
-  Debug: max|x_t - y_t+1|          = 6.121762e-01
-  Debug: mean|x_t - y_t+1|         = 3.788046e-02
-  Debug: fraction exactly-equal entries = 0.030333
-  NOTE: MSEs are computed on ONE sample — high variance.
-        Pass X_val / y_val for a val-set comparison that
-        matches the training val_mse metric.
-  Baseline MSE : 2.654921e-03
-  Model MSE    : 5.774540e-01
+  MSE scope : full val set (N=126 samples)
+  NOTE: MSEs are averaged over the full validation set,
+        matching the val_mse reported during training.
+  Baseline MSE : 1.676095e-03
+  Model MSE    : 6.195177e-01
   NOTE: D is symmetric and the diagonal is constant across
         time steps, so effective independent pairs = 457×456/2
         = 104,196 (not 457² = 208,849 as the mean suggests).
         The model vs baseline comparison remains unbiased.
-  Relative improvement vs baseline : -21650.32%
+  Relative improvement vs baseline : -36861.97%
   ✗ WARNING: model does NOT beat the naive baseline — investigate.
 
-Saved → interp_outputs/prediction_error_map.png
-
-============================================================
-Done.  All outputs saved to 'interp_outputs/'.
-============================================================
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-			Resource Usage on 2026-03-14 00:10:28.748263:
+			Resource Usage on 2026-03-14 07:40:40.788650:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	JobId: 3149740.hpc-pbs-sched1
+	JobId: 3149930.hpc-pbs-sched1
 	Project: as_spms_cheongsa
-	Exit Status: 0
+	Exit Status: 1
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	NCPUs: Requested(1), Used(1)
-	CPU Time Used: 00:00:57
-	Memory: Requested(100gb), Used(2103664kb)
-	Vmem Used: 6590032kb
-	Walltime: Requested(48:00:00), Used(00:01:08)
+	CPU Time Used: 00:01:46
+	Memory: Requested(100gb), Used(4682184kb)
+	Vmem Used: 9580508kb
+	Walltime: Requested(48:00:00), Used(00:02:49)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Execution Nodes Used: (hpc-wfly-a002:ncpus=1:mem=104857600kb)
+	Execution Nodes Used: (hpc-wfly-a001:ncpus=1:mem=104857600kb)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	No GPU-related information available for this job.

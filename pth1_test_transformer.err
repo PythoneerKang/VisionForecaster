@@ -1,1 +1,19 @@
 pyenv: shell integration not enabled. Run `pyenv init' for instructions.
+Traceback (most recent call last):
+  File "/home/s230047/Downloads/VisionForecaster/test/scratch.py", line 557, in <module>
+    main()
+    ~~~~^^
+  File "/home/s230047/Downloads/VisionForecaster/test/scratch.py", line 542, in main
+    interp.plot_prediction_error_map(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sample_x, sample_y,
+        ^^^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        y_val=y_val,
+        ^^^^^^^^^^^^
+    )
+    ^
+  File "/home/s230047/Downloads/VisionForecaster/model_interpretability.py", line 843, in plot_prediction_error_map
+    scope_short  = "val-set" if use_full_val else "sample"
+                                ^^^^^^^^^^^^
+NameError: name 'use_full_val' is not defined
