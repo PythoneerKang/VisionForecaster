@@ -840,7 +840,7 @@ class ModelInterpreter:
         print()
 
         # ── Build plot title ──────────────────────────────────────────────
-        scope_short  = "val-set" if use_full_val else "sample"
+        scope_short  = "val-set"  # X_val/y_val are required, so always full val set
         gics_note    = " | GICS-reordered" if sector_boundaries is not None else ""
         rel_pct      = f"{rel_improve * 100:+.2f}%" if mse_baseline > 0.0 else "N/A"
         title_str    = (
