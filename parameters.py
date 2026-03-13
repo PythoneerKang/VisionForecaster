@@ -44,7 +44,7 @@ USE_GPU = False
 # BATCH_SIZE: with max 504 training samples per fold and BATCH_SIZE=8,
 # each epoch produces ~63 gradient steps — a healthy number for convergence.
 # Recommended range: 4–16. Increase cautiously if training is stable.
-BATCH_SIZE = 8
+BATCH_SIZE = 16
 
 # -----------------------------------------------------------------------------
 # Legacy hyperparameters — NOT used by SmallDataDecoderViT

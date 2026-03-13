@@ -52,17 +52,15 @@ if __name__ == "__main__":
     print()
 
     # ── Step 4: Train with multi-fold CV ─────────────────────────────────────
-    # model_path, all_fold_history = diff_model_multi_fold_cv_train_test(
-    #     distance_matrix_gics, sector_ids
-    # )
-
-    model_path = "model_fold_6.pth"
+    model_path, all_fold_history = diff_model_multi_fold_cv_train_test(
+        distance_matrix_gics, sector_ids
+    )
 
     # ── Step 5: Interpretability ──────────────────────────────────────────────
     from model_interpretability import ModelInterpreter, plot_fold_summary
 
     # 5a. Training summary across all folds
-    #plot_fold_summary(all_fold_history, save_path="fold_summary.png")
+    plot_fold_summary(all_fold_history, save_path="fold_summary.png")
 
     # 5b. Load the best model
     best_model = SmallDataDecoderViT(
@@ -73,7 +71,7 @@ if __name__ == "__main__":
         proj_drop=0.1,
         drop_path_rate=0.05,
         ls_init_value=1e-2,
-        gate_init=2.0,
+        gate_init=0.0,
         sector_ids=sector_ids,
     )
     best_model.load_state_dict(torch.load(model_path, map_location="cpu"))

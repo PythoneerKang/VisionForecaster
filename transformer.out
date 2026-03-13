@@ -6,8 +6,8 @@ Using virtualenv: /home/s230047/.cache/pypoetry/virtualenvs/transformer-D-LRPITk
   sector_ids shape : (841,)
   unique sectors   : 11
 
-── Loading model from model_fold_6.pth …
-  Loaded weights from model_fold_6.pth
+── Loading model from model_fold_4.pth …
+  Loaded weights from model_fold_4.pth
   Model parameters : 2,966,226
 
   NOTE: no training history in checkpoints — skipping fold summary.
@@ -17,12 +17,12 @@ Using virtualenv: /home/s230047/.cache/pypoetry/virtualenvs/transformer-D-LRPITk
 ── Gate Values g = sigmoid(λ) ──────────────────────────────────
   Block  Head 1  Head 2  Head 3
   ----------------------------------
-      1   0.868   0.869   0.868
-      2   0.870   0.870   0.868
-      3   0.866   0.863   0.865
-      4   0.866   0.864   0.865
-      5   0.863   0.866   0.863
-      6   0.870   0.864   0.868
+      1   0.486   0.487   0.486
+      2   0.482   0.481   0.483
+      3   0.486   0.484   0.484
+      4   0.488   0.488   0.489
+      5   0.489   0.488   0.489
+      6   0.487   0.486   0.487
 
   g≈1 = positional (sector prior)  |  g≈0 = content-driven
 
@@ -71,18 +71,18 @@ Saved → interp_outputs/prediction_error_map.png
 Done.  All outputs saved to 'interp_outputs/'.
 ============================================================
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-			Resource Usage on 2026-03-13 08:32:16.270264:
+			Resource Usage on 2026-03-13 15:57:16.612086:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	JobId: 3148322.hpc-pbs-sched1
+	JobId: 3149060.hpc-pbs-sched1
 	Project: as_spms_cheongsa
 	Exit Status: 0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	NCPUs: Requested(2), Used(2)
-	CPU Time Used: 00:01:32
-	Memory: Requested(100gb), Used(2113388kb)
-	Vmem Used: 7835632kb
-	Walltime: Requested(48:00:00), Used(00:00:59)
+	CPU Time Used: 00:01:46
+	Memory: Requested(100gb), Used(2114008kb)
+	Vmem Used: 6697908kb
+	Walltime: Requested(48:00:00), Used(00:01:09)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	Execution Nodes Used: (hpc-wfly-a001:ncpus=2:mem=104857600kb)
+	Execution Nodes Used: (hpc-wfly-a002:ncpus=2:mem=104857600kb)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	No GPU-related information available for this job.

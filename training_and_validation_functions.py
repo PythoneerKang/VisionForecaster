@@ -403,7 +403,7 @@ def diff_model_multi_fold_cv_train_test(
             proj_drop=0.1,
             drop_path_rate=0.05,
             ls_init_value=1e-2,
-            gate_init=2.0,
+            gate_init=0.0,
             sector_ids=sector_ids,
         )
 
