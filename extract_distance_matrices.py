@@ -2,24 +2,41 @@ import parameters as p
 
 import pickle
 import math
+import os
 from collections import Counter
 import numpy as np
 import torch
 
 
-def extract_distance_matrix():
+def extract_distance_matrix(pkl_path: str | None = None) -> np.ndarray:
     """
     Load the precomputed correlation tensor and convert it into a
     z-scored distance matrix, keeping memory usage under control.
 
     Expected pkl shape : (T, 463, 463)  — 463 stocks, 6 will be removed.
     Output shape       : (T, 457, 457)  — matches model input size.
+
+    Parameters
+    ----------
+    pkl_path : str | None
+        Explicit path to the IQDw{w}.pkl file.  When None (default) the
+        path is constructed from parameters.py exactly as before, so
+        existing call-sites in main.py require no changes.
     """
-    with open(
-        "../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/"
-        "Extract distance matrix (2017-2022) from pkl file/IQDw{}.pkl".format(p.w),
-        "rb",
-    ) as pkl_file:
+    if pkl_path is None:
+        pkl_path = (
+            "../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/"
+            "Extract distance matrix (2017-2022) from pkl file/IQDw{}.pkl".format(p.w)
+        )
+
+    if not os.path.isfile(pkl_path):
+        raise FileNotFoundError(
+            f"Distance-matrix pkl not found: {pkl_path}\n"
+            "Pass the correct path via --dm-pkl (scratch.py) or the pkl_path "
+            "argument (Python API)."
+        )
+
+    with open(pkl_path, "rb") as pkl_file:
         data1 = pickle.load(pkl_file).astype(np.float32)
 
     data1 = np.clip(data1, -1.0, 1.0)
@@ -109,42 +126,13 @@ SP500_TICKERS_457 = [
 # ─────────────────────────────────────────────────────────────────────────────
 # GICS sector → ticker mapping
 # ─────────────────────────────────────────────────────────────────────────────
-#
-# Sources
-# -------
-# Primary   : Wikipedia, "List of S&P 500 companies"
-#             https://en.wikipedia.org/wiki/List_of_S%26P_500_companies
-#             (snapshot consistent with Jan 2017 constituents)
-#
-# Secondary : MSCI GICS® official methodology document
-#             https://www.msci.com/indexes/index-resources/gics
-#
-# Tertiary  : S&P Dow Jones Indices GICS landing page
-#             https://www.spglobal.com/spdji/en/landing/topic/gics/
-#
-# Notes
-# -----
-# * Sectors reflect GICS classifications as of 3 Jan 2017, the dataset start.
-#   The Sep 2018 GICS reclassification (which renamed "Telecommunication
-#   Services" → "Communication Services" and moved media/internet companies
-#   into it) is NOT applied here, so GOOG/GOOGL, NFLX, DIS, EA, ATVI, TTWO
-#   etc. remain under Communication Services only if they were already there;
-#   others that moved in 2018 are kept in their 2017 sectors.
-# * Tickers that did not exist for the full 2017-2023 window (ABMD, CTVA,
-#   DOW, FOX, FOXA, IR) have been excluded — these are the 6 NaN tickers
-#   removed in extract_distance_matrix().
-# * PKG (Packaging Corp of America) is classified as Materials per GICS
-#   sub-industry "Paper & Plastic Packaging Products & Materials".
-# ─────────────────────────────────────────────────────────────────────────────
 
 _GICS_SECTOR_MAP: dict[str, list[str]] = {
-    # 18 tickers
     "Communication Services": [
         "T", "VZ", "TMUS", "CMCSA", "CHTR", "DISH",
         "GOOG", "GOOGL", "NFLX", "ATVI", "EA", "TTWO",
         "DIS", "NWS", "NWSA", "IPG", "OMC", "LYV",
     ],
-    # 63 tickers
     "Consumer Discretionary": [
         "AMZN", "HD", "MCD", "NKE", "LOW", "SBUX", "TJX",
         "BKNG", "MAR", "HLT", "GM", "F", "ORLY", "AZO", "ROST",
@@ -156,7 +144,6 @@ _GICS_SECTOR_MAP: dict[str, list[str]] = {
         "UA", "UAA", "CPRT", "AAP", "DG", "DLTR", "EBAY",
         "GPC", "HBI", "HRB",
     ],
-    # 36 tickers
     "Consumer Staples": [
         "PG", "KO", "PEP", "WMT", "COST", "PM", "MO", "MDLZ",
         "CL", "KMB", "GIS", "K", "CPB", "SJM", "HRL", "MKC",
@@ -164,13 +151,11 @@ _GICS_SECTOR_MAP: dict[str, list[str]] = {
         "CLX", "CHD", "AVY", "SEE", "ADM", "KR",
         "SYY", "WBA", "CVS", "PRGO", "COTY", "EL", "LW",
     ],
-    # 24 tickers
     "Energy": [
         "XOM", "CVX", "COP", "EOG", "SLB", "MPC", "PSX", "VLO",
         "OXY", "PXD", "HAL", "DVN", "APA", "HES", "MRO", "BKR",
         "FANG", "NOV", "FTI", "OKE", "KMI", "WMB", "NRG", "HP",
     ],
-    # 65 tickers
     "Financials": [
         "JPM", "BAC", "WFC", "C", "GS", "MS", "AXP",
         "BLK", "SCHW", "USB", "PNC", "TFC", "COF", "BK", "STT",
@@ -182,7 +167,6 @@ _GICS_SECTOR_MAP: dict[str, list[str]] = {
         "MSCI", "VRSK", "FIS", "GPN", "PYPL", "MA", "V",
         "AMP", "L", "WRB", "AIZ",
     ],
-    # 51 tickers
     "Health Care": [
         "JNJ", "UNH", "LLY", "ABBV", "PFE", "MRK", "TMO", "ABT",
         "DHR", "BMY", "AMGN", "GILD", "ISRG", "MDT", "SYK", "BSX",
@@ -192,7 +176,6 @@ _GICS_SECTOR_MAP: dict[str, list[str]] = {
         "PKI", "A", "MTD", "WAT", "RMD", "HSIC", "XRAY", "CAH",
         "MCK", "ABC", "ALGN", "STE", "UHS", "ZTS",
     ],
-    # 64 tickers
     "Industrials": [
         "HON", "UPS", "LMT", "BA", "GE", "CAT", "DE",
         "MMM", "EMR", "ETN", "ITW", "ROK", "PH", "DOV", "AME",
@@ -204,7 +187,6 @@ _GICS_SECTOR_MAP: dict[str, list[str]] = {
         "CTAS", "ROL", "PAYC", "PAYX", "RHI", "JKHY",
         "RSG", "WM", "ROP", "URI", "CMI", "EFX", "PCAR", "PWR",
     ],
-    # 56 tickers
     "Information Technology": [
         "AAPL", "MSFT", "NVDA", "AVGO", "ORCL", "INTC",
         "CSCO", "QCOM", "TXN", "ACN", "IBM", "AMAT", "LRCX", "KLAC",
@@ -215,21 +197,18 @@ _GICS_SECTOR_MAP: dict[str, list[str]] = {
         "AMD", "NTRS", "BR", "ADP", "AKAM", "ADI", "MCHP",
         "VRSN", "WU", "XRX", "ZBRA", "FLT",
     ],
-    # 24 tickers
     "Materials": [
         "LIN", "APD", "SHW", "ECL", "FCX", "NEM", "NUE", "ALB",
         "DD", "EMN", "CE", "LYB", "PPG", "VMC", "MLM",
         "CF", "FMC", "MOS", "IFF", "PKG", "IP",
         "WRK", "AMCR", "WY",
     ],
-    # 29 tickers
     "Real Estate": [
         "AMT", "PLD", "CCI", "EQIX", "PSA", "SBAC", "DLR", "O",
         "WELL", "VTR", "PEAK", "EQR", "AVB", "ESS", "MAA", "UDR",
         "AIV", "HST", "BXP", "SLG", "VNO", "KIM", "REG", "FRT",
         "SPG", "EXR", "IRM", "ARE", "CBRE",
     ],
-    # 27 tickers
     "Utilities": [
         "NEE", "DUK", "SO", "D", "EXC", "AEP", "XEL", "SRE",
         "ED", "ES", "EIX", "PEG", "ETR", "FE", "PPL", "CMS",
@@ -249,21 +228,6 @@ def reorder_by_gics(
     Reorder a (T, N, N) or (N, N) distance matrix so that stocks are grouped
     by GICS sector.  Within each sector stocks appear in the same relative
     order as in the original ticker list.
-
-    Parameters
-    ----------
-    distance_matrix : np.ndarray
-        Shape (T, 457, 457) or (457, 457).
-    tickers : list[str] | None
-        The 457 ticker labels corresponding to axis-1 / axis-2.
-        Defaults to SP500_TICKERS_457.
-
-    Returns
-    -------
-    reordered_matrix : np.ndarray
-    reordered_tickers : list[str]
-    sector_labels : list[str]
-        Per-stock sector string, aligned with reordered_tickers.
     """
     if tickers is None:
         tickers = SP500_TICKERS_457
@@ -317,10 +281,6 @@ def get_gics_sector_boundaries(sector_labels: list[str]) -> list[tuple[str, int,
     """
     Given the per-stock sector_labels list returned by reorder_by_gics(),
     compute the start and end index of each GICS sector block.
-
-    Returns
-    -------
-    list of (sector_name, start_idx, end_idx) tuples  (end_idx is exclusive)
     """
     boundaries: list[tuple[str, int, int]] = []
     current_sector = sector_labels[0]
@@ -342,46 +302,7 @@ def build_patch_sector_ids(
     """
     Build a (N,) integer tensor mapping each image patch to its dominant
     GICS sector index.  Required by SectorGPSA in transformer.py.
-
-    The 457×457 GICS-reordered distance matrix is padded to padded_size
-    (= ceil(457/patch_size) * patch_size) before patchification.  Each
-    patch covers patch_size stocks along both the row and column axes.
-    The dominant sector for a patch is the GICS sector that covers the
-    majority of the stock-rows within that patch.
-
-    Parameters
-    ----------
-    sector_labels : list[str]
-        Per-stock sector string in GICS order, as returned by
-        reorder_by_gics().  Length must equal img_size.
-    patch_size    : int
-        Patch size used by the model (default 16).
-    img_size      : int | None
-        Original image size before padding.  Defaults to len(sector_labels)
-        so callers never need to pass it explicitly, and it stays correct if
-        the stock universe size ever changes.
-
-    Returns
-    -------
-    sector_ids : torch.Tensor  shape (N,) dtype=torch.long
-        Integer sector index for each patch.  N = grid_h * grid_w.
-        Sector index follows GICS_SECTOR_ORDER (alphabetical).
-
-    Notes
-    -----
-    Because the matrix is symmetric and GICS-reordered, a patch at grid
-    position (r, c) covers stocks [r*p, (r+1)*p) on the row axis and
-    [c*p, (c+1)*p) on the column axis.  For the sector ID we use the
-    row axis only (stocks correspond to rows after GICS reordering),
-    which gives a consistent spatial sector map aligned with the
-    block-diagonal structure.
-
-    Padded rows (beyond stock index 456) inherit the last stock's sector,
-    keeping the boundary patches consistent.
     """
-    # FIX: derive img_size from sector_labels rather than relying on a
-    # hardcoded default.  This keeps the function correct if the stock
-    # universe size changes and removes a fragile implicit coupling.
     if img_size is None:
         img_size = len(sector_labels)
 
@@ -390,26 +311,20 @@ def build_patch_sector_ids(
     )
 
     padded_size = math.ceil(img_size / patch_size) * patch_size
-    grid        = padded_size // patch_size   # grid_h == grid_w
+    grid        = padded_size // patch_size
     N           = grid * grid
 
-    # Build per-pixel (per-stock-row) sector index, padded to padded_size
     sector_to_idx = {s: i for i, s in enumerate(GICS_SECTOR_ORDER)}
-    # Map each stock index → integer sector index
     stock_sector_idx = [sector_to_idx[s] for s in sector_labels]
-    # Pad with the last stock's sector for reflect-padded rows beyond img_size
     last_sector_idx = stock_sector_idx[-1]
     padded_stock_sector = stock_sector_idx + [last_sector_idx] * (padded_size - img_size)
 
-    # For each patch row r, find the majority sector among stocks
-    # in rows [r*patch_size, (r+1)*patch_size)
     patch_row_sector = []
     for r in range(grid):
         row_stocks = padded_stock_sector[r * patch_size: (r + 1) * patch_size]
         majority_sector = Counter(row_stocks).most_common(1)[0][0]
         patch_row_sector.append(majority_sector)
 
-    # Each patch (r, c) inherits the sector of its row
     sector_ids = []
     for r in range(grid):
         for c in range(grid):

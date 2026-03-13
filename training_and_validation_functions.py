@@ -1,3 +1,4 @@
+import pickle
 import numpy as np
 from sklearn.model_selection import TimeSeriesSplit
 
@@ -25,6 +26,15 @@ def _unwrap_state_dict(model):
 
 
 class EarlyStopping:
+    """
+    Save the best model weights seen so far based on validation loss.
+
+    The checkpoint written to `path` during training is a plain state_dict
+    (weights only) — history is not available mid-training so it is not
+    included here.  The full checkpoint with history is written at the end
+    of train_with_validation() once training completes.
+    """
+
     def __init__(self, patience=7, path='best_model.pt'):
         self.patience = patience
         self.best_loss = float('inf')
@@ -35,8 +45,8 @@ class EarlyStopping:
         if val_loss < self.best_loss:
             self.best_loss = val_loss
             self.counter = 0
-            # FIX: save the unwrapped state dict so the checkpoint is
-            # loadable into an uncompiled model (avoids _orig_mod.* keys).
+            # Save weights only — used internally to restore best weights
+            # if early stopping fires before the final epoch.
             torch.save(_unwrap_state_dict(model), self.path)
             return False
         else:
@@ -305,11 +315,31 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
             )
             break
 
-    # FIX: save the unwrapped state dict (bare keys, no _orig_mod. prefix)
-    # so the checkpoint can be loaded directly into an uncompiled model in
-    # main.py's interpretability section.
+    # Save a single checkpoint containing both the model weights and the
+    # full training history.  scratch.py reads this one file for everything —
+    # no separate .pkl needed.
+    #
+    # Checkpoint schema
+    # -----------------
+    # {
+    #   "model_state_dict" : bare state_dict (no _orig_mod. prefix),
+    #   "train_mse"        : list[float] — per-epoch training MSE,
+    #   "val_mse"          : list[float] — per-epoch validation MSE,
+    #   "train_r2"         : list[float] — per-epoch training R²,
+    #   "val_r2"           : list[float] — per-epoch validation R²,
+    # }
     model_path = f"model_fold_{fold}.pth"
-    torch.save(_unwrap_state_dict(model), model_path)
+    torch.save(
+        {
+            "model_state_dict": _unwrap_state_dict(model),
+            "train_mse":        fold_history["train_mse"],
+            "val_mse":          fold_history["val_mse"],
+            "train_r2":         fold_history["train_r2"],
+            "val_r2":           fold_history["val_r2"],
+        },
+        model_path,
+    )
+    print(f"  Checkpoint saved → {model_path}  (weights + history)")
 
     return model_path, fold_history
 

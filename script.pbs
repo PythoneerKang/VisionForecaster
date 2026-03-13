@@ -17,7 +17,7 @@
 #PBS -l walltime=48:00:00
 
 ## 1 CPU-only node, 19 cores, ~100GB memory for Intel HPC training
-#PBS -l select=1:ncpus=19:mem=100gb
+#PBS -l select=1:ncpus=2:mem=100gb
 
 ## Load application environment (uncomment if conda is available on this node)
 #module load anaconda2025/2025
@@ -25,7 +25,7 @@
 #conda activate my-own-conda-env
 
 ## Capture number of allocated cores
-NCPUS=${PBS_NP:-19}
+NCPUS=${PBS_NP:-2}
 echo "Using $NCPUS CPU cores on this node."
 
 ## OpenMP / BLAS threading for NumPy operations (extract_distance_matrices.py)
@@ -44,4 +44,6 @@ cd $PBS_O_WORKDIR
 ## Use pyenv shell (session-scoped) rather than pyenv global (persists after job ends)
 pyenv shell 3.13
 poetry env use 3.13
-poetry run python main.py
+#poetry run python main.py
+cd test
+poetry run python scratch.py --pth model_fold_6.pth --dm-pkl "../../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file/IQDw35.pkl"
