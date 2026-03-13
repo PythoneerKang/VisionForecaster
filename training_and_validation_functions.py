@@ -341,7 +341,7 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
 
         # ── TRAINING ──────────────────────────────────────────────────────
         model.train()
-        train_loss  = 0.0
+        train_sse   = 0.0
         train_n     = 0
         train_sum_y = 0.0
         y_batches:    list[torch.Tensor] = []
@@ -376,9 +376,10 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
 
-            # Track raw MSE only (not the baseline penalty or gate reg term)
-            # so train_mse stays on the same scale as val_mse and the baseline.
-            train_loss  += mse_raw.item()
+            # Track dataset-wide MSE (SSE / N) rather than unweighted
+            # average of per-batch MSEs. This keeps train_mse/val_mse exactly
+            # comparable to a baseline MSE computed over the full split.
+            train_sse   += F.mse_loss(outputs, y, reduction="sum").item()
             y_cpu        = y.detach().cpu().reshape(-1)
             out_cpu      = outputs.detach().cpu().reshape(-1)
             y_batches.append(y_cpu)
@@ -396,7 +397,7 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
 
         # ── VALIDATION ────────────────────────────────────────────────────
         model.eval()
-        val_loss  = 0.0
+        val_sse   = 0.0
         val_n     = 0
         val_sum_y = 0.0
         vy_batches: list[torch.Tensor] = []
@@ -409,7 +410,7 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
                 outputs   = model(x)
                 # Validation always uses plain MSE — val_mse must stay on the
                 # same scale as the baseline MSE for the comparison to be valid.
-                val_loss += F.mse_loss(outputs, y).item()
+                val_sse  += F.mse_loss(outputs, y, reduction="sum").item()
                 y_cpu    = y.detach().cpu().reshape(-1)
                 out_cpu  = outputs.detach().cpu().reshape(-1)
                 vy_batches.append(y_cpu)
@@ -425,8 +426,8 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
         epoch_validation_r2_score = _r2_from_scalars(val_ss_res, val_ss_tot)
         del vy_batches, vp_batches, vy_all, vp_all
 
-        avg_train = train_loss / len(train_loader)
-        avg_val   = val_loss   / len(val_loader)
+        avg_train = train_sse / train_n if train_n > 0 else 0.0
+        avg_val   = val_sse   / val_n   if val_n   > 0 else 0.0
 
         print(f"----- Train/Validation results -----")
         print(f"Epoch {epoch}: Train Loss {avg_train:.6f} | Val Loss {avg_val:.6f}")
