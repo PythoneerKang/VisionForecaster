@@ -45,6 +45,6 @@ cd $PBS_O_WORKDIR
 ## Use pyenv shell (session-scoped) rather than pyenv global (persists after job ends)
 pyenv shell 3.13
 poetry env use 3.13
-#poetry run python main.py
-cd test
-poetry run python scratch.py --pth model_fold_4.pth --dm-pkl "../../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file/IQDw35.pkl"
+poetry run python main.py
+#cd test
+#poetry run python scratch.py --pth model_fold_4.pth --dm-pkl "../../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file/IQDw35.pkl"
