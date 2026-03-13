@@ -740,6 +740,12 @@ class ModelInterpreter:
         y_pred_np = y_pred[0, 0].numpy()
         err_np    = np.abs(y_pred_np - y_np)
 
+        # Naive time-series baseline: predict x_t as y_{t+1}.
+        # This is the "do nothing" forecaster that simply copies the last
+        # observed distance matrix forward one step.
+        baseline_pred_np = x_np
+        baseline_err_np  = np.abs(baseline_pred_np - y_np)
+
         titles = ["Input (t)", "Prediction (t+1)", "Ground Truth (t+1)", "Absolute Error"]
         arrays = [x_np, y_pred_np, y_np, err_np]
         cmaps  = ["RdYlBu_r", "RdYlBu_r", "RdYlBu_r", "hot"]
@@ -778,11 +784,31 @@ class ModelInterpreter:
                 ax.tick_params(axis="x", length=0, pad=2)
             else:
                 ax.axis("off")
+        # Scalar MSEs for model and naive baseline on this sample
+        mse_model     = float(((y_pred_np - y_np) ** 2).mean())
+        mse_baseline  = float(((baseline_pred_np - y_np) ** 2).mean())
+        rel_improve   = (
+            1.0 - mse_model / mse_baseline if mse_baseline > 0.0 else 0.0
+        )
 
-        mse       = float(((y_pred_np - y_np) ** 2).mean())
+        print("\n── Naive baseline check (sample-level) ─────────────────────────")
+        print("  Baseline: y_{t+1} = x_t (copy-last-step)")
+        print(f"  Baseline MSE : {mse_baseline:.6f}")
+        print(f"  Model MSE    : {mse_model:.6f}")
+        if mse_baseline > 0.0:
+            print(f"  Relative improvement vs baseline: {rel_improve * 100:.2f}%")
+        if mse_model < mse_baseline:
+            print("  CHECK: model beats the naive baseline on this sample.\n")
+        else:
+            print("  WARNING: model does NOT beat the naive baseline on this "
+                  "sample — investigate.\n")
+
         gics_note = " | GICS-reordered" if sector_boundaries is not None else ""
         fig.suptitle(
-            f"Sample Prediction  |  MSE = {mse:.6f}{gics_note}",
+            "Sample Prediction  |  "
+            f"MSE_model = {mse_model:.6f}  |  "
+            f"MSE_baseline (t+1=t) = {mse_baseline:.6f}"
+            f"{gics_note}",
             fontsize=13, fontweight="bold",
         )
         plt.tight_layout()
