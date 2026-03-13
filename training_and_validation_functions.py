@@ -7,6 +7,9 @@ import torch
 from transformer import *
 from torch.utils.data import DataLoader, TensorDataset
 
+GATE_WARMUP_EPOCHS  = 20
+GATE_ENTROPY_WEIGHT = 1e-3
+
 
 def _unwrap_state_dict(model):
     """
@@ -58,47 +61,54 @@ class EarlyStopping:
 
 def _build_optimizer(model):
     """
-    Build an AdamW optimizer with three parameter groups:
+    AdamW with FOUR parameter groups:
 
-      1. decay_params   — weight matrices (lr=1e-4, weight_decay=1e-2)
-      2. nodecay_params — biases, LayerNorm weights, gate logits (lr=1e-4, wd=0)
-      3. gamma_params   — LayerScale gammas (lr=1e-3, wd=0)
-                          10× higher LR so gammas escape their near-zero init.
+      1. decay_params   — weight matrices        (lr=1e-4, wd=1e-2)
+      2. nodecay_params — biases, LN weights     (lr=1e-4, wd=0)
+      3. gamma_params   — LayerScale gammas      (lr=1e-3, wd=0)   10× boost
+      4. gate_params    — SectorGPSA gate_logit  (lr=1e-2, wd=0)  100× boost
 
-    gate_logit parameters are 1-D scalars and fall into the nodecay group
-    automatically (param.ndim < 2).  They do not need a boosted LR because
-    sigmoid is well-conditioned and their init (λ=+2) already places them in
-    a region with meaningful gradient.
+    gate_logit gets a 100× LR boost because its gradient is doubly suppressed:
+      - sigmoid derivative g*(1-g) ≈ 0.10 at gate_init=2
+      - (v_pos - v_content) ≈ 0 early in training (both branches near-uniform)
+    Without a LR boost the gate is effectively frozen throughout training.
     """
-    decay_params, nodecay_params, gamma_params = [], [], []
+    decay_params   = []
+    nodecay_params = []
+    gamma_params   = []
+    gate_params    = []
 
     for name, param in model.named_parameters():
         if not param.requires_grad:
             continue
-        if "gamma" in name:
+        if "gate_logit" in name:
+            gate_params.append(param)
+        elif "gamma" in name:
             gamma_params.append(param)
         elif param.ndim < 2:
             nodecay_params.append(param)
         else:
             decay_params.append(param)
 
-    n_total   = sum(param_.numel() for param_ in model.parameters() if param_.requires_grad)
-    n_grouped = (sum(param_.numel() for param_ in decay_params) +
-                 sum(param_.numel() for param_ in nodecay_params) +
-                 sum(param_.numel() for param_ in gamma_params))
+    n_total   = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    n_grouped = sum(p.numel() for g in
+                    [decay_params, nodecay_params, gamma_params, gate_params]
+                    for p in g)
     assert n_total == n_grouped, (
         f"Parameter group mismatch: {n_total} total vs {n_grouped} grouped."
     )
 
     print(f"  Optimizer param groups:")
-    print(f"    decay    : {sum(param_.numel() for param_ in decay_params):>10,} params  lr=1e-4  wd=1e-2")
-    print(f"    no-decay : {sum(param_.numel() for param_ in nodecay_params):>10,} params  lr=1e-4  wd=0  (incl. gate_logit)")
-    print(f"    gamma    : {sum(param_.numel() for param_ in gamma_params):>10,} params  lr=1e-3  wd=0  ← 10× boost")
+    print(f"    decay    : {sum(p.numel() for p in decay_params):>10,} params  lr=1e-4  wd=1e-2")
+    print(f"    no-decay : {sum(p.numel() for p in nodecay_params):>10,} params  lr=1e-4  wd=0")
+    print(f"    gamma    : {sum(p.numel() for p in gamma_params):>10,} params  lr=1e-3  wd=0   ← 10× boost")
+    print(f"    gate     : {sum(p.numel() for p in gate_params):>10,} params  lr=1e-2  wd=0   ← 100× boost")
 
     optimizer = torch.optim.AdamW([
         {"params": decay_params,   "lr": 1e-4, "weight_decay": 1e-2},
         {"params": nodecay_params, "lr": 1e-4, "weight_decay": 0.0},
         {"params": gamma_params,   "lr": 1e-3, "weight_decay": 0.0},
+        {"params": gate_params,    "lr": 1e-2, "weight_decay": 0.0},  # ← NEW
     ], lr=1e-4)
 
     return optimizer
@@ -162,38 +172,73 @@ def _to_float(val) -> float:
     return val.item() if hasattr(val, "item") else float(val)
 
 
+import torch
+import torch.nn as nn
+
+GATE_WARMUP_EPOCHS  = 20     # epochs to freeze gate_logit
+GATE_ENTROPY_WEIGHT = 1e-3   # weight on gate entropy regulariser
+
+
+def _gate_entropy_loss_fn(model) -> torch.Tensor:
+    """Negative mean binary entropy of all gate values (see Option 2 above)."""
+    eps  = 1e-6
+    loss = torch.tensor(0.0)
+    n    = 0
+    for name, param in model.named_parameters():
+        if "gate_logit" in name:
+            g    = param.sigmoid()
+            h    = -(g * (g + eps).log() + (1 - g) * (1 - g + eps).log())
+            loss = loss + h.mean()
+            n   += 1
+    return -loss / max(n, 1)   # mean over blocks
+
+
+def _set_gate_grad(model, requires_grad: bool):
+    """Freeze or unfreeze all gate_logit parameters."""
+    for name, param in model.named_parameters():
+        if "gate_logit" in name:
+            param.requires_grad_(requires_grad)
+
+
 def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
+
+    import parameters as p
+    from training_and_validation_functions import (
+        EarlyStopping, _build_optimizer, _unwrap_state_dict,
+        _check_gate_gradients, _check_gamma_gradients,
+        _r2_from_scalars, _to_float,
+    )
 
     device = torch.device("cuda" if p.USE_GPU and torch.cuda.is_available() else "cpu")
     model.to(device)
 
-    # torch.compile fuses elementwise ops (gate interpolation, LayerScale,
-    # residuals) into optimised kernels.  Falls back gracefully on older
-    # PyTorch builds via the try/except.
     try:
         model = torch.compile(model)
         print("  torch.compile: enabled")
     except Exception as e:
         print(f"  torch.compile: skipped ({e})")
 
-    optimizer = _build_optimizer(model)
+    optimizer = _build_optimizer(model)   # Option 1: gate_logit in own group lr=1e-2
     criterion = nn.MSELoss()
-    stopper   = EarlyStopping(patience=10)
+    stopper   = EarlyStopping(patience=10, path=f'best_model_fold_{fold}.pt')
+
+    # Option 3: freeze gates during warmup
+    _set_gate_grad(model, False)
+    print(f"  Gate warmup: gate_logit FROZEN for first {GATE_WARMUP_EPOCHS} epochs")
 
     fold_history = {'train_mse': [], 'val_mse': [], 'train_r2': [], 'val_r2': []}
-
     _grad_check_done = False
 
     for epoch in range(1, epochs + 1):
         print(f"----- Epoch {epoch} -----")
 
-        # --- TRAINING PHASE ---
+        # Option 3: unfreeze gates after warmup
+        if epoch == GATE_WARMUP_EPOCHS + 1:
+            _set_gate_grad(model, True)
+            print(f"  Gate warmup complete: gate_logit UNFROZEN at epoch {epoch}")
+
+        # ── TRAINING ──────────────────────────────────────────────────────
         model.train()
-        # Incremental R² accumulators — avoids storing all predictions/targets
-        # in memory (~460 MB of CPU tensors per epoch for the 504-sample
-        # training set at 464×464 float32).
-        # We keep flattened 1-D CPU copies (much cheaper than 4-D tensors)
-        # only until the end of the epoch, then immediately discard them.
         train_loss  = 0.0
         train_n     = 0
         train_sum_y = 0.0
@@ -205,8 +250,16 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
             x, y = inputs.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = model(x)
-            loss    = criterion(outputs, y)
-            loss.backward()
+
+            mse_loss = criterion(outputs, y)
+
+            # Option 2: gate entropy regulariser (active the whole time,
+            # but during warmup gate_logit has no grad so it has no effect
+            # on gate_logit — it only wastes a tiny forward compute).
+            gate_reg   = _gate_entropy_loss_fn(model) * GATE_ENTROPY_WEIGHT
+            total_loss = mse_loss + gate_reg
+
+            total_loss.backward()
 
             if not _grad_check_done:
                 _check_gamma_gradients(model)
@@ -216,7 +269,8 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
 
-            train_loss  += loss.item()
+            # Track MSE only (not the reg term) so metrics stay comparable
+            train_loss  += mse_loss.item()
             y_cpu        = y.detach().cpu().reshape(-1)
             out_cpu      = outputs.detach().cpu().reshape(-1)
             y_batches.append(y_cpu)
@@ -224,7 +278,6 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
             train_sum_y += y_cpu.sum().item()
             train_n     += y_cpu.numel()
 
-        # Single-pass R² over already-CPU 1-D tensors
         y_all   = torch.cat(y_batches)
         p_all   = torch.cat(pred_batches)
         y_mean  = train_sum_y / train_n
@@ -233,7 +286,7 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
         epoch_training_r2_score = _r2_from_scalars(train_ss_res, train_ss_tot)
         del y_batches, pred_batches, y_all, p_all
 
-        # --- VALIDATION PHASE ---
+        # ── VALIDATION ────────────────────────────────────────────────────
         model.eval()
         val_loss  = 0.0
         val_n     = 0
@@ -270,9 +323,8 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
         print(f"Epoch {epoch}: Train R^2: {epoch_training_r2_score * 100:.4f}% | "
               f"Val R^2: {epoch_validation_r2_score * 100:.4f}%")
 
-        # ── Log gate values and gamma values periodically ─────────────────
-        if epoch % 10 == 0 or epoch == 1:
-            # Gate values (g = sigmoid(lambda))
+        # ── Gate and gamma monitoring ──────────────────────────────────────
+        if epoch % 10 == 0 or epoch == 1 or epoch == GATE_WARMUP_EPOCHS + 1:
             gate_vals = {
                 name: torch.sigmoid(param).detach().cpu().mean().item()
                 for name, param in model.named_parameters()
@@ -282,11 +334,11 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
                 mean_g = sum(gate_vals.values()) / len(gate_vals)
                 min_g  = min(gate_vals.values())
                 max_g  = max(gate_vals.values())
+                frozen = epoch <= GATE_WARMUP_EPOCHS
                 print(f"  Gate g=sigmoid(λ) — mean: {mean_g:.4f}  "
                       f"min: {min_g:.4f}  max: {max_g:.4f}  "
-                      f"(0=content, 1=positional)")
+                      f"({'FROZEN' if frozen else 'trainable'})")
 
-            # LayerScale gammas
             gamma_vals = {
                 name: param.detach().cpu().mean().item()
                 for name, param in model.named_parameters()
@@ -308,26 +360,11 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
 
         if stopper(avg_val, model):
             print("Early stopping triggered. Loading best model weights...")
-            # FIX: load into the unwrapped model so the bare keys in the
-            # checkpoint match the uncompiled module's parameter names.
             getattr(model, '_orig_mod', model).load_state_dict(
                 torch.load(stopper.path)
             )
             break
 
-    # Save a single checkpoint containing both the model weights and the
-    # full training history.  scratch.py reads this one file for everything —
-    # no separate .pkl needed.
-    #
-    # Checkpoint schema
-    # -----------------
-    # {
-    #   "model_state_dict" : bare state_dict (no _orig_mod. prefix),
-    #   "train_mse"        : list[float] — per-epoch training MSE,
-    #   "val_mse"          : list[float] — per-epoch validation MSE,
-    #   "train_r2"         : list[float] — per-epoch training R²,
-    #   "val_r2"           : list[float] — per-epoch validation R²,
-    # }
     model_path = f"model_fold_{fold}.pth"
     torch.save(
         {

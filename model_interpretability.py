@@ -746,11 +746,17 @@ class ModelInterpreter:
         baseline_pred_np = x_np
         baseline_err_np  = np.abs(baseline_pred_np - y_np)
 
-        titles = ["Input (t)", "Prediction (t+1)", "Ground Truth (t+1)", "Absolute Error"]
-        arrays = [x_np, y_pred_np, y_np, err_np]
-        cmaps  = ["RdYlBu_r", "RdYlBu_r", "RdYlBu_r", "hot"]
+        titles = [
+            "Input (t)",
+            "Prediction (t+1)",
+            "Ground Truth (t+1)",
+            "Absolute Error (model)",
+            "Absolute Error (baseline)",
+        ]
+        arrays = [x_np, y_pred_np, y_np, err_np, baseline_err_np]
+        cmaps  = ["RdYlBu_r", "RdYlBu_r", "RdYlBu_r", "hot", "hot"]
 
-        fig, axes = plt.subplots(1, 4, figsize=(24, 6))
+        fig, axes = plt.subplots(1, 5, figsize=(30, 6))
 
         for ax, title, arr, cmap in zip(axes, titles, arrays, cmaps):
             im = ax.imshow(arr, cmap=cmap, interpolation="nearest")
@@ -793,8 +799,18 @@ class ModelInterpreter:
 
         print("\n── Naive baseline check (sample-level) ─────────────────────────")
         print("  Baseline: y_{t+1} = x_t (copy-last-step)")
-        print(f"  Baseline MSE : {mse_baseline:.6f}")
-        print(f"  Model MSE    : {mse_model:.6f}")
+        # Extra diagnostics for debugging "baseline MSE = 0" reports.
+        # If x_t == y_{t+1} elementwise, mse_baseline will be exactly 0.
+        # Otherwise, if mse_baseline is tiny, fixed-point formatting may show 0.000000.
+        diff_xy = baseline_pred_np - y_np
+        max_abs = float(np.max(np.abs(diff_xy)))
+        mean_abs = float(np.mean(np.abs(diff_xy)))
+        frac_eq = float(np.mean(baseline_pred_np == y_np))
+        print(f"  Baseline MSE : {mse_baseline:.6e}")
+        print(f"  Model MSE    : {mse_model:.6e}")
+        print(f"  Debug: max|x_t - y_t+1| = {max_abs:.6e}")
+        print(f"  Debug: mean|x_t - y_t+1| = {mean_abs:.6e}")
+        print(f"  Debug: fraction of exactly-equal entries = {frac_eq:.6f}")
         if mse_baseline > 0.0:
             print(f"  Relative improvement vs baseline: {rel_improve * 100:.2f}%")
         if mse_model < mse_baseline:
@@ -806,8 +822,8 @@ class ModelInterpreter:
         gics_note = " | GICS-reordered" if sector_boundaries is not None else ""
         fig.suptitle(
             "Sample Prediction  |  "
-            f"MSE_model = {mse_model:.6f}  |  "
-            f"MSE_baseline (t+1=t) = {mse_baseline:.6f}"
+            f"MSE_model = {mse_model:.3e}  |  "
+            f"MSE_baseline (t+1=t) = {mse_baseline:.3e}"
             f"{gics_note}",
             fontsize=13, fontweight="bold",
         )

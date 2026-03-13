@@ -235,6 +235,27 @@ def _build_sample(
     """
     T   = distance_matrix_gics.shape[0]
     idx = max(0, min(sample_idx, T - 2))
+
+    # Guard against degenerate "baseline MSE = 0" samples.
+    # Some datasets can have identical consecutive time steps (e.g. forward-fill,
+    # padded final day, market holiday handling). When x_t == y_{t+1} exactly,
+    # the naive baseline ŷ_{t+1}=x_t is perfect and not a meaningful sanity check.
+    #
+    # For interpretability plots we prefer a sample where x_t != y_{t+1}, so we
+    # walk backwards until we find a non-identical consecutive pair.
+    max_backtrack = 50
+    backtracked = 0
+    while idx > 0 and backtracked < max_backtrack:
+        if not np.array_equal(distance_matrix_gics[idx], distance_matrix_gics[idx + 1]):
+            break
+        idx -= 1
+        backtracked += 1
+    if backtracked > 0:
+        print(
+            f"  NOTE: sample_idx had x_t == y_t+1 exactly; backtracked "
+            f"{backtracked} step(s) to idx={idx} for a non-degenerate sample."
+        )
+
     X   = distance_matrix_gics[idx    ][np.newaxis, np.newaxis, :]
     y   = distance_matrix_gics[idx + 1][np.newaxis, np.newaxis, :]
     return torch.from_numpy(X).float(), torch.from_numpy(y).float()

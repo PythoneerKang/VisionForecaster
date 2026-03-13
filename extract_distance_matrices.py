@@ -295,13 +295,50 @@ def get_gics_sector_boundaries(sector_labels: list[str]) -> list[tuple[str, int,
 
 
 def build_patch_sector_ids(
-    sector_labels: list[str],
+    sector_labels: list,
     patch_size: int = 16,
     img_size: int = None,
 ) -> torch.Tensor:
     """
-    Build a (N,) integer tensor mapping each image patch to its dominant
-    GICS sector index.  Required by SectorGPSA in transformer.py.
+    Build a (N,) integer tensor mapping each image patch to its
+    (row_sector, col_sector) group ID.  Required by SectorGPSA in
+    transformer.py.
+
+    Each patch at grid position (r, c) covers:
+      - row stocks  : sector_labels[r*patch_size : (r+1)*patch_size]
+      - column stocks: sector_labels[c*patch_size : (c+1)*patch_size]
+
+    Two patches share a positional group iff their dominant row-sector AND
+    their dominant column-sector both match.  The pair is stored as a
+    frozenset so patch(r,c) and patch(c,r) always land in the same group,
+    preserving the symmetry of the distance matrix.
+
+    Changes from the old implementation
+    ------------------------------------
+    Old: patch_id = majority_sector(row_stocks)          [column ignored]
+    New: patch_id = frozenset({majority_sector(row_stocks),
+                               majority_sector(col_stocks)})
+
+    The integer IDs produced by this function are NOT the same as GICS
+    sector indices (0-10).  They are dense IDs in [0, n_groups), where
+    n_groups ≤ 11 + C(11,2) = 66.  _build_sector_positional_attn() in
+    transformer.py accepts arbitrary integer group IDs — no change needed
+    there.
+
+    Parameters
+    ----------
+    sector_labels : list[str]
+        Per-stock GICS sector name, in the GICS-reordered order.
+        Length must equal img_size.
+    patch_size    : int
+        Patch side length in stocks (default 16).
+    img_size      : int | None
+        Total number of stocks (= len(sector_labels)).  Inferred if None.
+
+    Returns
+    -------
+    torch.Tensor  shape (N,), dtype=torch.long
+        N = ceil(img_size / patch_size)^2  (padded grid).
     """
     if img_size is None:
         img_size = len(sector_labels)
@@ -314,20 +351,39 @@ def build_patch_sector_ids(
     grid        = padded_size // patch_size
     N           = grid * grid
 
-    sector_to_idx = {s: i for i, s in enumerate(GICS_SECTOR_ORDER)}
+    # Map sector name → integer index (arbitrary but consistent)
+    unique_sectors = sorted(set(sector_labels))
+    sector_to_idx  = {s: i for i, s in enumerate(unique_sectors)}
+
+    # Pad stock list with the last stock's sector (same as before)
     stock_sector_idx = [sector_to_idx[s] for s in sector_labels]
-    last_sector_idx = stock_sector_idx[-1]
-    padded_stock_sector = stock_sector_idx + [last_sector_idx] * (padded_size - img_size)
+    last_idx         = stock_sector_idx[-1]
+    padded_idx       = stock_sector_idx + [last_idx] * (padded_size - img_size)
 
-    patch_row_sector = []
-    for r in range(grid):
-        row_stocks = padded_stock_sector[r * patch_size: (r + 1) * patch_size]
-        majority_sector = Counter(row_stocks).most_common(1)[0][0]
-        patch_row_sector.append(majority_sector)
+    # Dominant sector per row/column band (majority vote, unchanged from old code)
+    patch_band_sector = []
+    for i in range(grid):
+        band    = padded_idx[i * patch_size: (i + 1) * patch_size]
+        majority = Counter(band).most_common(1)[0][0]
+        patch_band_sector.append(majority)
 
-    sector_ids = []
+    # Assign each patch a group ID based on frozenset({row_sec, col_sec})
+    # frozenset ensures patch(r,c) and patch(c,r) share the same group.
+    pair_to_id: dict = {}
+    patch_group_ids: list[int] = []
+
     for r in range(grid):
         for c in range(grid):
-            sector_ids.append(patch_row_sector[r])
+            pair = frozenset({patch_band_sector[r], patch_band_sector[c]})
+            if pair not in pair_to_id:
+                pair_to_id[pair] = len(pair_to_id)
+            patch_group_ids.append(pair_to_id[pair])
 
-    return torch.tensor(sector_ids, dtype=torch.long)
+    n_groups = len(pair_to_id)
+    n_same   = sum(1 for fs in pair_to_id if len(fs) == 1)
+    n_cross  = n_groups - n_same
+    print(f"  build_patch_sector_ids: {N} patches → {n_groups} groups "
+          f"({n_same} same-sector, {n_cross} cross-sector pairs)")
+
+    return torch.tensor(patch_group_ids, dtype=torch.long)
+
