@@ -96,8 +96,15 @@ if __name__ == "__main__":
 
     tscv = TimeSeriesSplit(n_splits=9, max_train_size=504, test_size=126)
     *_, (_, last_val_idx) = tscv.split(X_t)
-    sample_x = X_t[last_val_idx[:1]]   # (1, 1, 457, 457)
-    sample_y = y_t[last_val_idx[:1]]
+
+    # Full validation fold — used for val-set MSE comparison in the error map,
+    # matching the val_mse numbers logged during training exactly.
+    X_val   = X_t[last_val_idx]          # (N_val, 1, 457, 457)
+    y_val   = y_t[last_val_idx]
+
+    # Single display sample: last day of the validation fold (never seen in training)
+    sample_x = X_val[-1:]                # (1, 1, 457, 457)
+    sample_y = y_val[-1:]
 
     # 5d. Generate all interpretation plots
     interp.plot_attention_maps(sample_x, layer=0)
@@ -116,9 +123,13 @@ if __name__ == "__main__":
     interp.plot_mean_attention_distance(sample_x)
     interp.plot_layerscale_gammas()
     interp.plot_attention_weights(sample_x)
+    # X_val / y_val passed so MSE is computed over the full validation fold,
+    # giving an apples-to-apples comparison with the baseline and train logs.
     interp.plot_prediction_error_map(
         sample_x,
         sample_y,
         tickers=tickers_gics,
         sector_boundaries=sector_boundaries,
+        X_val=X_val,
+        y_val=y_val,
     )

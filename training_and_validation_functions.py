@@ -5,6 +5,7 @@ from sklearn.model_selection import TimeSeriesSplit
 import parameters as p
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.utils.data import DataLoader, TensorDataset
 
 from transformer import SmallDataDecoderViT
@@ -13,8 +14,80 @@ from transformer import SmallDataDecoderViT
 # Constants
 # ─────────────────────────────────────────────────────────────────────────────
 
-GATE_WARMUP_EPOCHS  = 20
-GATE_ENTROPY_WEIGHT = 1e-3
+GATE_WARMUP_EPOCHS       = 20
+GATE_ENTROPY_WEIGHT      = 1e-3
+BASELINE_PENALTY_WEIGHT  = 1.0   # λ in BaselineRegularisedMSE (see below)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Baseline-regularised MSE loss
+# ─────────────────────────────────────────────────────────────────────────────
+
+class BaselineRegularisedMSE(nn.Module):
+    """
+    MSE loss with an additive penalty that fires whenever the model performs
+    worse than the naive persistence (copy-last-step) baseline.
+
+    Formula
+    -------
+        mse_model    = mean((ŷ - y)²)
+        mse_baseline = mean((x - y)²)   ← constant w.r.t. model parameters
+        excess       = ReLU(mse_model - mse_baseline)
+        loss         = mse_model + λ · excess
+
+    Behaviour
+    ---------
+        model beats baseline  →  excess = 0, loss = mse_model   (no penalty)
+        model equals baseline →  excess = 0, loss = mse_model
+        model worse           →  excess > 0, loss = (1+λ)·mse_model − λ·mse_baseline
+                                 Gradient is (1+λ) times the standard MSE gradient,
+                                 applying proportionally stronger pressure to recover.
+
+    Why not divide by mse_baseline (ratio loss)?
+    --------------------------------------------
+    On very quiet trading days mse_baseline ≈ 0, which would cause the ratio
+    to explode.  The additive formulation avoids any division and is numerically
+    stable in all market regimes.
+
+    Parameters
+    ----------
+    baseline_weight : float
+        λ ≥ 0.  Default 1.0 (doubles the gradient pressure when lagging).
+        Set to 0 to recover plain MSE.
+
+    Usage
+    -----
+        criterion = BaselineRegularisedMSE(baseline_weight=1.0)
+        loss = criterion(outputs, y, x)   # x is the model input (= baseline pred)
+    """
+
+    def __init__(self, baseline_weight: float = 1.0):
+        super().__init__()
+        if baseline_weight < 0:
+            raise ValueError(f"baseline_weight must be ≥ 0, got {baseline_weight}")
+        self.baseline_weight = baseline_weight
+
+    def forward(
+        self,
+        y_pred: torch.Tensor,   # (B, C, H, W)  model prediction ŷ
+        y_true: torch.Tensor,   # (B, C, H, W)  ground truth y
+        x:      torch.Tensor,   # (B, C, H, W)  model input x (= persistence forecast)
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """
+        Returns
+        -------
+        loss     : scalar tensor — total loss to backpropagate.
+        mse_raw  : scalar tensor — plain MSE (no penalty), for logging.
+                   Always use mse_raw for val_mse tracking so metrics stay
+                   comparable across experiments and against the baseline.
+        """
+        mse_model    = F.mse_loss(y_pred, y_true)
+        mse_baseline = F.mse_loss(x, y_true).detach()   # detach: constant, no grad
+
+        excess = torch.relu(mse_model - mse_baseline)
+        loss   = mse_model + self.baseline_weight * excess
+
+        return loss, mse_model
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -247,7 +320,7 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
         print(f"  torch.compile: skipped ({e})")
 
     optimizer = _build_optimizer(model)
-    criterion = nn.MSELoss()
+    criterion = BaselineRegularisedMSE(baseline_weight=BASELINE_PENALTY_WEIGHT)
     stopper   = EarlyStopping(patience=10, path=f'best_model_fold_{fold}.pt')
 
     # Freeze gates during warmup so the content stream has time to learn
@@ -280,14 +353,18 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
             optimizer.zero_grad()
             outputs = model(x)
 
-            mse_loss = criterion(outputs, y)
+            # Baseline-regularised MSE: applies extra gradient pressure whenever
+            # the model is outperformed by the persistence forecast (ŷ = x).
+            # mse_raw is the plain MSE used for metrics; it stays comparable
+            # to val_mse and to the baseline regardless of λ.
+            total_mse, mse_raw = criterion(outputs, y, x)
 
             # Gate entropy regulariser is only meaningful once gates are
             # unfrozen; during warmup gate_logit.requires_grad is False so
             # the regulariser has no effect on gate_logit (its value is still
             # computed but the backward graph stops at gate_logit).
             gate_reg   = _gate_entropy_loss_fn(model) * GATE_ENTROPY_WEIGHT
-            total_loss = mse_loss + gate_reg
+            total_loss = total_mse + gate_reg
 
             total_loss.backward()
 
@@ -299,8 +376,9 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
 
-            # Track MSE only (not the reg term) so metrics stay comparable
-            train_loss  += mse_loss.item()
+            # Track raw MSE only (not the baseline penalty or gate reg term)
+            # so train_mse stays on the same scale as val_mse and the baseline.
+            train_loss  += mse_raw.item()
             y_cpu        = y.detach().cpu().reshape(-1)
             out_cpu      = outputs.detach().cpu().reshape(-1)
             y_batches.append(y_cpu)
@@ -329,7 +407,9 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
             for batch_idx, (x, y) in enumerate(val_loader):
                 x, y     = x.to(device), y.to(device)
                 outputs   = model(x)
-                val_loss += criterion(outputs, y).item()
+                # Validation always uses plain MSE — val_mse must stay on the
+                # same scale as the baseline MSE for the comparison to be valid.
+                val_loss += F.mse_loss(outputs, y).item()
                 y_cpu    = y.detach().cpu().reshape(-1)
                 out_cpu  = outputs.detach().cpu().reshape(-1)
                 vy_batches.append(y_cpu)

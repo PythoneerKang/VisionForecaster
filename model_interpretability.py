@@ -30,9 +30,13 @@ Public API
             Content attention weight distributions (pre-gate) per block,
             useful for checking entropy / sharpness of the content stream.
 
-        .plot_prediction_error_map(x, y_true, tickers, sector_boundaries)
+        .plot_prediction_error_map(x, y_true, tickers, sector_boundaries,
+                                   X_val, y_val)
             Input | Prediction | Ground Truth | Absolute Error heatmaps
             with optional GICS sector annotations.
+            When X_val / y_val are supplied the baseline MSE is computed
+            over the full validation set (matching training val_mse),
+            rather than on the single displayed sample.
 
     plot_fold_summary(all_fold_history, save_path)
         Multi-fold CV training summary (MSE + R² curves and bar charts).
@@ -55,16 +59,20 @@ Usage
     model.load_state_dict(torch.load("model_fold_9.pth", map_location="cpu"))
 
     interp = ModelInterpreter(model)
-    sample = ...   # (1, 1, 457, 457)
+    sample_x = ...   # (1, 1, 457, 457) — from the validation set
+    sample_y = ...   # (1, 1, 457, 457)
+    X_val    = ...   # (N_val, 1, 457, 457) — full validation split
+    y_val    = ...   # (N_val, 1, 457, 457)
 
-    interp.plot_attention_maps(sample, layer=0)
+    interp.plot_attention_maps(sample_x, layer=0)
     interp.plot_gate_values()
-    interp.plot_mean_attention_distance(sample)
+    interp.plot_mean_attention_distance(sample_x)
     interp.plot_layerscale_gammas()
-    interp.plot_attention_weights(sample)
+    interp.plot_attention_weights(sample_x)
     interp.plot_prediction_error_map(sample_x, sample_y,
                                      tickers=tickers_gics,
-                                     sector_boundaries=sector_boundaries)
+                                     sector_boundaries=sector_boundaries,
+                                     X_val=X_val, y_val=y_val)
     plot_fold_summary(all_fold_history)
 """
 
@@ -715,12 +723,44 @@ class ModelInterpreter:
         filename: str = "prediction_error_map.png",
         tickers: Optional[List[str]] = None,
         sector_boundaries: Optional[List[Tuple[str, int, int]]] = None,
+        X_val: Optional[torch.Tensor] = None,
+        y_val: Optional[torch.Tensor] = None,
     ):
         """
-        For one sample, show: input | prediction | ground truth | error map.
+        For one sample, show:
+          1. Input x_t
+          2. Prediction ŷ_{t+1}
+          3. Ground truth y_{t+1}
+          4. Absolute error |ŷ − y|  (model)
+          5. Improvement map  |x_t − y| − |ŷ − y|
+               green (> 0) : model is more accurate than persistence at this cell
+               red   (< 0) : model is less accurate than persistence
+               white (= 0) : tied
+             Symmetric RdYlGn colormap centred at 0.
 
         When tickers and sector_boundaries are supplied, GICS sector divider
         lines and sector name labels are drawn on every panel.
+
+        Baseline MSE
+        ------------
+        The naive "persistence" baseline predicts ŷ_{t+1} = x_t (copy last step).
+
+        When X_val / y_val are supplied (the full validation split), both the
+        model MSE and the baseline MSE are computed over all validation samples,
+        matching the val_mse metric reported during training.  This gives a
+        meaningful apples-to-apples comparison.
+
+        When X_val / y_val are omitted the MSEs are computed on the single
+        displayed sample only — useful as a quick spot check but high-variance.
+
+        Notes on the MSE denominator
+        ----------------------------
+        The distance matrix is symmetric (D[i,j] == D[j,i]) and the diagonal
+        is constant across time steps (D[i,i] = (0 - mean)/std always).
+        Both facts affect MSE equally for the model and the baseline, so the
+        relative comparison (improvement %) is unbiased.  The effective number
+        of independent observations is 457×456/2 = 104,196 (upper triangle,
+        excluding diagonal), not 457² = 208,849.
 
         Parameters
         ----------
@@ -730,6 +770,10 @@ class ModelInterpreter:
         tickers           : list[str] of 457 ticker labels in GICS order.
         sector_boundaries : list of (sector_name, start_idx, end_idx) tuples.
                             end_idx is exclusive.
+        X_val             : (N_val, 1, 457, 457) full validation inputs.
+                            When supplied, MSE stats use the full val set.
+        y_val             : (N_val, 1, 457, 457) full validation targets.
+                            Must be supplied together with X_val.
         """
         self.model.eval()
         with torch.no_grad():
@@ -740,27 +784,123 @@ class ModelInterpreter:
         y_pred_np = y_pred[0, 0].numpy()
         err_np    = np.abs(y_pred_np - y_np)
 
-        # Naive time-series baseline: predict x_t as y_{t+1}.
-        # This is the "do nothing" forecaster that simply copies the last
-        # observed distance matrix forward one step.
+        # Naive persistence baseline: predict y_{t+1} = x_t
         baseline_pred_np = x_np
         baseline_err_np  = np.abs(baseline_pred_np - y_np)
 
+        # ── Compute MSE over the correct scope ────────────────────────────
+        use_full_val = (X_val is not None) and (y_val is not None)
+
+        if use_full_val:
+            # Full validation set — matches training val_mse exactly
+            mse_scope_label = f"full val set (N={len(X_val)} samples)"
+            with torch.no_grad():
+                y_pred_val = self.model(X_val).cpu()
+            y_val_np       = y_val[:, 0].numpy()           # (N, 457, 457)
+            y_pred_val_np  = y_pred_val[:, 0].numpy()      # (N, 457, 457)
+            X_val_np       = X_val[:, 0].numpy()           # (N, 457, 457)
+
+            mse_model    = float(((y_pred_val_np - y_val_np) ** 2).mean())
+            mse_baseline = float(((X_val_np      - y_val_np) ** 2).mean())
+        else:
+            # Single sample — quick spot check only
+            mse_scope_label = "single displayed sample"
+            mse_model    = float(((y_pred_np - y_np) ** 2).mean())
+            mse_baseline = float(((baseline_pred_np - y_np) ** 2).mean())
+
+        rel_improve = (
+            1.0 - mse_model / mse_baseline if mse_baseline > 0.0 else 0.0
+        )
+
+        # ── Console diagnostics ───────────────────────────────────────────
+        print(f"\n── Naive baseline check ({mse_scope_label}) ─────────────────")
+        print("  Baseline: ŷ_{t+1} = x_t  (persistence / copy-last-step)")
+        print(f"  MSE scope : {mse_scope_label}")
+
+        if not use_full_val:
+            # Extra diagnostics only meaningful for the single-sample case
+            diff_xy  = baseline_pred_np - y_np
+            max_abs  = float(np.max(np.abs(diff_xy)))
+            mean_abs = float(np.mean(np.abs(diff_xy)))
+            frac_eq  = float(np.mean(baseline_pred_np == y_np))
+            print(f"  Debug: max|x_t - y_t+1|          = {max_abs:.6e}")
+            print(f"  Debug: mean|x_t - y_t+1|         = {mean_abs:.6e}")
+            print(f"  Debug: fraction exactly-equal entries = {frac_eq:.6f}")
+            print("  NOTE: MSEs are computed on ONE sample — high variance.")
+            print("        Pass X_val / y_val for a val-set comparison that")
+            print("        matches the training val_mse metric.")
+        else:
+            print("  NOTE: MSEs are averaged over the full validation set,")
+            print("        matching the val_mse reported during training.")
+
+        print(f"  Baseline MSE : {mse_baseline:.6e}")
+        print(f"  Model MSE    : {mse_model:.6e}")
+        print(f"  NOTE: D is symmetric and the diagonal is constant across")
+        print(f"        time steps, so effective independent pairs = 457×456/2")
+        print(f"        = 104,196 (not 457² = 208,849 as the mean suggests).")
+        print(f"        The model vs baseline comparison remains unbiased.")
+
+        if mse_baseline > 0.0:
+            print(f"  Relative improvement vs baseline : {rel_improve * 100:.2f}%")
+            if mse_model < mse_baseline:
+                print("  ✓ Model beats the naive persistence baseline.")
+            else:
+                print("  ✗ WARNING: model does NOT beat the naive baseline — investigate.")
+        else:
+            print("  WARNING: baseline MSE = 0 — x_t == y_{t+1} exactly for "
+                  "this sample.\n"
+                  "           This is a degenerate sample (e.g. holiday / "
+                  "forward-fill).\n"
+                  "           Use _build_sample() backtracking or pick a "
+                  "different sample index.")
+        print()
+
+        # ── Build plot title ──────────────────────────────────────────────
+        scope_short  = "val-set" if use_full_val else "sample"
+        gics_note    = " | GICS-reordered" if sector_boundaries is not None else ""
+        rel_pct      = f"{rel_improve * 100:+.2f}%" if mse_baseline > 0.0 else "N/A"
+        title_str    = (
+            f"Sample Prediction  |  "
+            f"MSE_model ({scope_short}) = {mse_model:.3e}  |  "
+            f"MSE_baseline ({scope_short}) = {mse_baseline:.3e}  |  "
+            f"Improvement = {rel_pct}"
+            f"{gics_note}"
+        )
+
+        # ── Panel 5: signed improvement map ──────────────────────────────
+        # improvement[i,j] = baseline_abs_err[i,j] - model_abs_err[i,j]
+        #   > 0 (green) : model is more accurate than persistence at this cell
+        #   < 0 (red)   : model is less accurate than persistence at this cell
+        #   = 0 (white) : tied
+        improvement_np = baseline_err_np - err_np   # |x-y| - |ŷ-y|
+
+        # Symmetric colour scale: centre at 0, equal extent on both sides
+        max_abs_imp = float(np.abs(improvement_np).max()) or 1.0
+
+        # ── Panels ────────────────────────────────────────────────────────
         titles = [
-            "Input (t)",
-            "Prediction (t+1)",
-            "Ground Truth (t+1)",
-            "Absolute Error (model)",
-            "Absolute Error (baseline)",
+            "Input  x_t",
+            "Prediction  ŷ_{t+1}",
+            "Ground Truth  y_{t+1}",
+            "Abs Error  |ŷ − y|  (model)",
+            "Improvement  |x_t − y| − |ŷ − y|\n"
+            "▲ green = model better  ▼ red = baseline better",
         ]
-        arrays = [x_np, y_pred_np, y_np, err_np, baseline_err_np]
-        cmaps  = ["RdYlBu_r", "RdYlBu_r", "RdYlBu_r", "hot", "hot"]
+        arrays = [x_np, y_pred_np, y_np, err_np, improvement_np]
+        cmaps  = ["RdYlBu_r", "RdYlBu_r", "RdYlBu_r", "hot", "RdYlGn"]
+        # vmin/vmax: None lets matplotlib auto-scale the first 4 panels;
+        # the improvement panel uses a symmetric scale centred at 0.
+        vmins  = [None, None, None, None, -max_abs_imp]
+        vmaxs  = [None, None, None, None,  max_abs_imp]
 
         fig, axes = plt.subplots(1, 5, figsize=(30, 6))
 
-        for ax, title, arr, cmap in zip(axes, titles, arrays, cmaps):
-            im = ax.imshow(arr, cmap=cmap, interpolation="nearest")
-            ax.set_title(title, fontweight="bold", fontsize=11)
+        for ax, title, arr, cmap, vmin, vmax in zip(
+            axes, titles, arrays, cmaps, vmins, vmaxs
+        ):
+            im = ax.imshow(arr, cmap=cmap, interpolation="nearest",
+                           vmin=vmin, vmax=vmax)
+            ax.set_title(title, fontweight="bold", fontsize=10)
             fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
 
             if sector_boundaries is not None:
@@ -790,43 +930,8 @@ class ModelInterpreter:
                 ax.tick_params(axis="x", length=0, pad=2)
             else:
                 ax.axis("off")
-        # Scalar MSEs for model and naive baseline on this sample
-        mse_model     = float(((y_pred_np - y_np) ** 2).mean())
-        mse_baseline  = float(((baseline_pred_np - y_np) ** 2).mean())
-        rel_improve   = (
-            1.0 - mse_model / mse_baseline if mse_baseline > 0.0 else 0.0
-        )
 
-        print("\n── Naive baseline check (sample-level) ─────────────────────────")
-        print("  Baseline: y_{t+1} = x_t (copy-last-step)")
-        # Extra diagnostics for debugging "baseline MSE = 0" reports.
-        # If x_t == y_{t+1} elementwise, mse_baseline will be exactly 0.
-        # Otherwise, if mse_baseline is tiny, fixed-point formatting may show 0.000000.
-        diff_xy = baseline_pred_np - y_np
-        max_abs = float(np.max(np.abs(diff_xy)))
-        mean_abs = float(np.mean(np.abs(diff_xy)))
-        frac_eq = float(np.mean(baseline_pred_np == y_np))
-        print(f"  Baseline MSE : {mse_baseline:.6e}")
-        print(f"  Model MSE    : {mse_model:.6e}")
-        print(f"  Debug: max|x_t - y_t+1| = {max_abs:.6e}")
-        print(f"  Debug: mean|x_t - y_t+1| = {mean_abs:.6e}")
-        print(f"  Debug: fraction of exactly-equal entries = {frac_eq:.6f}")
-        if mse_baseline > 0.0:
-            print(f"  Relative improvement vs baseline: {rel_improve * 100:.2f}%")
-        if mse_model < mse_baseline:
-            print("  CHECK: model beats the naive baseline on this sample.\n")
-        else:
-            print("  WARNING: model does NOT beat the naive baseline on this "
-                  "sample — investigate.\n")
-
-        gics_note = " | GICS-reordered" if sector_boundaries is not None else ""
-        fig.suptitle(
-            "Sample Prediction  |  "
-            f"MSE_model = {mse_model:.3e}  |  "
-            f"MSE_baseline (t+1=t) = {mse_baseline:.3e}"
-            f"{gics_note}",
-            fontsize=13, fontweight="bold",
-        )
+        fig.suptitle(title_str, fontsize=12, fontweight="bold")
         plt.tight_layout()
         self._savefig(fig, filename)
 
@@ -881,14 +986,7 @@ def plot_fold_summary(
         ax_r2.set_xlabel("Epoch", fontsize=7)
         ax_r2.tick_params(labelsize=7)
 
-    # FIX: use a symmetric split for the bar chart row so both panels get
-    # equal column space regardless of whether n_folds is odd or even.
-    # Previously n_folds // 2 gave an asymmetric split for odd fold counts
-    # (e.g. 9 folds → MSE gets 4 cols, R² gets 5 cols).
     mid = n_folds // 2
-    # Give the left panel [0, mid) and the right panel [mid, n_folds).
-    # For odd n_folds the right panel is one column wider, which is acceptable
-    # and consistent.  Using slice(None) on a gridspec row works in all cases.
     ax_bar_mse = fig.add_subplot(gs[2, :mid])
     ax_bar_r2  = fig.add_subplot(gs[2, mid:])
 
