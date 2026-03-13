@@ -1,0 +1,1675 @@
+Using 19 CPU cores on this node.
+/home/s230047/Downloads/VisionForecaster
+Using virtualenv: /home/s230047/.cache/pypoetry/virtualenvs/transformer-D-LRPITk-py3.13
+Check for NAN values in distance matrices, (False -> no NAN, True otherwise.):  False
+Distance matrix shape (num_of_trading_days, num_of_stocks, num_of_stocks):  (1575, 457, 457)
+
+GICS reordering applied. Sector block sizes:
+  Communication Services          stocks [  0,  18)  n=18
+  Consumer Discretionary          stocks [ 18,  81)  n=63
+  Consumer Staples                stocks [ 81, 117)  n=36
+  Energy                          stocks [117, 141)  n=24
+  Financials                      stocks [141, 206)  n=65
+  Health Care                     stocks [206, 257)  n=51
+  Industrials                     stocks [257, 321)  n=64
+  Information Technology          stocks [321, 377)  n=56
+  Materials                       stocks [377, 401)  n=24
+  Real Estate                     stocks [401, 430)  n=29
+  Utilities                       stocks [430, 457)  n=27
+
+  build_patch_sector_ids: 841 patches → 66 groups (11 same-sector, 55 cross-sector pairs)
+Patch sector IDs built: shape=(841,), unique sectors=66
+
+========== Fold=1 ==========
+  torch.compile: enabled
+  Optimizer param groups:
+    decay    :  2,950,848 params  lr=1e-4  wd=1e-2
+    no-decay :     13,056 params  lr=1e-4  wd=0
+    gamma    :      2,304 params  lr=1e-3  wd=0   ← 10× boost
+    gate     :         18 params  lr=1e-2  wd=0   ← 100× boost
+  Gate warmup: gate_logit FROZEN for first 20 epochs
+----- Epoch 1 -----
+Training begins
+
+  ── LayerScale gamma gradient check (epoch 1, batch 1) ──
+    _orig_mod.blocks.0.ls1.gamma                        grad norm = 0.000179
+    _orig_mod.blocks.0.ls2.gamma                        grad norm = 0.000305
+    _orig_mod.blocks.1.ls1.gamma                        grad norm = 0.000099
+    _orig_mod.blocks.1.ls2.gamma                        grad norm = 0.000396
+    _orig_mod.blocks.2.ls1.gamma                        grad norm = 0.000154
+    _orig_mod.blocks.2.ls2.gamma                        grad norm = 0.000233
+    _orig_mod.blocks.3.ls1.gamma                        grad norm = 0.000107
+    _orig_mod.blocks.3.ls2.gamma                        grad norm = 0.000247
+    _orig_mod.blocks.4.ls1.gamma                        grad norm = 0.000100
+    _orig_mod.blocks.4.ls2.gamma                        grad norm = 0.000286
+    _orig_mod.blocks.5.ls1.gamma                        grad norm = 0.000114
+    _orig_mod.blocks.5.ls2.gamma                        grad norm = 0.000299
+  ── end gamma check ──
+
+
+  ── SectorGPSA gate_logit gradient check (epoch 1, batch 1) ──
+  (near-zero grads are expected at init; see docstring)
+    _orig_mod.blocks.0.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.1.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.2.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.3.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.4.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.5.attn.gate_logit                  grad = None  ← not connected!
+  ── end gate check ──
+
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.812801 | Val Loss 0.959939
+Epoch 1: Train R^2: -9.6441% | Val R^2: -1.5835%
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.021197  min: 0.014547  max: 0.027454
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.776714 | Val Loss 0.961385
+Epoch 2: Train R^2: -4.7761% | Val R^2: -1.7365%
+--------------------
+----- Epoch 3 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.727983 | Val Loss 1.044068
+Epoch 3: Train R^2: 1.7975% | Val R^2: -10.4863%
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.668674 | Val Loss 1.024574
+Epoch 4: Train R^2: 9.7982% | Val R^2: -8.4233%
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.640027 | Val Loss 1.009383
+Epoch 5: Train R^2: 13.6625% | Val R^2: -6.8158%
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.615209 | Val Loss 0.987644
+Epoch 6: Train R^2: 17.0103% | Val R^2: -4.5153%
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.592127 | Val Loss 0.966314
+Epoch 7: Train R^2: 20.1241% | Val R^2: -2.2581%
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.573321 | Val Loss 0.943041
+Epoch 8: Train R^2: 22.6609% | Val R^2: 0.2047%
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.554372 | Val Loss 0.925773
+Epoch 9: Train R^2: 25.2170% | Val R^2: 2.0320%
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.539214 | Val Loss 0.907091
+Epoch 10: Train R^2: 27.2618% | Val R^2: 4.0090%
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.068891  min: 0.047657  max: 0.088609
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.523104 | Val Loss 0.890958
+Epoch 11: Train R^2: 29.4350% | Val R^2: 5.7163%
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.508495 | Val Loss 0.874751
+Epoch 12: Train R^2: 31.4057% | Val R^2: 7.4314%
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.496425 | Val Loss 0.858474
+Epoch 13: Train R^2: 33.0339% | Val R^2: 9.1539%
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 0.483856 | Val Loss 0.841152
+Epoch 14: Train R^2: 34.7294% | Val R^2: 10.9869%
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 0.472884 | Val Loss 0.827158
+Epoch 15: Train R^2: 36.2096% | Val R^2: 12.4678%
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 0.462444 | Val Loss 0.812226
+Epoch 16: Train R^2: 37.6178% | Val R^2: 14.0480%
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 0.451295 | Val Loss 0.801426
+Epoch 17: Train R^2: 39.1219% | Val R^2: 15.1908%
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 0.441551 | Val Loss 0.782144
+Epoch 18: Train R^2: 40.4363% | Val R^2: 17.2313%
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 0.433228 | Val Loss 0.769630
+Epoch 19: Train R^2: 41.5590% | Val R^2: 18.5556%
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 0.422778 | Val Loss 0.759405
+Epoch 20: Train R^2: 42.9687% | Val R^2: 19.6376%
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.075812  min: 0.051577  max: 0.096666
+--------------------
+----- Epoch 21 -----
+  Gate warmup complete: gate_logit UNFROZEN at epoch 21
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.412096 | Val Loss 0.739071
+Epoch 21: Train R^2: 44.4096% | Val R^2: 21.7894%
+  Gate g=sigmoid(λ) — mean: 0.8499  min: 0.8499  max: 0.8499  (trainable)
+  LayerScale γ — mean: 0.076681  min: 0.051997  max: 0.097771
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.398774 | Val Loss 0.718616
+Epoch 22: Train R^2: 46.2067% | Val R^2: 23.9540%
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.383238 | Val Loss 0.706313
+Epoch 23: Train R^2: 48.3025% | Val R^2: 25.2559%
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.367814 | Val Loss 0.675239
+Epoch 24: Train R^2: 50.3831% | Val R^2: 28.5443%
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.356692 | Val Loss 0.757318
+Epoch 25: Train R^2: 51.8834% | Val R^2: 19.8584%
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.350400 | Val Loss 0.869714
+Epoch 26: Train R^2: 52.7323% | Val R^2: 7.9644%
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.375177 | Val Loss 0.864778
+Epoch 27: Train R^2: 49.3899% | Val R^2: 8.4867%
+--------------------
+----- Epoch 28 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 28: Train Loss 0.400165 | Val Loss 0.615209
+Epoch 28: Train R^2: 46.0190% | Val R^2: 34.8968%
+--------------------
+----- Epoch 29 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 29: Train Loss 0.375554 | Val Loss 0.584567
+Epoch 29: Train R^2: 49.3390% | Val R^2: 38.1395%
+--------------------
+----- Epoch 30 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 30: Train Loss 0.328545 | Val Loss 0.627362
+Epoch 30: Train R^2: 55.6804% | Val R^2: 33.6108%
+  Gate g=sigmoid(λ) — mean: 0.5273  min: 0.5273  max: 0.5273  (trainable)
+  LayerScale γ — mean: 0.080122  min: 0.052048  max: 0.105777
+--------------------
+----- Epoch 31 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 31: Train Loss 0.319161 | Val Loss 0.634755
+Epoch 31: Train R^2: 56.9463% | Val R^2: 32.8284%
+--------------------
+----- Epoch 32 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 32: Train Loss 0.310283 | Val Loss 0.735742
+Epoch 32: Train R^2: 58.1439% | Val R^2: 22.1417%
+--------------------
+----- Epoch 33 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 33: Train Loss 0.311268 | Val Loss 0.736521
+Epoch 33: Train R^2: 58.0109% | Val R^2: 22.0593%
+--------------------
+----- Epoch 34 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 34: Train Loss 0.330531 | Val Loss 0.652317
+Epoch 34: Train R^2: 55.4125% | Val R^2: 30.9699%
+--------------------
+----- Epoch 35 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 35: Train Loss 0.358786 | Val Loss 0.551512
+Epoch 35: Train R^2: 51.6010% | Val R^2: 41.6375%
+--------------------
+----- Epoch 36 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 36: Train Loss 0.316300 | Val Loss 0.482865
+Epoch 36: Train R^2: 57.3323% | Val R^2: 48.9018%
+--------------------
+----- Epoch 37 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 37: Train Loss 0.309243 | Val Loss 0.568492
+Epoch 37: Train R^2: 58.2841% | Val R^2: 39.8405%
+--------------------
+----- Epoch 38 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 38: Train Loss 0.303275 | Val Loss 0.580500
+Epoch 38: Train R^2: 59.0893% | Val R^2: 38.5698%
+--------------------
+----- Epoch 39 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 39: Train Loss 0.306686 | Val Loss 0.734507
+Epoch 39: Train R^2: 58.6291% | Val R^2: 22.2724%
+--------------------
+----- Epoch 40 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 40: Train Loss 0.312557 | Val Loss 0.764069
+Epoch 40: Train R^2: 57.8371% | Val R^2: 19.1441%
+  Gate g=sigmoid(λ) — mean: 0.5000  min: 0.5000  max: 0.5000  (trainable)
+  LayerScale γ — mean: 0.080521  min: 0.049120  max: 0.109123
+--------------------
+----- Epoch 41 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 41: Train Loss 0.350571 | Val Loss 0.566258
+Epoch 41: Train R^2: 52.7092% | Val R^2: 40.0770%
+--------------------
+----- Epoch 42 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 42: Train Loss 0.313200 | Val Loss 0.505408
+Epoch 42: Train R^2: 57.7504% | Val R^2: 46.5163%
+--------------------
+----- Epoch 43 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 43: Train Loss 0.285760 | Val Loss 0.528560
+Epoch 43: Train R^2: 61.4520% | Val R^2: 44.0662%
+--------------------
+----- Epoch 44 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 44: Train Loss 0.281854 | Val Loss 0.534503
+Epoch 44: Train R^2: 61.9788% | Val R^2: 43.4374%
+--------------------
+----- Epoch 45 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 45: Train Loss 0.278346 | Val Loss 0.544889
+Epoch 45: Train R^2: 62.4521% | Val R^2: 42.3383%
+--------------------
+----- Epoch 46 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 46: Train Loss 0.289754 | Val Loss 0.733104
+Epoch 46: Train R^2: 60.9131% | Val R^2: 22.4208%
+--------------------
+Early stopping triggered. Loading best model weights...
+  Checkpoint saved → model_fold_1.pth  (weights + history)
+========== Fold=2 ==========
+  torch.compile: enabled
+  Optimizer param groups:
+    decay    :  2,950,848 params  lr=1e-4  wd=1e-2
+    no-decay :     13,056 params  lr=1e-4  wd=0
+    gamma    :      2,304 params  lr=1e-3  wd=0   ← 10× boost
+    gate     :         18 params  lr=1e-2  wd=0   ← 100× boost
+  Gate warmup: gate_logit FROZEN for first 20 epochs
+----- Epoch 1 -----
+Training begins
+
+  ── LayerScale gamma gradient check (epoch 1, batch 1) ──
+    _orig_mod.blocks.0.ls1.gamma                        grad norm = 0.000081
+    _orig_mod.blocks.0.ls2.gamma                        grad norm = 0.000262
+    _orig_mod.blocks.1.ls1.gamma                        grad norm = 0.000075
+    _orig_mod.blocks.1.ls2.gamma                        grad norm = 0.000285
+    _orig_mod.blocks.2.ls1.gamma                        grad norm = 0.000093
+    _orig_mod.blocks.2.ls2.gamma                        grad norm = 0.000271
+    _orig_mod.blocks.3.ls1.gamma                        grad norm = 0.000103
+    _orig_mod.blocks.3.ls2.gamma                        grad norm = 0.000317
+    _orig_mod.blocks.4.ls1.gamma                        grad norm = 0.000083
+    _orig_mod.blocks.4.ls2.gamma                        grad norm = 0.000278
+    _orig_mod.blocks.5.ls1.gamma                        grad norm = 0.000098
+    _orig_mod.blocks.5.ls2.gamma                        grad norm = 0.000307
+  ── end gamma check ──
+
+
+  ── SectorGPSA gate_logit gradient check (epoch 1, batch 1) ──
+  (near-zero grads are expected at init; see docstring)
+    _orig_mod.blocks.0.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.1.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.2.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.3.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.4.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.5.attn.gate_logit                  grad = None  ← not connected!
+  ── end gate check ──
+
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.866545 | Val Loss 0.912516
+Epoch 1: Train R^2: -2.2275% | Val R^2: 2.8312%
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.022937  min: 0.017269  max: 0.029596
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.836254 | Val Loss 0.876291
+Epoch 2: Train R^2: 1.3461% | Val R^2: 6.6886%
+--------------------
+----- Epoch 3 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.796116 | Val Loss 0.843280
+Epoch 3: Train R^2: 6.0811% | Val R^2: 10.2037%
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.747859 | Val Loss 0.824571
+Epoch 4: Train R^2: 11.7742% | Val R^2: 12.1960%
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.708593 | Val Loss 0.801992
+Epoch 5: Train R^2: 16.4064% | Val R^2: 14.6003%
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.679014 | Val Loss 0.781048
+Epoch 6: Train R^2: 19.8959% | Val R^2: 16.8305%
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.653466 | Val Loss 0.758582
+Epoch 7: Train R^2: 22.9098% | Val R^2: 19.2228%
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.631182 | Val Loss 0.734577
+Epoch 8: Train R^2: 25.5387% | Val R^2: 21.7790%
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.612165 | Val Loss 0.710599
+Epoch 9: Train R^2: 27.7822% | Val R^2: 24.3322%
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.593029 | Val Loss 0.687939
+Epoch 10: Train R^2: 30.0397% | Val R^2: 26.7451%
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.078005  min: 0.056388  max: 0.096083
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.575522 | Val Loss 0.664980
+Epoch 11: Train R^2: 32.1049% | Val R^2: 29.1900%
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.558662 | Val Loss 0.645661
+Epoch 12: Train R^2: 34.0940% | Val R^2: 31.2471%
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.544190 | Val Loss 0.626049
+Epoch 13: Train R^2: 35.8012% | Val R^2: 33.3355%
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 0.529742 | Val Loss 0.611438
+Epoch 14: Train R^2: 37.5056% | Val R^2: 34.8914%
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 0.514219 | Val Loss 0.597845
+Epoch 15: Train R^2: 39.3369% | Val R^2: 36.3387%
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 0.497302 | Val Loss 0.582270
+Epoch 16: Train R^2: 41.3327% | Val R^2: 37.9973%
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 0.483642 | Val Loss 0.568105
+Epoch 17: Train R^2: 42.9441% | Val R^2: 39.5056%
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 0.468099 | Val Loss 0.556325
+Epoch 18: Train R^2: 44.7778% | Val R^2: 40.7601%
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 0.452949 | Val Loss 0.547070
+Epoch 19: Train R^2: 46.5651% | Val R^2: 41.7456%
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 0.435876 | Val Loss 0.533616
+Epoch 20: Train R^2: 48.5791% | Val R^2: 43.1782%
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.087824  min: 0.055833  max: 0.114098
+--------------------
+----- Epoch 21 -----
+  Gate warmup complete: gate_logit UNFROZEN at epoch 21
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.415338 | Val Loss 0.518623
+Epoch 21: Train R^2: 51.0021% | Val R^2: 44.7747%
+  Gate g=sigmoid(λ) — mean: 0.8472  min: 0.8472  max: 0.8472  (trainable)
+  LayerScale γ — mean: 0.089165  min: 0.055973  max: 0.117289
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.390653 | Val Loss 0.506747
+Epoch 22: Train R^2: 53.9141% | Val R^2: 46.0393%
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.374558 | Val Loss 0.514329
+Epoch 23: Train R^2: 55.8130% | Val R^2: 45.2319%
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.428508 | Val Loss 0.582138
+Epoch 24: Train R^2: 49.4484% | Val R^2: 38.0114%
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.410562 | Val Loss 0.540182
+Epoch 25: Train R^2: 51.5655% | Val R^2: 42.4790%
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.361900 | Val Loss 0.498951
+Epoch 26: Train R^2: 57.3062% | Val R^2: 46.8694%
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.344261 | Val Loss 0.491832
+Epoch 27: Train R^2: 59.3871% | Val R^2: 47.6275%
+--------------------
+----- Epoch 28 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 28: Train Loss 0.353947 | Val Loss 0.473696
+Epoch 28: Train R^2: 58.2444% | Val R^2: 49.5587%
+--------------------
+----- Epoch 29 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 29: Train Loss 0.347467 | Val Loss 0.457994
+Epoch 29: Train R^2: 59.0089% | Val R^2: 51.2308%
+--------------------
+----- Epoch 30 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 30: Train Loss 0.368167 | Val Loss 0.480563
+Epoch 30: Train R^2: 56.5669% | Val R^2: 48.8275%
+  Gate g=sigmoid(λ) — mean: 0.5154  min: 0.5154  max: 0.5154  (trainable)
+  LayerScale γ — mean: 0.085714  min: 0.046999  max: 0.120010
+--------------------
+----- Epoch 31 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 31: Train Loss 0.384466 | Val Loss 0.465473
+Epoch 31: Train R^2: 54.6440% | Val R^2: 50.4344%
+--------------------
+----- Epoch 32 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 32: Train Loss 0.335720 | Val Loss 0.488217
+Epoch 32: Train R^2: 60.3946% | Val R^2: 48.0125%
+--------------------
+----- Epoch 33 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 33: Train Loss 0.334717 | Val Loss 0.515593
+Epoch 33: Train R^2: 60.5130% | Val R^2: 45.0973%
+--------------------
+----- Epoch 34 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 34: Train Loss 0.326937 | Val Loss 0.460820
+Epoch 34: Train R^2: 61.4309% | Val R^2: 50.9298%
+--------------------
+----- Epoch 35 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 35: Train Loss 0.320841 | Val Loss 0.424485
+Epoch 35: Train R^2: 62.1499% | Val R^2: 54.7989%
+--------------------
+----- Epoch 36 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 36: Train Loss 0.322216 | Val Loss 0.429337
+Epoch 36: Train R^2: 61.9878% | Val R^2: 54.2823%
+--------------------
+----- Epoch 37 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 37: Train Loss 0.310408 | Val Loss 0.434048
+Epoch 37: Train R^2: 63.3808% | Val R^2: 53.7807%
+--------------------
+----- Epoch 38 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 38: Train Loss 0.333918 | Val Loss 0.451400
+Epoch 38: Train R^2: 60.6072% | Val R^2: 51.9329%
+--------------------
+----- Epoch 39 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 39: Train Loss 0.331985 | Val Loss 0.499511
+Epoch 39: Train R^2: 60.8353% | Val R^2: 46.8098%
+--------------------
+----- Epoch 40 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 40: Train Loss 0.341047 | Val Loss 0.454044
+Epoch 40: Train R^2: 59.7662% | Val R^2: 51.6514%
+  Gate g=sigmoid(λ) — mean: 0.5000  min: 0.5000  max: 0.5000  (trainable)
+  LayerScale γ — mean: 0.085077  min: 0.045850  max: 0.121392
+--------------------
+----- Epoch 41 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 41: Train Loss 0.329697 | Val Loss 0.420640
+Epoch 41: Train R^2: 61.1053% | Val R^2: 55.2083%
+--------------------
+----- Epoch 42 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 42: Train Loss 0.301349 | Val Loss 0.408220
+Epoch 42: Train R^2: 64.4495% | Val R^2: 56.5309%
+--------------------
+----- Epoch 43 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 43: Train Loss 0.286007 | Val Loss 0.408171
+Epoch 43: Train R^2: 66.2594% | Val R^2: 56.5361%
+--------------------
+----- Epoch 44 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 44: Train Loss 0.283974 | Val Loss 0.420051
+Epoch 44: Train R^2: 66.4992% | Val R^2: 55.2711%
+--------------------
+----- Epoch 45 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 45: Train Loss 0.319410 | Val Loss 0.517942
+Epoch 45: Train R^2: 62.3188% | Val R^2: 44.8473%
+--------------------
+----- Epoch 46 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 46: Train Loss 0.325085 | Val Loss 0.442600
+Epoch 46: Train R^2: 61.6493% | Val R^2: 52.8700%
+--------------------
+----- Epoch 47 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 47: Train Loss 0.317247 | Val Loss 0.406709
+Epoch 47: Train R^2: 62.5740% | Val R^2: 56.6918%
+--------------------
+----- Epoch 48 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 48: Train Loss 0.288142 | Val Loss 0.394960
+Epoch 48: Train R^2: 66.0075% | Val R^2: 57.9429%
+--------------------
+----- Epoch 49 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 49: Train Loss 0.275284 | Val Loss 0.394734
+Epoch 49: Train R^2: 67.5244% | Val R^2: 57.9669%
+--------------------
+----- Epoch 50 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 50: Train Loss 0.271987 | Val Loss 0.406751
+Epoch 50: Train R^2: 67.9133% | Val R^2: 56.6874%
+  Gate g=sigmoid(λ) — mean: 0.5000  min: 0.5000  max: 0.5000  (trainable)
+  LayerScale γ — mean: 0.085024  min: 0.044475  max: 0.127526
+--------------------
+----- Epoch 51 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 51: Train Loss 0.291972 | Val Loss 0.497982
+Epoch 51: Train R^2: 65.5557% | Val R^2: 46.9726%
+--------------------
+----- Epoch 52 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 52: Train Loss 0.308977 | Val Loss 0.452941
+Epoch 52: Train R^2: 63.5496% | Val R^2: 51.7688%
+--------------------
+----- Epoch 53 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 53: Train Loss 0.291373 | Val Loss 0.407243
+Epoch 53: Train R^2: 65.6263% | Val R^2: 56.6350%
+--------------------
+----- Epoch 54 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 54: Train Loss 0.267472 | Val Loss 0.386007
+Epoch 54: Train R^2: 68.4459% | Val R^2: 58.8962%
+--------------------
+----- Epoch 55 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 55: Train Loss 0.270555 | Val Loss 0.382351
+Epoch 55: Train R^2: 68.0823% | Val R^2: 59.2856%
+--------------------
+----- Epoch 56 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 56: Train Loss 0.261259 | Val Loss 0.387678
+Epoch 56: Train R^2: 69.1790% | Val R^2: 58.7183%
+--------------------
+----- Epoch 57 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 57: Train Loss 0.286478 | Val Loss 0.415858
+Epoch 57: Train R^2: 66.2038% | Val R^2: 55.7175%
+--------------------
+----- Epoch 58 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 58: Train Loss 0.311298 | Val Loss 0.446727
+Epoch 58: Train R^2: 63.2758% | Val R^2: 52.4305%
+--------------------
+----- Epoch 59 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 59: Train Loss 0.283004 | Val Loss 0.429173
+Epoch 59: Train R^2: 66.6137% | Val R^2: 54.2997%
+--------------------
+----- Epoch 60 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 60: Train Loss 0.273235 | Val Loss 0.390335
+Epoch 60: Train R^2: 67.7661% | Val R^2: 58.4354%
+  Gate g=sigmoid(λ) — mean: 0.5000  min: 0.5000  max: 0.5000  (trainable)
+  LayerScale γ — mean: 0.086071  min: 0.040749  max: 0.130689
+--------------------
+----- Epoch 61 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 61: Train Loss 0.261533 | Val Loss 0.366780
+Epoch 61: Train R^2: 69.1466% | Val R^2: 60.9436%
+--------------------
+----- Epoch 62 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 62: Train Loss 0.255188 | Val Loss 0.372778
+Epoch 62: Train R^2: 69.8952% | Val R^2: 60.3049%
+--------------------
+----- Epoch 63 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 63: Train Loss 0.259247 | Val Loss 0.384974
+Epoch 63: Train R^2: 69.4163% | Val R^2: 59.0063%
+--------------------
+----- Epoch 64 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 64: Train Loss 0.279028 | Val Loss 0.490006
+Epoch 64: Train R^2: 67.0827% | Val R^2: 47.8219%
+--------------------
+----- Epoch 65 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 65: Train Loss 0.290058 | Val Loss 0.439563
+Epoch 65: Train R^2: 65.7815% | Val R^2: 53.1934%
+--------------------
+----- Epoch 66 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 66: Train Loss 0.273656 | Val Loss 0.379943
+Epoch 66: Train R^2: 67.7164% | Val R^2: 59.5420%
+--------------------
+----- Epoch 67 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 67: Train Loss 0.246043 | Val Loss 0.363235
+Epoch 67: Train R^2: 70.9740% | Val R^2: 61.3211%
+--------------------
+----- Epoch 68 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 68: Train Loss 0.251953 | Val Loss 0.364345
+Epoch 68: Train R^2: 70.2767% | Val R^2: 61.2030%
+--------------------
+----- Epoch 69 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 69: Train Loss 0.244897 | Val Loss 0.375350
+Epoch 69: Train R^2: 71.1092% | Val R^2: 60.0310%
+--------------------
+----- Epoch 70 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 70: Train Loss 0.260633 | Val Loss 0.409976
+Epoch 70: Train R^2: 69.2528% | Val R^2: 56.3440%
+  Gate g=sigmoid(λ) — mean: 0.5000  min: 0.5000  max: 0.5000  (trainable)
+  LayerScale γ — mean: 0.086837  min: 0.044063  max: 0.134148
+--------------------
+----- Epoch 71 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 71: Train Loss 0.261866 | Val Loss 0.460407
+Epoch 71: Train R^2: 69.1073% | Val R^2: 50.9738%
+--------------------
+----- Epoch 72 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 72: Train Loss 0.266316 | Val Loss 0.410088
+Epoch 72: Train R^2: 68.5823% | Val R^2: 56.3320%
+--------------------
+----- Epoch 73 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 73: Train Loss 0.281966 | Val Loss 0.361272
+Epoch 73: Train R^2: 66.7362% | Val R^2: 61.5302%
+--------------------
+----- Epoch 74 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 74: Train Loss 0.250652 | Val Loss 0.356573
+Epoch 74: Train R^2: 70.4302% | Val R^2: 62.0305%
+--------------------
+----- Epoch 75 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 75: Train Loss 0.230223 | Val Loss 0.360216
+Epoch 75: Train R^2: 72.8403% | Val R^2: 61.6426%
+--------------------
+----- Epoch 76 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 76: Train Loss 0.238109 | Val Loss 0.361970
+Epoch 76: Train R^2: 71.9100% | Val R^2: 61.4558%
+--------------------
+----- Epoch 77 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 77: Train Loss 0.234320 | Val Loss 0.446885
+Epoch 77: Train R^2: 72.3569% | Val R^2: 52.4137%
+--------------------
+----- Epoch 78 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 78: Train Loss 0.241664 | Val Loss 0.425232
+Epoch 78: Train R^2: 71.4905% | Val R^2: 54.7193%
+--------------------
+----- Epoch 79 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 79: Train Loss 0.232483 | Val Loss 0.402118
+Epoch 79: Train R^2: 72.5737% | Val R^2: 57.1807%
+--------------------
+----- Epoch 80 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 80: Train Loss 0.249926 | Val Loss 0.340304
+Epoch 80: Train R^2: 70.5159% | Val R^2: 63.7630%
+  Gate g=sigmoid(λ) — mean: 0.5000  min: 0.5000  max: 0.5000  (trainable)
+  LayerScale γ — mean: 0.085204  min: 0.040401  max: 0.131159
+--------------------
+----- Epoch 81 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 81: Train Loss 0.270401 | Val Loss 0.360920
+Epoch 81: Train R^2: 68.1005% | Val R^2: 61.5677%
+--------------------
+----- Epoch 82 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 82: Train Loss 0.252717 | Val Loss 0.359269
+Epoch 82: Train R^2: 70.1866% | Val R^2: 61.7435%
+--------------------
+----- Epoch 83 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 83: Train Loss 0.243238 | Val Loss 0.427764
+Epoch 83: Train R^2: 71.3049% | Val R^2: 54.4498%
+--------------------
+----- Epoch 84 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 84: Train Loss 0.250468 | Val Loss 0.407746
+Epoch 84: Train R^2: 70.4519% | Val R^2: 56.5814%
+--------------------
+----- Epoch 85 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 85: Train Loss 0.253136 | Val Loss 0.352568
+Epoch 85: Train R^2: 70.1372% | Val R^2: 62.4569%
+--------------------
+----- Epoch 86 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 86: Train Loss 0.244973 | Val Loss 0.337883
+Epoch 86: Train R^2: 71.1003% | Val R^2: 64.0207%
+--------------------
+----- Epoch 87 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 87: Train Loss 0.223931 | Val Loss 0.343917
+Epoch 87: Train R^2: 73.5825% | Val R^2: 63.3782%
+--------------------
+----- Epoch 88 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 88: Train Loss 0.230858 | Val Loss 0.354775
+Epoch 88: Train R^2: 72.7654% | Val R^2: 62.2219%
+--------------------
+----- Epoch 89 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 89: Train Loss 0.242631 | Val Loss 0.494679
+Epoch 89: Train R^2: 71.3765% | Val R^2: 47.3244%
+--------------------
+----- Epoch 90 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 90: Train Loss 0.276427 | Val Loss 0.364037
+Epoch 90: Train R^2: 67.3896% | Val R^2: 61.2357%
+  Gate g=sigmoid(λ) — mean: 0.5000  min: 0.5000  max: 0.5000  (trainable)
+  LayerScale γ — mean: 0.084288  min: 0.041945  max: 0.134354
+--------------------
+----- Epoch 91 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 91: Train Loss 0.233638 | Val Loss 0.338064
+Epoch 91: Train R^2: 72.4374% | Val R^2: 64.0014%
+--------------------
+----- Epoch 92 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 92: Train Loss 0.216690 | Val Loss 0.326849
+Epoch 92: Train R^2: 74.4368% | Val R^2: 65.1957%
+--------------------
+----- Epoch 93 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 93: Train Loss 0.212759 | Val Loss 0.346141
+Epoch 93: Train R^2: 74.9005% | Val R^2: 63.1414%
+--------------------
+----- Epoch 94 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 94: Train Loss 0.232748 | Val Loss 0.469471
+Epoch 94: Train R^2: 72.5424% | Val R^2: 50.0087%
+--------------------
+----- Epoch 95 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 95: Train Loss 0.256222 | Val Loss 0.394146
+Epoch 95: Train R^2: 69.7732% | Val R^2: 58.0296%
+--------------------
+----- Epoch 96 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 96: Train Loss 0.247441 | Val Loss 0.334570
+Epoch 96: Train R^2: 70.8091% | Val R^2: 64.3735%
+--------------------
+----- Epoch 97 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 97: Train Loss 0.217236 | Val Loss 0.325339
+Epoch 97: Train R^2: 74.3724% | Val R^2: 65.3565%
+--------------------
+----- Epoch 98 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 98: Train Loss 0.211851 | Val Loss 0.334070
+Epoch 98: Train R^2: 75.0077% | Val R^2: 64.4267%
+--------------------
+----- Epoch 99 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 99: Train Loss 0.215009 | Val Loss 0.339974
+Epoch 99: Train R^2: 74.6351% | Val R^2: 63.7980%
+--------------------
+----- Epoch 100 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 100: Train Loss 0.224581 | Val Loss 0.475590
+Epoch 100: Train R^2: 73.5059% | Val R^2: 49.3570%
+  Gate g=sigmoid(λ) — mean: 0.5000  min: 0.5000  max: 0.5000  (trainable)
+  LayerScale γ — mean: 0.085261  min: 0.044020  max: 0.132209
+--------------------
+  Checkpoint saved → model_fold_2.pth  (weights + history)
+========== Fold=3 ==========
+  torch.compile: enabled
+  Optimizer param groups:
+    decay    :  2,950,848 params  lr=1e-4  wd=1e-2
+    no-decay :     13,056 params  lr=1e-4  wd=0
+    gamma    :      2,304 params  lr=1e-3  wd=0   ← 10× boost
+    gate     :         18 params  lr=1e-2  wd=0   ← 100× boost
+  Gate warmup: gate_logit FROZEN for first 20 epochs
+----- Epoch 1 -----
+Training begins
+
+  ── LayerScale gamma gradient check (epoch 1, batch 1) ──
+    _orig_mod.blocks.0.ls1.gamma                        grad norm = 0.000073
+    _orig_mod.blocks.0.ls2.gamma                        grad norm = 0.000332
+    _orig_mod.blocks.1.ls1.gamma                        grad norm = 0.000071
+    _orig_mod.blocks.1.ls2.gamma                        grad norm = 0.000371
+    _orig_mod.blocks.2.ls1.gamma                        grad norm = 0.000079
+    _orig_mod.blocks.2.ls2.gamma                        grad norm = 0.000346
+    _orig_mod.blocks.3.ls1.gamma                        grad norm = 0.000079
+    _orig_mod.blocks.3.ls2.gamma                        grad norm = 0.000291
+    _orig_mod.blocks.4.ls1.gamma                        grad norm = 0.000076
+    _orig_mod.blocks.4.ls2.gamma                        grad norm = 0.000376
+    _orig_mod.blocks.5.ls1.gamma                        grad norm = 0.000076
+    _orig_mod.blocks.5.ls2.gamma                        grad norm = 0.000399
+  ── end gamma check ──
+
+
+  ── SectorGPSA gate_logit gradient check (epoch 1, batch 1) ──
+  (near-zero grads are expected at init; see docstring)
+    _orig_mod.blocks.0.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.1.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.2.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.3.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.4.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.5.attn.gate_logit                  grad = None  ← not connected!
+  ── end gate check ──
+
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.886895 | Val Loss 1.570049
+Epoch 1: Train R^2: 0.5654% | Val R^2: -7.3718%
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.022269  min: 0.016005  max: 0.028473
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.855793 | Val Loss 1.546649
+Epoch 2: Train R^2: 4.0525% | Val R^2: -5.7715%
+--------------------
+----- Epoch 3 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.815386 | Val Loss 1.530244
+Epoch 3: Train R^2: 8.5827% | Val R^2: -4.6496%
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.770443 | Val Loss 1.510109
+Epoch 4: Train R^2: 13.6215% | Val R^2: -3.2726%
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.725399 | Val Loss 1.489514
+Epoch 5: Train R^2: 18.6716% | Val R^2: -1.8642%
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.687130 | Val Loss 1.467444
+Epoch 6: Train R^2: 22.9622% | Val R^2: -0.3548%
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.654477 | Val Loss 1.443147
+Epoch 7: Train R^2: 26.6231% | Val R^2: 1.3067%
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.625766 | Val Loss 1.415765
+Epoch 8: Train R^2: 29.8421% | Val R^2: 3.1793%
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.600889 | Val Loss 1.390219
+Epoch 9: Train R^2: 32.6312% | Val R^2: 4.9264%
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.578506 | Val Loss 1.359320
+Epoch 10: Train R^2: 35.1406% | Val R^2: 7.0395%
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.088028  min: 0.060489  max: 0.112886
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.558696 | Val Loss 1.336713
+Epoch 11: Train R^2: 37.3617% | Val R^2: 8.5855%
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.539892 | Val Loss 1.309496
+Epoch 12: Train R^2: 39.4698% | Val R^2: 10.4468%
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.523482 | Val Loss 1.285873
+Epoch 13: Train R^2: 41.3096% | Val R^2: 12.0624%
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 0.507376 | Val Loss 1.260606
+Epoch 14: Train R^2: 43.1154% | Val R^2: 13.7903%
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 0.492047 | Val Loss 1.228548
+Epoch 15: Train R^2: 44.8339% | Val R^2: 15.9826%
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 0.477442 | Val Loss 1.208951
+Epoch 16: Train R^2: 46.4714% | Val R^2: 17.3229%
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 0.458690 | Val Loss 1.188140
+Epoch 17: Train R^2: 48.5738% | Val R^2: 18.7460%
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 0.440208 | Val Loss 1.173216
+Epoch 18: Train R^2: 50.6459% | Val R^2: 19.7666%
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 0.424286 | Val Loss 1.207700
+Epoch 19: Train R^2: 52.4310% | Val R^2: 17.4083%
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 0.408019 | Val Loss 1.179175
+Epoch 20: Train R^2: 54.2548% | Val R^2: 19.3592%
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.099815  min: 0.055539  max: 0.146161
+--------------------
+----- Epoch 21 -----
+  Gate warmup complete: gate_logit UNFROZEN at epoch 21
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.392347 | Val Loss 1.184738
+Epoch 21: Train R^2: 56.0119% | Val R^2: 18.9787%
+  Gate g=sigmoid(λ) — mean: 0.8443  min: 0.8443  max: 0.8443  (trainable)
+  LayerScale γ — mean: 0.100772  min: 0.055853  max: 0.148232
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.375236 | Val Loss 1.081353
+Epoch 22: Train R^2: 57.9303% | Val R^2: 26.0489%
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.366585 | Val Loss 0.949040
+Epoch 23: Train R^2: 58.9003% | Val R^2: 35.0975%
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.365362 | Val Loss 0.940218
+Epoch 24: Train R^2: 59.0373% | Val R^2: 35.7008%
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.376754 | Val Loss 1.061637
+Epoch 25: Train R^2: 57.7601% | Val R^2: 27.3973%
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.378662 | Val Loss 0.905314
+Epoch 26: Train R^2: 57.5462% | Val R^2: 38.0878%
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.353596 | Val Loss 0.851425
+Epoch 27: Train R^2: 60.3565% | Val R^2: 41.7732%
+--------------------
+----- Epoch 28 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 28: Train Loss 0.342328 | Val Loss 1.091158
+Epoch 28: Train R^2: 61.6197% | Val R^2: 25.3784%
+--------------------
+----- Epoch 29 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 29: Train Loss 0.351173 | Val Loss 1.115650
+Epoch 29: Train R^2: 60.6282% | Val R^2: 23.7034%
+--------------------
+----- Epoch 30 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 30: Train Loss 0.358223 | Val Loss 1.154296
+Epoch 30: Train R^2: 59.8377% | Val R^2: 21.0605%
+  Gate g=sigmoid(λ) — mean: 0.5176  min: 0.5176  max: 0.5176  (trainable)
+  LayerScale γ — mean: 0.095724  min: 0.059968  max: 0.132823
+--------------------
+----- Epoch 31 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 31: Train Loss 0.321391 | Val Loss 1.163059
+Epoch 31: Train R^2: 63.9672% | Val R^2: 20.4613%
+--------------------
+----- Epoch 32 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 32: Train Loss 0.317108 | Val Loss 1.214931
+Epoch 32: Train R^2: 64.4473% | Val R^2: 16.9139%
+--------------------
+----- Epoch 33 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 33: Train Loss 0.347373 | Val Loss 1.078996
+Epoch 33: Train R^2: 61.0542% | Val R^2: 26.2101%
+--------------------
+----- Epoch 34 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 34: Train Loss 0.371961 | Val Loss 0.858112
+Epoch 34: Train R^2: 58.2974% | Val R^2: 41.3158%
+--------------------
+----- Epoch 35 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 35: Train Loss 0.396252 | Val Loss 0.944388
+Epoch 35: Train R^2: 55.5741% | Val R^2: 35.4156%
+--------------------
+----- Epoch 36 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 36: Train Loss 0.341401 | Val Loss 0.845958
+Epoch 36: Train R^2: 61.7237% | Val R^2: 42.1470%
+--------------------
+----- Epoch 37 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 37: Train Loss 0.311706 | Val Loss 0.974802
+Epoch 37: Train R^2: 65.0530% | Val R^2: 33.3357%
+--------------------
+----- Epoch 38 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 38: Train Loss 0.319236 | Val Loss 1.227287
+Epoch 38: Train R^2: 64.2087% | Val R^2: 16.0689%
+--------------------
+----- Epoch 39 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 39: Train Loss 0.324816 | Val Loss 1.419407
+Epoch 39: Train R^2: 63.5831% | Val R^2: 2.9303%
+--------------------
+----- Epoch 40 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 40: Train Loss 0.341954 | Val Loss 0.964721
+Epoch 40: Train R^2: 61.6617% | Val R^2: 34.0252%
+  Gate g=sigmoid(λ) — mean: 0.5000  min: 0.5000  max: 0.5000  (trainable)
+  LayerScale γ — mean: 0.089832  min: 0.052470  max: 0.123049
+--------------------
+----- Epoch 41 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 41: Train Loss 0.380652 | Val Loss 0.933379
+Epoch 41: Train R^2: 57.3231% | Val R^2: 36.1685%
+--------------------
+----- Epoch 42 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 42: Train Loss 0.334712 | Val Loss 0.881007
+Epoch 42: Train R^2: 62.4736% | Val R^2: 39.7501%
+--------------------
+----- Epoch 43 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 43: Train Loss 0.298722 | Val Loss 0.913337
+Epoch 43: Train R^2: 66.5087% | Val R^2: 37.5392%
+--------------------
+----- Epoch 44 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 44: Train Loss 0.290999 | Val Loss 0.985061
+Epoch 44: Train R^2: 67.3745% | Val R^2: 32.6341%
+--------------------
+----- Epoch 45 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 45: Train Loss 0.288461 | Val Loss 1.028279
+Epoch 45: Train R^2: 67.6591% | Val R^2: 29.6785%
+--------------------
+----- Epoch 46 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 46: Train Loss 0.286946 | Val Loss 0.953144
+Epoch 46: Train R^2: 67.8290% | Val R^2: 34.8168%
+--------------------
+Early stopping triggered. Loading best model weights...
+  Checkpoint saved → model_fold_3.pth  (weights + history)
+========== Fold=4 ==========
+  torch.compile: enabled
+  Optimizer param groups:
+    decay    :  2,950,848 params  lr=1e-4  wd=1e-2
+    no-decay :     13,056 params  lr=1e-4  wd=0
+    gamma    :      2,304 params  lr=1e-3  wd=0   ← 10× boost
+    gate     :         18 params  lr=1e-2  wd=0   ← 100× boost
+  Gate warmup: gate_logit FROZEN for first 20 epochs
+----- Epoch 1 -----
+Training begins
+
+  ── LayerScale gamma gradient check (epoch 1, batch 1) ──
+    _orig_mod.blocks.0.ls1.gamma                        grad norm = 0.000072
+    _orig_mod.blocks.0.ls2.gamma                        grad norm = 0.000261
+    _orig_mod.blocks.1.ls1.gamma                        grad norm = 0.000075
+    _orig_mod.blocks.1.ls2.gamma                        grad norm = 0.000256
+    _orig_mod.blocks.2.ls1.gamma                        grad norm = 0.000078
+    _orig_mod.blocks.2.ls2.gamma                        grad norm = 0.000237
+    _orig_mod.blocks.3.ls1.gamma                        grad norm = 0.000073
+    _orig_mod.blocks.3.ls2.gamma                        grad norm = 0.000238
+    _orig_mod.blocks.4.ls1.gamma                        grad norm = 0.000075
+    _orig_mod.blocks.4.ls2.gamma                        grad norm = 0.000235
+    _orig_mod.blocks.5.ls1.gamma                        grad norm = 0.000077
+    _orig_mod.blocks.5.ls2.gamma                        grad norm = 0.000250
+  ── end gamma check ──
+
+
+  ── SectorGPSA gate_logit gradient check (epoch 1, batch 1) ──
+  (near-zero grads are expected at init; see docstring)
+    _orig_mod.blocks.0.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.1.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.2.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.3.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.4.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.5.attn.gate_logit                  grad = None  ← not connected!
+  ── end gate check ──
+
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 1.073311 | Val Loss 1.085468
+Epoch 1: Train R^2: 0.7087% | Val R^2: -5.4798%
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.021639  min: 0.015378  max: 0.027372
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 1.043633 | Val Loss 1.049467
+Epoch 2: Train R^2: 3.4542% | Val R^2: -1.9814%
+--------------------
+----- Epoch 3 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 1.006667 | Val Loss 1.003029
+Epoch 3: Train R^2: 6.8738% | Val R^2: 2.5312%
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.967787 | Val Loss 0.957466
+Epoch 4: Train R^2: 10.4707% | Val R^2: 6.9587%
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.931623 | Val Loss 0.929794
+Epoch 5: Train R^2: 13.8161% | Val R^2: 9.6477%
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.897369 | Val Loss 0.925011
+Epoch 6: Train R^2: 16.9850% | Val R^2: 10.1125%
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.860647 | Val Loss 0.907979
+Epoch 7: Train R^2: 20.3821% | Val R^2: 11.7676%
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.826951 | Val Loss 0.884335
+Epoch 8: Train R^2: 23.4993% | Val R^2: 14.0652%
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.793646 | Val Loss 0.855191
+Epoch 9: Train R^2: 26.5803% | Val R^2: 16.8972%
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.760845 | Val Loss 0.823967
+Epoch 10: Train R^2: 29.6147% | Val R^2: 19.9314%
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.091820  min: 0.058183  max: 0.119990
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.729103 | Val Loss 0.793754
+Epoch 11: Train R^2: 32.5511% | Val R^2: 22.8673%
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.693913 | Val Loss 0.760387
+Epoch 12: Train R^2: 35.8065% | Val R^2: 26.1098%
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.654736 | Val Loss 0.729423
+Epoch 13: Train R^2: 39.4308% | Val R^2: 29.1187%
+--------------------
+----- Epoch 14 -----
+Training begins
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			Resource Usage on 2026-03-13 22:00:45.546820:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	JobId: 3149457.hpc-pbs-sched1
+	Project: as_spms_cheongsa
+	Exit Status: 271
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	NCPUs: Requested(19), Used(19)
+	CPU Time Used: 24:54:54
+	Memory: Requested(100gb), Used(17086360kb)
+	Vmem Used: 44669728kb
+	Walltime: Requested(48:00:00), Used(03:13:57)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Execution Nodes Used: (hpc-wfly-a002:ncpus=19:mem=104857600kb)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	No GPU-related information available for this job.
