@@ -8,10 +8,14 @@ import numpy as np
 import torch
 
 
-def extract_distance_matrix(pkl_path: str | None = None) -> np.ndarray:
+def extract_distance_matrix(
+    pkl_path: str | None = None,
+    *,
+    zscore: bool = False,
+) -> np.ndarray:
     """
     Load the precomputed correlation tensor and convert it into a
-    z-scored distance matrix, keeping memory usage under control.
+    distance matrix, keeping memory usage under control.
 
     Expected pkl shape : (T, 463, 463)  — 463 stocks, 6 will be removed.
     Output shape       : (T, 457, 457)  — matches model input size.
@@ -62,10 +66,17 @@ def extract_distance_matrix(pkl_path: str | None = None) -> np.ndarray:
         f"after removing bad indices."
     )
 
-    # Global z-score standardisation
-    mean = np.mean(distance_matrix, dtype=np.float32)
-    std  = np.std(distance_matrix,  dtype=np.float32)
-    distance_matrix = (distance_matrix - mean) / std
+    # IMPORTANT: Avoid global standardisation here by default.
+    # Global z-scoring across all time steps leaks information from the
+    # validation period into training when using time-series CV splits.
+    #
+    # Fold-wise standardisation is applied inside the training pipeline using
+    # train-only statistics per fold. Set zscore=True only for quick ad-hoc
+    # visualisation where leakage is not a concern.
+    if zscore:
+        mean = np.mean(distance_matrix, dtype=np.float32)
+        std  = np.std(distance_matrix,  dtype=np.float32)
+        distance_matrix = (distance_matrix - mean) / std
 
     return distance_matrix
 

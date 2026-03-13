@@ -84,13 +84,23 @@ if __name__ == "__main__":
         **MODEL_CFG,
         sector_ids=sector_ids,
     )
-    best_model.load_state_dict(torch.load(model_path, map_location="cpu"))
+    best_ckpt = torch.load(model_path, map_location="cpu", weights_only=False)
+    best_model.load_state_dict(best_ckpt["model_state_dict"] if isinstance(best_ckpt, dict) and "model_state_dict" in best_ckpt else best_ckpt)
 
     interp = ModelInterpreter(best_model, save_dir=".")
 
     # 5c. Rebuild one sample from the last validation fold
-    X   = distance_matrix_gics[:-1][:, np.newaxis, :]
-    y   = distance_matrix_gics[1:][:, np.newaxis, :]
+    # IMPORTANT: apply the fold-wise scaler from the chosen checkpoint so
+    # interpretability metrics match what the model was trained/evaluated on.
+    scaler_mean = best_ckpt.get("scaler_mean") if isinstance(best_ckpt, dict) else None
+    scaler_std  = best_ckpt.get("scaler_std")  if isinstance(best_ckpt, dict) else None
+    if scaler_mean is not None and scaler_std is not None:
+        dm_for_eval = (distance_matrix_gics - scaler_mean) / scaler_std
+    else:
+        dm_for_eval = distance_matrix_gics
+
+    X   = dm_for_eval[:-1][:, np.newaxis, :]
+    y   = dm_for_eval[1:][:, np.newaxis, :]
     X_t = torch.from_numpy(X).float()
     y_t = torch.from_numpy(y).float()
 

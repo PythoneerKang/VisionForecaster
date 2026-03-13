@@ -308,7 +308,16 @@ def _set_gate_grad(model, requires_grad: bool):
 # Training loop (single fold)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
+def train_with_validation(
+    model,
+    train_loader,
+    val_loader,
+    fold,
+    epochs=100,
+    *,
+    scaler_mean: float | None = None,
+    scaler_std: float | None = None,
+):
 
     device = torch.device("cuda" if p.USE_GPU and torch.cuda.is_available() else "cpu")
     model.to(device)
@@ -484,6 +493,8 @@ def train_with_validation(model, train_loader, val_loader, fold, epochs=100):
             "val_mse":          fold_history["val_mse"],
             "train_r2":         fold_history["train_r2"],
             "val_r2":           fold_history["val_r2"],
+            "scaler_mean":      scaler_mean,
+            "scaler_std":       scaler_std,
         },
         model_path,
     )
@@ -506,7 +517,9 @@ def diff_model_multi_fold_cv_train_test(
     Parameters
     ----------
     distance_matrix : np.ndarray  shape (T, 457, 457)
-        GICS-reordered, z-scored distance matrices.
+        GICS-reordered distance matrices (NOT globally standardised).
+        Fold-wise z-scoring is fit on the training split only per fold to
+        avoid time-series leakage, then applied to both train and validation.
     sector_ids : torch.Tensor  shape (N,) dtype=torch.long
         Patch-level GICS sector indices, from build_patch_sector_ids().
     """
@@ -530,8 +543,23 @@ def diff_model_multi_fold_cv_train_test(
     for train_index, val_index in tscv.split(X_tensor):
         print(10 * "=", f"Fold={fold}", 10 * "=")
 
-        X_train, X_val = X_tensor[train_index], X_tensor[val_index]
-        y_train, y_val = y_tensor[train_index], y_tensor[val_index]
+        X_train_raw, X_val_raw = X_tensor[train_index], X_tensor[val_index]
+        y_train_raw, y_val_raw = y_tensor[train_index], y_tensor[val_index]
+
+        # ── Fold-wise standardisation (train-only) ─────────────────────────
+        # Fit mean/std on training period ONLY to avoid leakage.
+        # Use both x_t and y_{t+1} from the training window since they are the
+        # same variable at adjacent times and both are available in training.
+        train_stack = torch.cat([X_train_raw, y_train_raw], dim=0)
+        fold_mean = train_stack.mean().item()
+        fold_std  = train_stack.std(unbiased=False).item()
+        if fold_std == 0.0:
+            raise ValueError(f"Fold {fold}: standard deviation is zero; cannot z-score.")
+
+        X_train = (X_train_raw - fold_mean) / fold_std
+        y_train = (y_train_raw - fold_mean) / fold_std
+        X_val   = (X_val_raw   - fold_mean) / fold_std
+        y_val   = (y_val_raw   - fold_mean) / fold_std
 
         train_dataset = TensorDataset(X_train, y_train)
         val_dataset   = TensorDataset(X_val,   y_val)
@@ -560,7 +588,13 @@ def diff_model_multi_fold_cv_train_test(
         )
 
         model_path, fold_history = train_with_validation(
-            model, train_loader, val_loader, fold, epochs=p.num_epochs
+            model,
+            train_loader,
+            val_loader,
+            fold,
+            epochs=p.num_epochs,
+            scaler_mean=fold_mean,
+            scaler_std=fold_std,
         )
         fold_models.append(model_path)
         all_fold_history.append(fold_history)

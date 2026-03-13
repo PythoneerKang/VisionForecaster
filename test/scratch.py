@@ -128,6 +128,8 @@ def _load_checkpoint(pth_path: str) -> dict:
         "val_mse":   [],
         "train_r2":  [],
         "val_r2":    [],
+        "scaler_mean": None,
+        "scaler_std":  None,
     }
 
 
@@ -156,7 +158,7 @@ def _load_fold_history(
         m = re.search(r"model_fold_(\d+)\.pth$", os.path.basename(pth_path))
         fold_num = int(m.group(1)) if m else None
         histories.append(
-            {k: ckpt[k] for k in ("train_mse", "val_mse", "train_r2", "val_r2")}
+            {k: ckpt.get(k) for k in ("train_mse", "val_mse", "train_r2", "val_r2")}
         )
         fold_numbers.append(fold_num)
 
@@ -400,6 +402,9 @@ def main():
 
     interp     = ModelInterpreter(model, save_dir=args.out_dir)
     last_block = len(list(model.blocks)) - 1
+    ckpt = _load_checkpoint(best_pth)
+    scaler_mean = ckpt.get("scaler_mean")
+    scaler_std  = ckpt.get("scaler_std")
 
     # ── Step 4: fold summary (needs history) ─────────────────────────────
     if fold_history:
@@ -442,6 +447,17 @@ def main():
     print("  Reordering by GICS …")
     distance_matrix_gics, _, _ = reorder_by_gics(distance_matrix_raw)
     del distance_matrix_raw
+
+    # Apply the same fold-wise scaling used during training, if available.
+    # This is critical for meaningful predictions/MSE when checkpoints were
+    # trained with train-only (per-fold) standardisation.
+    if scaler_mean is not None and scaler_std is not None:
+        distance_matrix_gics = (distance_matrix_gics - scaler_mean) / scaler_std
+    else:
+        print(
+            "  NOTE: checkpoint has no scaler_mean/std (old-format or legacy training). "
+            "Proceeding without fold-wise standardisation."
+        )
 
     T          = distance_matrix_gics.shape[0]
     sample_idx = args.sample_idx if args.sample_idx >= 0 else T - 2
