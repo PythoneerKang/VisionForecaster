@@ -14,7 +14,10 @@ from transformer import SmallDataDecoderViT
 # Constants
 # ─────────────────────────────────────────────────────────────────────────────
 
-GATE_WARMUP_EPOCHS       = 5
+GATE_WARMUP_EPOCHS       = 2
+# Gate entropy regulariser: set > 0 (e.g. 0.01) to push gates toward 0.5 so they
+# move away from init. If gates stay at init (g ≈ 0.88), task gradient through the
+# gate is tiny when (v_pos - v_content) ≈ 0; entropy loss gives a direct signal.
 GATE_ENTROPY_WEIGHT      = 0.0
 BASELINE_PENALTY_WEIGHT  = 2.0   # λ in BaselineRegularisedMSE — stronger penalty when worse than null
 
@@ -138,15 +141,17 @@ class EarlyStopping:
     """
 
     def __init__(self, patience=7, path='best_model.pt'):
-        self.patience  = patience
-        self.best_loss = float('inf')
-        self.counter   = 0
-        self.path      = path
+        self.patience   = patience
+        self.best_loss  = float('inf')
+        self.best_epoch = 0
+        self.counter    = 0
+        self.path       = path
 
-    def __call__(self, val_loss, model):
+    def __call__(self, val_loss, model, epoch: int = 0):
         if val_loss < self.best_loss:
-            self.best_loss = val_loss
-            self.counter   = 0
+            self.best_loss  = val_loss
+            self.best_epoch = epoch
+            self.counter    = 0
             # Save weights only — used internally to restore best weights
             # if early stopping fires before the final epoch.
             torch.save(_unwrap_state_dict(model), self.path)
@@ -487,27 +492,29 @@ def train_with_validation(
         fold_history['train_r2'].append(epoch_training_r2_score)
         fold_history['val_r2'].append(epoch_validation_r2_score)
 
-        if stopper(avg_val, model):
+        if stopper(avg_val, model, epoch):
             print("Early stopping triggered. Loading best model weights...")
             getattr(model, '_orig_mod', model).load_state_dict(
                 torch.load(stopper.path)
             )
+            print(f"  Restored weights from best epoch {stopper.best_epoch} (val_loss={stopper.best_loss:.6f})")
             break
 
     model_path = f"model_fold_{fold}.pth"
-    torch.save(
-        {
-            "model_state_dict": _unwrap_state_dict(model),
-            "train_mse":        fold_history["train_mse"],
-            "val_mse":          fold_history["val_mse"],
-            "train_r2":         fold_history["train_r2"],
-            "val_r2":           fold_history["val_r2"],
-            "scaler_mean":      scaler_mean,
-            "scaler_std":       scaler_std,
-        },
-        model_path,
-    )
-    print(f"  Checkpoint saved → {model_path}  (weights + history)")
+    save_dict = {
+        "model_state_dict": _unwrap_state_dict(model),
+        "train_mse":        fold_history["train_mse"],
+        "val_mse":          fold_history["val_mse"],
+        "train_r2":         fold_history["train_r2"],
+        "val_r2":           fold_history["val_r2"],
+        "scaler_mean":      scaler_mean,
+        "scaler_std":       scaler_std,
+    }
+    if hasattr(stopper, "best_epoch"):
+        save_dict["best_epoch"] = stopper.best_epoch
+    torch.save(save_dict, model_path)
+    best_epoch_msg = f"  best_epoch={stopper.best_epoch}" if hasattr(stopper, "best_epoch") else ""
+    print(f"  Checkpoint saved → {model_path}  (weights + history){best_epoch_msg}")
 
     return model_path, fold_history
 
