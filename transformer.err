@@ -1,7 +1,7 @@
 pyenv: shell integration not enabled. Run `pyenv init' for instructions.
 /home/s230047/.cache/pypoetry/virtualenvs/transformer-D-LRPITk-py3.13/lib/python3.13/site-packages/torch/utils/data/dataloader.py:1118: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
   super().__init__(loader)
-W0313 23:21:27.230000 324155 torch/utils/cpp_extension.py:118] [0/0] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
+W0314 00:39:00.398000 2271924 torch/utils/cpp_extension.py:118] [0/0] No CUDA runtime is found, using CUDA_HOME='/usr/local/cuda'
 /home/s230047/.cache/pypoetry/virtualenvs/transformer-D-LRPITk-py3.13/lib/python3.13/site-packages/torch/utils/data/dataloader.py:1118: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
   super().__init__(loader)
 /home/s230047/.cache/pypoetry/virtualenvs/transformer-D-LRPITk-py3.13/lib/python3.13/site-packages/torch/utils/data/dataloader.py:1118: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
