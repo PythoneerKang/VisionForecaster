@@ -19,7 +19,7 @@ GATE_WARMUP_EPOCHS       = 2
 # move away from init. If gates stay at init (g ≈ 0.88), task gradient through the
 # gate is tiny when (v_pos - v_content) ≈ 0; entropy loss gives a direct signal.
 GATE_ENTROPY_WEIGHT      = 0.0
-BASELINE_PENALTY_WEIGHT  = 2.0   # λ in BaselineRegularisedMSE — stronger penalty when worse than null
+BASELINE_PENALTY_WEIGHT  = 1.0   # λ in BaselineRegularisedMSE — stronger penalty when worse than null
 
 
 # ─────────────────────────────────────────────────────────────────────────────

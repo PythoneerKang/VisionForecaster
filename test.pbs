@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## Job Name
-#PBS -N pth5_test_Transformer
+#PBS -N pth1_test_Transformer
 
 ## Project Funding Code
 #PBS -P as_spms_cheongsa
@@ -10,8 +10,8 @@
 #PBS -q qamd_wfly
 
 ## Output and error files
-#PBS -o pth5_test_transformer.out
-#PBS -e pth5_test_transformer.err
+#PBS -o pth1_test_transformer.out
+#PBS -e pth1_test_transformer.err
 
 ## Walltime — 9 folds × up to 100 epochs on CPU; monitor first run to calibrate
 #PBS -l walltime=48:00:00
@@ -47,4 +47,4 @@ pyenv shell 3.13
 poetry env use 3.13
 #poetry run python main.py
 cd test
-poetry run python scratch.py --pth model_fold_5.pth --dm-pkl "../../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file/IQDw35.pkl"
+poetry run python scratch.py --pth model_fold_1.pth --dm-pkl "../../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file/IQDw35.pkl"

@@ -1,0 +1,4756 @@
+Using 19 CPU cores on this node.
+/home/s230047/Downloads/VisionForecaster
+Using virtualenv: /home/s230047/.cache/pypoetry/virtualenvs/transformer-D-LRPITk-py3.13
+Check for NAN values in distance matrices, (False -> no NAN, True otherwise.):  False
+Distance matrix shape (num_of_trading_days, num_of_stocks, num_of_stocks):  (1575, 457, 457)
+
+GICS reordering applied. Sector block sizes:
+  Communication Services          stocks [  0,  18)  n=18
+  Consumer Discretionary          stocks [ 18,  81)  n=63
+  Consumer Staples                stocks [ 81, 117)  n=36
+  Energy                          stocks [117, 141)  n=24
+  Financials                      stocks [141, 206)  n=65
+  Health Care                     stocks [206, 257)  n=51
+  Industrials                     stocks [257, 321)  n=64
+  Information Technology          stocks [321, 377)  n=56
+  Materials                       stocks [377, 401)  n=24
+  Real Estate                     stocks [401, 430)  n=29
+  Utilities                       stocks [430, 457)  n=27
+
+  build_patch_sector_ids: 841 patches → 66 groups (11 same-sector, 55 cross-sector pairs)
+Patch sector IDs built: shape=(841,), unique sectors=66
+
+========== Fold=1 ==========
+  torch.compile: enabled
+  Optimizer param groups:
+    decay    :  2,950,848 params  lr=1e-4  wd=1e-2
+    no-decay :     13,056 params  lr=1e-4  wd=0
+    gamma    :      2,304 params  lr=1e-3  wd=0   ← 10× boost
+    gate     :         18 params  lr=1e-2  wd=0   ← 100× boost
+  Gate warmup: gate_logit FROZEN for first 2 epochs
+----- Epoch 1 -----
+Training begins
+
+  ── LayerScale gamma gradient check (epoch 1, batch 1) ──
+    _orig_mod.blocks.0.ls1.gamma                        grad norm = 0.000126
+    _orig_mod.blocks.0.ls2.gamma                        grad norm = 0.000381
+    _orig_mod.blocks.1.ls1.gamma                        grad norm = 0.000127
+    _orig_mod.blocks.1.ls2.gamma                        grad norm = 0.000379
+    _orig_mod.blocks.2.ls1.gamma                        grad norm = 0.000133
+    _orig_mod.blocks.2.ls2.gamma                        grad norm = 0.000431
+    _orig_mod.blocks.3.ls1.gamma                        grad norm = 0.000123
+    _orig_mod.blocks.3.ls2.gamma                        grad norm = 0.000393
+    _orig_mod.blocks.4.ls1.gamma                        grad norm = 0.000118
+    _orig_mod.blocks.4.ls2.gamma                        grad norm = 0.000386
+    _orig_mod.blocks.5.ls1.gamma                        grad norm = 0.000127
+    _orig_mod.blocks.5.ls2.gamma                        grad norm = 0.000349
+  ── end gamma check ──
+
+
+  ── SectorGPSA gate_logit gradient check (epoch 1, batch 1) ──
+  (near-zero grads are expected at init; see docstring)
+    _orig_mod.blocks.0.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.1.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.2.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.3.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.4.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.5.attn.gate_logit                  grad = None  ← not connected!
+  ── end gate check ──
+
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.989772 | Val Loss 1.535943
+Epoch 1: Train R^2: 1.1162% | Val R^2: -20.3769%
+Epoch 1: baseline excess (mean) = 0.999161  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.021519  min: 0.014642  max: 0.027864
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.961067 | Val Loss 1.495310
+Epoch 2: Train R^2: 3.9840% | Val R^2: -17.1924%
+Epoch 2: baseline excess (mean) = 0.970154  (penalty active)
+--------------------
+----- Epoch 3 -----
+  Gate warmup complete: gate_logit UNFROZEN at epoch 3
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.923858 | Val Loss 1.433208
+Epoch 3: Train R^2: 7.7014% | Val R^2: -12.3252%
+Epoch 3: baseline excess (mean) = 0.932473  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.063273  min: 0.040331  max: 0.087635
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.882424 | Val Loss 1.381378
+Epoch 4: Train R^2: 11.8409% | Val R^2: -8.2632%
+Epoch 4: baseline excess (mean) = 0.890847  (penalty active)
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.840992 | Val Loss 1.349665
+Epoch 5: Train R^2: 15.9802% | Val R^2: -5.7777%
+Epoch 5: baseline excess (mean) = 0.849613  (penalty active)
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.805009 | Val Loss 1.335000
+Epoch 6: Train R^2: 19.5751% | Val R^2: -4.6284%
+Epoch 6: baseline excess (mean) = 0.814024  (penalty active)
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.772111 | Val Loss 1.309719
+Epoch 7: Train R^2: 22.8618% | Val R^2: -2.6471%
+Epoch 7: baseline excess (mean) = 0.781116  (penalty active)
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.743529 | Val Loss 1.280651
+Epoch 8: Train R^2: 25.7173% | Val R^2: -0.3688%
+Epoch 8: baseline excess (mean) = 0.752315  (penalty active)
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.717841 | Val Loss 1.248092
+Epoch 9: Train R^2: 28.2836% | Val R^2: 2.1829%
+Epoch 9: baseline excess (mean) = 0.726334  (penalty active)
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.695028 | Val Loss 1.219728
+Epoch 10: Train R^2: 30.5628% | Val R^2: 4.4059%
+Epoch 10: baseline excess (mean) = 0.703187  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.090269  min: 0.052773  max: 0.128268
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.673220 | Val Loss 1.186751
+Epoch 11: Train R^2: 32.7416% | Val R^2: 6.9904%
+Epoch 11: baseline excess (mean) = 0.680839  (penalty active)
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.654718 | Val Loss 1.156811
+Epoch 12: Train R^2: 34.5900% | Val R^2: 9.3369%
+Epoch 12: baseline excess (mean) = 0.661805  (penalty active)
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.635819 | Val Loss 1.131165
+Epoch 13: Train R^2: 36.4781% | Val R^2: 11.3468%
+Epoch 13: baseline excess (mean) = 0.642386  (penalty active)
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 0.617439 | Val Loss 1.099815
+Epoch 14: Train R^2: 38.3144% | Val R^2: 13.8039%
+Epoch 14: baseline excess (mean) = 0.623443  (penalty active)
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 0.601278 | Val Loss 1.070892
+Epoch 15: Train R^2: 39.9289% | Val R^2: 16.0707%
+Epoch 15: baseline excess (mean) = 0.606672  (penalty active)
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 0.584619 | Val Loss 1.042621
+Epoch 16: Train R^2: 41.5933% | Val R^2: 18.2863%
+Epoch 16: baseline excess (mean) = 0.589384  (penalty active)
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 0.565657 | Val Loss 1.018770
+Epoch 17: Train R^2: 43.4877% | Val R^2: 20.1556%
+Epoch 17: baseline excess (mean) = 0.570018  (penalty active)
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 0.545488 | Val Loss 1.002242
+Epoch 18: Train R^2: 45.5027% | Val R^2: 21.4510%
+Epoch 18: baseline excess (mean) = 0.549235  (penalty active)
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 0.525820 | Val Loss 0.979943
+Epoch 19: Train R^2: 47.4676% | Val R^2: 23.1986%
+Epoch 19: baseline excess (mean) = 0.528958  (penalty active)
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 0.505030 | Val Loss 0.951296
+Epoch 20: Train R^2: 49.5447% | Val R^2: 25.4438%
+Epoch 20: baseline excess (mean) = 0.507354  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.101878  min: 0.059224  max: 0.146399
+--------------------
+----- Epoch 21 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.482677 | Val Loss 0.918391
+Epoch 21: Train R^2: 51.7778% | Val R^2: 28.0227%
+Epoch 21: baseline excess (mean) = 0.484567  (penalty active)
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.467361 | Val Loss 0.850998
+Epoch 22: Train R^2: 53.3080% | Val R^2: 33.3044%
+Epoch 22: baseline excess (mean) = 0.468284  (penalty active)
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.449690 | Val Loss 0.830944
+Epoch 23: Train R^2: 55.0734% | Val R^2: 34.8761%
+Epoch 23: baseline excess (mean) = 0.450550  (penalty active)
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.440587 | Val Loss 0.980836
+Epoch 24: Train R^2: 55.9829% | Val R^2: 23.1286%
+Epoch 24: baseline excess (mean) = 0.442958  (penalty active)
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.429311 | Val Loss 0.901284
+Epoch 25: Train R^2: 57.1095% | Val R^2: 29.3633%
+Epoch 25: baseline excess (mean) = 0.430873  (penalty active)
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.416704 | Val Loss 0.952405
+Epoch 26: Train R^2: 58.3689% | Val R^2: 25.3569%
+Epoch 26: baseline excess (mean) = 0.418069  (penalty active)
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.410493 | Val Loss 1.075567
+Epoch 27: Train R^2: 58.9894% | Val R^2: 15.7042%
+Epoch 27: baseline excess (mean) = 0.412133  (penalty active)
+--------------------
+----- Epoch 28 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 28: Train Loss 0.421323 | Val Loss 0.980369
+Epoch 28: Train R^2: 57.9075% | Val R^2: 23.1652%
+Epoch 28: baseline excess (mean) = 0.422072  (penalty active)
+--------------------
+----- Epoch 29 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 29: Train Loss 0.405758 | Val Loss 0.964528
+Epoch 29: Train R^2: 59.4625% | Val R^2: 24.4067%
+Epoch 29: baseline excess (mean) = 0.406027  (penalty active)
+--------------------
+----- Epoch 30 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 30: Train Loss 0.396683 | Val Loss 1.001558
+Epoch 30: Train R^2: 60.3692% | Val R^2: 21.5046%
+Epoch 30: baseline excess (mean) = 0.397619  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.102225  min: 0.057710  max: 0.157513
+--------------------
+----- Epoch 31 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 31: Train Loss 0.396086 | Val Loss 1.150977
+Epoch 31: Train R^2: 60.4288% | Val R^2: 9.7941%
+Epoch 31: baseline excess (mean) = 0.397428  (penalty active)
+--------------------
+----- Epoch 32 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 32: Train Loss 0.384592 | Val Loss 1.106079
+Epoch 32: Train R^2: 61.5771% | Val R^2: 13.3129%
+Epoch 32: baseline excess (mean) = 0.384634  (penalty active)
+--------------------
+----- Epoch 33 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 33: Train Loss 0.377121 | Val Loss 1.081652
+Epoch 33: Train R^2: 62.3235% | Val R^2: 15.2273%
+Epoch 33: baseline excess (mean) = 0.377017  (penalty active)
+--------------------
+Early stopping triggered. Loading best model weights...
+  Restored weights from best epoch 23 (val_loss=0.830944)
+  Checkpoint saved → model_fold_1.pth  (weights + history)  best_epoch=23
+========== Fold=2 ==========
+  torch.compile: enabled
+  Optimizer param groups:
+    decay    :  2,950,848 params  lr=1e-4  wd=1e-2
+    no-decay :     13,056 params  lr=1e-4  wd=0
+    gamma    :      2,304 params  lr=1e-3  wd=0   ← 10× boost
+    gate     :         18 params  lr=1e-2  wd=0   ← 100× boost
+  Gate warmup: gate_logit FROZEN for first 2 epochs
+----- Epoch 1 -----
+Training begins
+
+  ── LayerScale gamma gradient check (epoch 1, batch 1) ──
+    _orig_mod.blocks.0.ls1.gamma                        grad norm = 0.000128
+    _orig_mod.blocks.0.ls2.gamma                        grad norm = 0.000418
+    _orig_mod.blocks.1.ls1.gamma                        grad norm = 0.000123
+    _orig_mod.blocks.1.ls2.gamma                        grad norm = 0.000428
+    _orig_mod.blocks.2.ls1.gamma                        grad norm = 0.000140
+    _orig_mod.blocks.2.ls2.gamma                        grad norm = 0.000404
+    _orig_mod.blocks.3.ls1.gamma                        grad norm = 0.000119
+    _orig_mod.blocks.3.ls2.gamma                        grad norm = 0.000398
+    _orig_mod.blocks.4.ls1.gamma                        grad norm = 0.000114
+    _orig_mod.blocks.4.ls2.gamma                        grad norm = 0.000369
+    _orig_mod.blocks.5.ls1.gamma                        grad norm = 0.000121
+    _orig_mod.blocks.5.ls2.gamma                        grad norm = 0.000397
+  ── end gamma check ──
+
+
+  ── SectorGPSA gate_logit gradient check (epoch 1, batch 1) ──
+  (near-zero grads are expected at init; see docstring)
+    _orig_mod.blocks.0.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.1.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.2.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.3.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.4.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.5.attn.gate_logit                  grad = None  ← not connected!
+  ── end gate check ──
+
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.990028 | Val Loss 1.098130
+Epoch 1: Train R^2: 1.0202% | Val R^2: 0.9024%
+Epoch 1: baseline excess (mean) = 0.988808  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.022707  min: 0.016256  max: 0.028604
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.960064 | Val Loss 1.059271
+Epoch 2: Train R^2: 4.0159% | Val R^2: 4.4091%
+Epoch 2: baseline excess (mean) = 0.958746  (penalty active)
+--------------------
+----- Epoch 3 -----
+  Gate warmup complete: gate_logit UNFROZEN at epoch 3
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.921630 | Val Loss 1.010528
+Epoch 3: Train R^2: 7.8583% | Val R^2: 8.8078%
+Epoch 3: baseline excess (mean) = 0.920203  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.066119  min: 0.044760  max: 0.087154
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.878424 | Val Loss 0.970684
+Epoch 4: Train R^2: 12.1780% | Val R^2: 12.4034%
+Epoch 4: baseline excess (mean) = 0.876706  (penalty active)
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.840307 | Val Loss 0.943953
+Epoch 5: Train R^2: 15.9887% | Val R^2: 14.8156%
+Epoch 5: baseline excess (mean) = 0.837997  (penalty active)
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.805847 | Val Loss 0.912949
+Epoch 6: Train R^2: 19.4339% | Val R^2: 17.6135%
+Epoch 6: baseline excess (mean) = 0.803180  (penalty active)
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.772652 | Val Loss 0.876597
+Epoch 7: Train R^2: 22.7527% | Val R^2: 20.8940%
+Epoch 7: baseline excess (mean) = 0.769857  (penalty active)
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.744630 | Val Loss 0.841424
+Epoch 8: Train R^2: 25.5542% | Val R^2: 24.0681%
+Epoch 8: baseline excess (mean) = 0.741793  (penalty active)
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.719691 | Val Loss 0.812026
+Epoch 9: Train R^2: 28.0475% | Val R^2: 26.7210%
+Epoch 9: baseline excess (mean) = 0.716731  (penalty active)
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.695764 | Val Loss 0.782647
+Epoch 10: Train R^2: 30.4397% | Val R^2: 29.3722%
+Epoch 10: baseline excess (mean) = 0.692738  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.088906  min: 0.064165  max: 0.118591
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.673118 | Val Loss 0.757605
+Epoch 11: Train R^2: 32.7038% | Val R^2: 31.6321%
+Epoch 11: baseline excess (mean) = 0.670052  (penalty active)
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.651261 | Val Loss 0.732648
+Epoch 12: Train R^2: 34.8890% | Val R^2: 33.8842%
+Epoch 12: baseline excess (mean) = 0.648293  (penalty active)
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.631759 | Val Loss 0.710555
+Epoch 13: Train R^2: 36.8387% | Val R^2: 35.8780%
+Epoch 13: baseline excess (mean) = 0.628816  (penalty active)
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 0.611804 | Val Loss 0.694052
+Epoch 14: Train R^2: 38.8337% | Val R^2: 37.3673%
+Epoch 14: baseline excess (mean) = 0.608946  (penalty active)
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 0.592620 | Val Loss 0.677153
+Epoch 15: Train R^2: 40.7517% | Val R^2: 38.8923%
+Epoch 15: baseline excess (mean) = 0.589747  (penalty active)
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 0.573684 | Val Loss 0.658981
+Epoch 16: Train R^2: 42.6449% | Val R^2: 40.5322%
+Epoch 16: baseline excess (mean) = 0.570913  (penalty active)
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 0.553861 | Val Loss 0.647804
+Epoch 17: Train R^2: 44.6268% | Val R^2: 41.5407%
+Epoch 17: baseline excess (mean) = 0.551257  (penalty active)
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 0.532272 | Val Loss 0.635629
+Epoch 18: Train R^2: 46.7851% | Val R^2: 42.6395%
+Epoch 18: baseline excess (mean) = 0.529925  (penalty active)
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 0.513251 | Val Loss 0.626469
+Epoch 19: Train R^2: 48.6868% | Val R^2: 43.4661%
+Epoch 19: baseline excess (mean) = 0.510944  (penalty active)
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 0.494147 | Val Loss 0.618857
+Epoch 20: Train R^2: 50.5967% | Val R^2: 44.1530%
+Epoch 20: baseline excess (mean) = 0.492085  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.101155  min: 0.068923  max: 0.134279
+--------------------
+----- Epoch 21 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.473709 | Val Loss 0.610479
+Epoch 21: Train R^2: 52.6400% | Val R^2: 44.9090%
+Epoch 21: baseline excess (mean) = 0.471730  (penalty active)
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.455023 | Val Loss 0.599332
+Epoch 22: Train R^2: 54.5082% | Val R^2: 45.9150%
+Epoch 22: baseline excess (mean) = 0.453092  (penalty active)
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.438645 | Val Loss 0.578577
+Epoch 23: Train R^2: 56.1457% | Val R^2: 47.7879%
+Epoch 23: baseline excess (mean) = 0.436891  (penalty active)
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.424126 | Val Loss 0.568553
+Epoch 24: Train R^2: 57.5972% | Val R^2: 48.6925%
+Epoch 24: baseline excess (mean) = 0.422306  (penalty active)
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.414309 | Val Loss 0.564151
+Epoch 25: Train R^2: 58.5787% | Val R^2: 49.0898%
+Epoch 25: baseline excess (mean) = 0.413090  (penalty active)
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.407783 | Val Loss 0.581241
+Epoch 26: Train R^2: 59.2312% | Val R^2: 47.5476%
+Epoch 26: baseline excess (mean) = 0.406199  (penalty active)
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.394937 | Val Loss 0.581627
+Epoch 27: Train R^2: 60.5154% | Val R^2: 47.5128%
+Epoch 27: baseline excess (mean) = 0.393398  (penalty active)
+--------------------
+----- Epoch 28 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 28: Train Loss 0.380346 | Val Loss 0.564916
+Epoch 28: Train R^2: 61.9742% | Val R^2: 49.0208%
+Epoch 28: baseline excess (mean) = 0.378727  (penalty active)
+--------------------
+----- Epoch 29 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 29: Train Loss 0.373433 | Val Loss 0.547652
+Epoch 29: Train R^2: 62.6654% | Val R^2: 50.5787%
+Epoch 29: baseline excess (mean) = 0.371724  (penalty active)
+--------------------
+----- Epoch 30 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 30: Train Loss 0.374917 | Val Loss 0.541205
+Epoch 30: Train R^2: 62.5169% | Val R^2: 51.1605%
+Epoch 30: baseline excess (mean) = 0.373723  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.105321  min: 0.065809  max: 0.145605
+--------------------
+----- Epoch 31 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 31: Train Loss 0.383216 | Val Loss 0.554066
+Epoch 31: Train R^2: 61.6872% | Val R^2: 49.9999%
+Epoch 31: baseline excess (mean) = 0.381546  (penalty active)
+--------------------
+----- Epoch 32 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 32: Train Loss 0.376909 | Val Loss 0.536233
+Epoch 32: Train R^2: 62.3178% | Val R^2: 51.6092%
+Epoch 32: baseline excess (mean) = 0.375287  (penalty active)
+--------------------
+----- Epoch 33 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 33: Train Loss 0.391338 | Val Loss 0.625247
+Epoch 33: Train R^2: 60.8752% | Val R^2: 43.5764%
+Epoch 33: baseline excess (mean) = 0.390943  (penalty active)
+--------------------
+----- Epoch 34 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 34: Train Loss 0.403295 | Val Loss 0.682700
+Epoch 34: Train R^2: 59.6799% | Val R^2: 38.3917%
+Epoch 34: baseline excess (mean) = 0.402536  (penalty active)
+--------------------
+----- Epoch 35 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 35: Train Loss 0.387980 | Val Loss 0.633603
+Epoch 35: Train R^2: 61.2110% | Val R^2: 42.8223%
+Epoch 35: baseline excess (mean) = 0.386325  (penalty active)
+--------------------
+----- Epoch 36 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 36: Train Loss 0.360139 | Val Loss 0.583938
+Epoch 36: Train R^2: 63.9944% | Val R^2: 47.3042%
+Epoch 36: baseline excess (mean) = 0.358235  (penalty active)
+--------------------
+----- Epoch 37 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 37: Train Loss 0.338076 | Val Loss 0.548143
+Epoch 37: Train R^2: 66.2002% | Val R^2: 50.5344%
+Epoch 37: baseline excess (mean) = 0.336296  (penalty active)
+--------------------
+----- Epoch 38 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 38: Train Loss 0.328737 | Val Loss 0.543641
+Epoch 38: Train R^2: 67.1339% | Val R^2: 50.9407%
+Epoch 38: baseline excess (mean) = 0.326991  (penalty active)
+--------------------
+----- Epoch 39 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 39: Train Loss 0.326779 | Val Loss 0.585387
+Epoch 39: Train R^2: 67.3296% | Val R^2: 47.1734%
+Epoch 39: baseline excess (mean) = 0.325173  (penalty active)
+--------------------
+----- Epoch 40 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 40: Train Loss 0.323934 | Val Loss 0.584363
+Epoch 40: Train R^2: 67.6141% | Val R^2: 47.2659%
+Epoch 40: baseline excess (mean) = 0.322338  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.104992  min: 0.060496  max: 0.147602
+--------------------
+----- Epoch 41 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 41: Train Loss 0.327000 | Val Loss 0.622432
+Epoch 41: Train R^2: 67.3075% | Val R^2: 43.8304%
+Epoch 41: baseline excess (mean) = 0.325269  (penalty active)
+--------------------
+----- Epoch 42 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 42: Train Loss 0.331068 | Val Loss 0.639052
+Epoch 42: Train R^2: 66.9008% | Val R^2: 42.3306%
+Epoch 42: baseline excess (mean) = 0.329108  (penalty active)
+--------------------
+Early stopping triggered. Loading best model weights...
+  Restored weights from best epoch 32 (val_loss=0.536233)
+  Checkpoint saved → model_fold_2.pth  (weights + history)  best_epoch=32
+========== Fold=3 ==========
+  torch.compile: enabled
+  Optimizer param groups:
+    decay    :  2,950,848 params  lr=1e-4  wd=1e-2
+    no-decay :     13,056 params  lr=1e-4  wd=0
+    gamma    :      2,304 params  lr=1e-3  wd=0   ← 10× boost
+    gate     :         18 params  lr=1e-2  wd=0   ← 100× boost
+  Gate warmup: gate_logit FROZEN for first 2 epochs
+----- Epoch 1 -----
+Training begins
+
+  ── LayerScale gamma gradient check (epoch 1, batch 1) ──
+    _orig_mod.blocks.0.ls1.gamma                        grad norm = 0.000123
+    _orig_mod.blocks.0.ls2.gamma                        grad norm = 0.000491
+    _orig_mod.blocks.1.ls1.gamma                        grad norm = 0.000097
+    _orig_mod.blocks.1.ls2.gamma                        grad norm = 0.000549
+    _orig_mod.blocks.2.ls1.gamma                        grad norm = 0.000114
+    _orig_mod.blocks.2.ls2.gamma                        grad norm = 0.000557
+    _orig_mod.blocks.3.ls1.gamma                        grad norm = 0.000106
+    _orig_mod.blocks.3.ls2.gamma                        grad norm = 0.000514
+    _orig_mod.blocks.4.ls1.gamma                        grad norm = 0.000112
+    _orig_mod.blocks.4.ls2.gamma                        grad norm = 0.000588
+    _orig_mod.blocks.5.ls1.gamma                        grad norm = 0.000108
+    _orig_mod.blocks.5.ls2.gamma                        grad norm = 0.000479
+  ── end gamma check ──
+
+
+  ── SectorGPSA gate_logit gradient check (epoch 1, batch 1) ──
+  (near-zero grads are expected at init; see docstring)
+    _orig_mod.blocks.0.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.1.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.2.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.3.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.4.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.5.attn.gate_logit                  grad = None  ← not connected!
+  ── end gate check ──
+
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.989028 | Val Loss 1.828257
+Epoch 1: Train R^2: 1.1100% | Val R^2: -11.5047%
+Epoch 1: baseline excess (mean) = 0.988346  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.021728  min: 0.015332  max: 0.027485
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.957484 | Val Loss 1.796886
+Epoch 2: Train R^2: 4.2640% | Val R^2: -9.5914%
+Epoch 2: baseline excess (mean) = 0.956610  (penalty active)
+--------------------
+----- Epoch 3 -----
+  Gate warmup complete: gate_logit UNFROZEN at epoch 3
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.916127 | Val Loss 1.755639
+Epoch 3: Train R^2: 8.3991% | Val R^2: -7.0757%
+Epoch 3: baseline excess (mean) = 0.914980  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.066149  min: 0.043235  max: 0.086810
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.868447 | Val Loss 1.715434
+Epoch 4: Train R^2: 13.1666% | Val R^2: -4.6236%
+Epoch 4: baseline excess (mean) = 0.867014  (penalty active)
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.823718 | Val Loss 1.698871
+Epoch 5: Train R^2: 17.6389% | Val R^2: -3.6135%
+Epoch 5: baseline excess (mean) = 0.822054  (penalty active)
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.778510 | Val Loss 1.671319
+Epoch 6: Train R^2: 22.1590% | Val R^2: -1.9331%
+Epoch 6: baseline excess (mean) = 0.776803  (penalty active)
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.739759 | Val Loss 1.627655
+Epoch 7: Train R^2: 26.0337% | Val R^2: 0.7300%
+Epoch 7: baseline excess (mean) = 0.738057  (penalty active)
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.708157 | Val Loss 1.593203
+Epoch 8: Train R^2: 29.1935% | Val R^2: 2.8312%
+Epoch 8: baseline excess (mean) = 0.706439  (penalty active)
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.680304 | Val Loss 1.559855
+Epoch 9: Train R^2: 31.9784% | Val R^2: 4.8651%
+Epoch 9: baseline excess (mean) = 0.678601  (penalty active)
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.657109 | Val Loss 1.531988
+Epoch 10: Train R^2: 34.2976% | Val R^2: 6.5647%
+Epoch 10: baseline excess (mean) = 0.655362  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.089254  min: 0.057077  max: 0.119098
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.635776 | Val Loss 1.503748
+Epoch 11: Train R^2: 36.4306% | Val R^2: 8.2870%
+Epoch 11: baseline excess (mean) = 0.634022  (penalty active)
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.617971 | Val Loss 1.479705
+Epoch 12: Train R^2: 38.2109% | Val R^2: 9.7534%
+Epoch 12: baseline excess (mean) = 0.616216  (penalty active)
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.600047 | Val Loss 1.456254
+Epoch 13: Train R^2: 40.0030% | Val R^2: 11.1837%
+Epoch 13: baseline excess (mean) = 0.598344  (penalty active)
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 0.582977 | Val Loss 1.428521
+Epoch 14: Train R^2: 41.7099% | Val R^2: 12.8751%
+Epoch 14: baseline excess (mean) = 0.581301  (penalty active)
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 0.566613 | Val Loss 1.409301
+Epoch 15: Train R^2: 43.3460% | Val R^2: 14.0473%
+Epoch 15: baseline excess (mean) = 0.564991  (penalty active)
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 0.547244 | Val Loss 1.398744
+Epoch 16: Train R^2: 45.2827% | Val R^2: 14.6912%
+Epoch 16: baseline excess (mean) = 0.545804  (penalty active)
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 0.523901 | Val Loss 1.391773
+Epoch 17: Train R^2: 47.6167% | Val R^2: 15.1163%
+Epoch 17: baseline excess (mean) = 0.522551  (penalty active)
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 0.503094 | Val Loss 1.417526
+Epoch 18: Train R^2: 49.6971% | Val R^2: 13.5457%
+Epoch 18: baseline excess (mean) = 0.501954  (penalty active)
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 0.487181 | Val Loss 1.425786
+Epoch 19: Train R^2: 51.2882% | Val R^2: 13.0419%
+Epoch 19: baseline excess (mean) = 0.486046  (penalty active)
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 0.475631 | Val Loss 1.380629
+Epoch 20: Train R^2: 52.4431% | Val R^2: 15.7960%
+Epoch 20: baseline excess (mean) = 0.474471  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.099667  min: 0.045785  max: 0.143072
+--------------------
+----- Epoch 21 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.460336 | Val Loss 1.366395
+Epoch 21: Train R^2: 53.9723% | Val R^2: 16.6641%
+Epoch 21: baseline excess (mean) = 0.459322  (penalty active)
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.455375 | Val Loss 1.290021
+Epoch 22: Train R^2: 54.4684% | Val R^2: 21.3221%
+Epoch 22: baseline excess (mean) = 0.454383  (penalty active)
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.441012 | Val Loss 1.211798
+Epoch 23: Train R^2: 55.9045% | Val R^2: 26.0929%
+Epoch 23: baseline excess (mean) = 0.440156  (penalty active)
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.430162 | Val Loss 1.102570
+Epoch 24: Train R^2: 56.9894% | Val R^2: 32.7547%
+Epoch 24: baseline excess (mean) = 0.429556  (penalty active)
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.451083 | Val Loss 1.078753
+Epoch 25: Train R^2: 54.8975% | Val R^2: 34.2073%
+Epoch 25: baseline excess (mean) = 0.450365  (penalty active)
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.526522 | Val Loss 1.221921
+Epoch 26: Train R^2: 47.3546% | Val R^2: 25.4755%
+Epoch 26: baseline excess (mean) = 0.524299  (penalty active)
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.449260 | Val Loss 1.241245
+Epoch 27: Train R^2: 55.0798% | Val R^2: 24.2969%
+Epoch 27: baseline excess (mean) = 0.447986  (penalty active)
+--------------------
+----- Epoch 28 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 28: Train Loss 0.404680 | Val Loss 1.140039
+Epoch 28: Train R^2: 59.5372% | Val R^2: 30.4695%
+Epoch 28: baseline excess (mean) = 0.403995  (penalty active)
+--------------------
+----- Epoch 29 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 29: Train Loss 0.385059 | Val Loss 1.163583
+Epoch 29: Train R^2: 61.4991% | Val R^2: 29.0335%
+Epoch 29: baseline excess (mean) = 0.384382  (penalty active)
+--------------------
+----- Epoch 30 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 30: Train Loss 0.384601 | Val Loss 1.110233
+Epoch 30: Train R^2: 61.5448% | Val R^2: 32.2873%
+Epoch 30: baseline excess (mean) = 0.384203  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.099497  min: 0.046380  max: 0.145730
+--------------------
+----- Epoch 31 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 31: Train Loss 0.367986 | Val Loss 1.027689
+Epoch 31: Train R^2: 63.2062% | Val R^2: 37.3217%
+Epoch 31: baseline excess (mean) = 0.367564  (penalty active)
+--------------------
+----- Epoch 32 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 32: Train Loss 0.363046 | Val Loss 1.014908
+Epoch 32: Train R^2: 63.7001% | Val R^2: 38.1012%
+Epoch 32: baseline excess (mean) = 0.362485  (penalty active)
+--------------------
+----- Epoch 33 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 33: Train Loss 0.353631 | Val Loss 0.967345
+Epoch 33: Train R^2: 64.6415% | Val R^2: 41.0020%
+Epoch 33: baseline excess (mean) = 0.353192  (penalty active)
+--------------------
+----- Epoch 34 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 34: Train Loss 0.360398 | Val Loss 0.946593
+Epoch 34: Train R^2: 63.9648% | Val R^2: 42.2677%
+Epoch 34: baseline excess (mean) = 0.359649  (penalty active)
+--------------------
+----- Epoch 35 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 35: Train Loss 0.350928 | Val Loss 0.919281
+Epoch 35: Train R^2: 64.9117% | Val R^2: 43.9334%
+Epoch 35: baseline excess (mean) = 0.350480  (penalty active)
+--------------------
+----- Epoch 36 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 36: Train Loss 0.357503 | Val Loss 0.945897
+Epoch 36: Train R^2: 64.2544% | Val R^2: 42.3101%
+Epoch 36: baseline excess (mean) = 0.356816  (penalty active)
+--------------------
+----- Epoch 37 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 37: Train Loss 0.358133 | Val Loss 1.145319
+Epoch 37: Train R^2: 64.1913% | Val R^2: 30.1474%
+Epoch 37: baseline excess (mean) = 0.357680  (penalty active)
+--------------------
+----- Epoch 38 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 38: Train Loss 0.415343 | Val Loss 1.577845
+Epoch 38: Train R^2: 58.4711% | Val R^2: 3.7679%
+Epoch 38: baseline excess (mean) = 0.414300  (penalty active)
+--------------------
+----- Epoch 39 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 39: Train Loss 0.406549 | Val Loss 1.288036
+Epoch 39: Train R^2: 59.3503% | Val R^2: 21.4432%
+Epoch 39: baseline excess (mean) = 0.405049  (penalty active)
+--------------------
+----- Epoch 40 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 40: Train Loss 0.359647 | Val Loss 1.332931
+Epoch 40: Train R^2: 64.0400% | Val R^2: 18.7051%
+Epoch 40: baseline excess (mean) = 0.358749  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.096842  min: 0.049724  max: 0.142724
+--------------------
+----- Epoch 41 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 41: Train Loss 0.333982 | Val Loss 1.278350
+Epoch 41: Train R^2: 66.6061% | Val R^2: 22.0339%
+Epoch 41: baseline excess (mean) = 0.333316  (penalty active)
+--------------------
+----- Epoch 42 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 42: Train Loss 0.327798 | Val Loss 1.199233
+Epoch 42: Train R^2: 67.2245% | Val R^2: 26.8592%
+Epoch 42: baseline excess (mean) = 0.327318  (penalty active)
+--------------------
+----- Epoch 43 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 43: Train Loss 0.333504 | Val Loss 1.255878
+Epoch 43: Train R^2: 66.6539% | Val R^2: 23.4045%
+Epoch 43: baseline excess (mean) = 0.332807  (penalty active)
+--------------------
+----- Epoch 44 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 44: Train Loss 0.331227 | Val Loss 1.253889
+Epoch 44: Train R^2: 66.8816% | Val R^2: 23.5258%
+Epoch 44: baseline excess (mean) = 0.330525  (penalty active)
+--------------------
+----- Epoch 45 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 45: Train Loss 0.322647 | Val Loss 1.135846
+Epoch 45: Train R^2: 67.7394% | Val R^2: 30.7252%
+Epoch 45: baseline excess (mean) = 0.322170  (penalty active)
+--------------------
+Early stopping triggered. Loading best model weights...
+  Restored weights from best epoch 35 (val_loss=0.919281)
+  Checkpoint saved → model_fold_3.pth  (weights + history)  best_epoch=35
+========== Fold=4 ==========
+  torch.compile: enabled
+  Optimizer param groups:
+    decay    :  2,950,848 params  lr=1e-4  wd=1e-2
+    no-decay :     13,056 params  lr=1e-4  wd=0
+    gamma    :      2,304 params  lr=1e-3  wd=0   ← 10× boost
+    gate     :         18 params  lr=1e-2  wd=0   ← 100× boost
+  Gate warmup: gate_logit FROZEN for first 2 epochs
+----- Epoch 1 -----
+Training begins
+
+  ── LayerScale gamma gradient check (epoch 1, batch 1) ──
+    _orig_mod.blocks.0.ls1.gamma                        grad norm = 0.000109
+    _orig_mod.blocks.0.ls2.gamma                        grad norm = 0.000372
+    _orig_mod.blocks.1.ls1.gamma                        grad norm = 0.000105
+    _orig_mod.blocks.1.ls2.gamma                        grad norm = 0.000366
+    _orig_mod.blocks.2.ls1.gamma                        grad norm = 0.000114
+    _orig_mod.blocks.2.ls2.gamma                        grad norm = 0.000395
+    _orig_mod.blocks.3.ls1.gamma                        grad norm = 0.000127
+    _orig_mod.blocks.3.ls2.gamma                        grad norm = 0.000465
+    _orig_mod.blocks.4.ls1.gamma                        grad norm = 0.000105
+    _orig_mod.blocks.4.ls2.gamma                        grad norm = 0.000386
+    _orig_mod.blocks.5.ls1.gamma                        grad norm = 0.000126
+    _orig_mod.blocks.5.ls2.gamma                        grad norm = 0.000428
+  ── end gamma check ──
+
+
+  ── SectorGPSA gate_logit gradient check (epoch 1, batch 1) ──
+  (near-zero grads are expected at init; see docstring)
+    _orig_mod.blocks.0.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.1.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.2.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.3.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.4.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.5.attn.gate_logit                  grad = None  ← not connected!
+  ── end gate check ──
+
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.992236 | Val Loss 0.984503
+Epoch 1: Train R^2: 0.8505% | Val R^2: -3.3378%
+Epoch 1: baseline excess (mean) = 0.998957  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.021758  min: 0.014376  max: 0.028568
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.963538 | Val Loss 0.951121
+Epoch 2: Train R^2: 3.7182% | Val R^2: 0.1661%
+Epoch 2: baseline excess (mean) = 0.970195  (penalty active)
+--------------------
+----- Epoch 3 -----
+  Gate warmup complete: gate_logit UNFROZEN at epoch 3
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.929900 | Val Loss 0.912484
+Epoch 3: Train R^2: 7.0795% | Val R^2: 4.2216%
+Epoch 3: baseline excess (mean) = 0.936472  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.062685  min: 0.038459  max: 0.087328
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.896263 | Val Loss 0.884851
+Epoch 4: Train R^2: 10.4406% | Val R^2: 7.1222%
+Epoch 4: baseline excess (mean) = 0.903445  (penalty active)
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.863774 | Val Loss 0.891598
+Epoch 5: Train R^2: 13.6871% | Val R^2: 6.4140%
+Epoch 5: baseline excess (mean) = 0.872979  (penalty active)
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.824136 | Val Loss 0.872820
+Epoch 6: Train R^2: 17.6480% | Val R^2: 8.3850%
+Epoch 6: baseline excess (mean) = 0.833920  (penalty active)
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.790793 | Val Loss 0.848287
+Epoch 7: Train R^2: 20.9797% | Val R^2: 10.9601%
+Epoch 7: baseline excess (mean) = 0.800597  (penalty active)
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.759444 | Val Loss 0.821393
+Epoch 8: Train R^2: 24.1123% | Val R^2: 13.7830%
+Epoch 8: baseline excess (mean) = 0.769031  (penalty active)
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.731212 | Val Loss 0.794043
+Epoch 9: Train R^2: 26.9334% | Val R^2: 16.6537%
+Epoch 9: baseline excess (mean) = 0.740406  (penalty active)
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.702087 | Val Loss 0.761455
+Epoch 10: Train R^2: 29.8437% | Val R^2: 20.0744%
+Epoch 10: baseline excess (mean) = 0.710655  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.092001  min: 0.053232  max: 0.124721
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.675402 | Val Loss 0.735335
+Epoch 11: Train R^2: 32.5102% | Val R^2: 22.8160%
+Epoch 11: baseline excess (mean) = 0.683319  (penalty active)
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.644640 | Val Loss 0.701954
+Epoch 12: Train R^2: 35.5841% | Val R^2: 26.3198%
+Epoch 12: baseline excess (mean) = 0.651366  (penalty active)
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.611904 | Val Loss 0.676771
+Epoch 13: Train R^2: 38.8553% | Val R^2: 28.9632%
+Epoch 13: baseline excess (mean) = 0.617552  (penalty active)
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 0.577190 | Val Loss 0.656210
+Epoch 14: Train R^2: 42.3241% | Val R^2: 31.1214%
+Epoch 14: baseline excess (mean) = 0.581747  (penalty active)
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 0.543198 | Val Loss 0.641250
+Epoch 15: Train R^2: 45.7208% | Val R^2: 32.6916%
+Epoch 15: baseline excess (mean) = 0.546605  (penalty active)
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 0.510200 | Val Loss 0.610293
+Epoch 16: Train R^2: 49.0181% | Val R^2: 35.9409%
+Epoch 16: baseline excess (mean) = 0.512305  (penalty active)
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 0.480952 | Val Loss 0.616586
+Epoch 17: Train R^2: 51.9408% | Val R^2: 35.2804%
+Epoch 17: baseline excess (mean) = 0.482922  (penalty active)
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 0.453896 | Val Loss 0.559997
+Epoch 18: Train R^2: 54.6443% | Val R^2: 41.2203%
+Epoch 18: baseline excess (mean) = 0.453707  (penalty active)
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 0.432809 | Val Loss 0.560271
+Epoch 19: Train R^2: 56.7515% | Val R^2: 41.1915%
+Epoch 19: baseline excess (mean) = 0.432134  (penalty active)
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 0.413997 | Val Loss 0.547515
+Epoch 20: Train R^2: 58.6312% | Val R^2: 42.5305%
+Epoch 20: baseline excess (mean) = 0.412682  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.103572  min: 0.043664  max: 0.152960
+--------------------
+----- Epoch 21 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.400126 | Val Loss 0.571069
+Epoch 21: Train R^2: 60.0173% | Val R^2: 40.0581%
+Epoch 21: baseline excess (mean) = 0.398594  (penalty active)
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.404330 | Val Loss 0.602185
+Epoch 22: Train R^2: 59.5972% | Val R^2: 36.7920%
+Epoch 22: baseline excess (mean) = 0.402473  (penalty active)
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.423707 | Val Loss 0.561989
+Epoch 23: Train R^2: 57.6609% | Val R^2: 41.0112%
+Epoch 23: baseline excess (mean) = 0.424103  (penalty active)
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.477083 | Val Loss 0.803131
+Epoch 24: Train R^2: 52.3274% | Val R^2: 15.6998%
+Epoch 24: baseline excess (mean) = 0.480365  (penalty active)
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.537138 | Val Loss 0.611756
+Epoch 25: Train R^2: 46.3263% | Val R^2: 35.7874%
+Epoch 25: baseline excess (mean) = 0.537912  (penalty active)
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.443681 | Val Loss 0.549984
+Epoch 26: Train R^2: 55.6650% | Val R^2: 42.2712%
+Epoch 26: baseline excess (mean) = 0.442414  (penalty active)
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.372207 | Val Loss 0.616843
+Epoch 27: Train R^2: 62.8071% | Val R^2: 35.2535%
+Epoch 27: baseline excess (mean) = 0.371123  (penalty active)
+--------------------
+----- Epoch 28 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 28: Train Loss 0.366265 | Val Loss 0.548460
+Epoch 28: Train R^2: 63.4009% | Val R^2: 42.4312%
+Epoch 28: baseline excess (mean) = 0.364583  (penalty active)
+--------------------
+----- Epoch 29 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 29: Train Loss 0.344554 | Val Loss 0.542641
+Epoch 29: Train R^2: 65.5703% | Val R^2: 43.0420%
+Epoch 29: baseline excess (mean) = 0.343095  (penalty active)
+--------------------
+----- Epoch 30 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 30: Train Loss 0.341874 | Val Loss 0.570726
+Epoch 30: Train R^2: 65.8381% | Val R^2: 40.0941%
+Epoch 30: baseline excess (mean) = 0.340304  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.101479  min: 0.046828  max: 0.150960
+--------------------
+----- Epoch 31 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 31: Train Loss 0.331850 | Val Loss 0.663304
+Epoch 31: Train R^2: 66.8398% | Val R^2: 30.3767%
+Epoch 31: baseline excess (mean) = 0.330447  (penalty active)
+--------------------
+----- Epoch 32 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 32: Train Loss 0.334936 | Val Loss 0.563415
+Epoch 32: Train R^2: 66.5314% | Val R^2: 40.8615%
+Epoch 32: baseline excess (mean) = 0.333083  (penalty active)
+--------------------
+----- Epoch 33 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 33: Train Loss 0.324921 | Val Loss 0.664037
+Epoch 33: Train R^2: 67.5322% | Val R^2: 30.2998%
+Epoch 33: baseline excess (mean) = 0.323322  (penalty active)
+--------------------
+----- Epoch 34 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 34: Train Loss 0.327639 | Val Loss 0.544919
+Epoch 34: Train R^2: 67.2606% | Val R^2: 42.8029%
+Epoch 34: baseline excess (mean) = 0.326472  (penalty active)
+--------------------
+----- Epoch 35 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 35: Train Loss 0.341196 | Val Loss 0.490028
+Epoch 35: Train R^2: 65.9059% | Val R^2: 48.5645%
+Epoch 35: baseline excess (mean) = 0.338839  (penalty active)
+--------------------
+----- Epoch 36 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 36: Train Loss 0.397275 | Val Loss 0.524949
+Epoch 36: Train R^2: 60.3021% | Val R^2: 44.8991%
+Epoch 36: baseline excess (mean) = 0.393839  (penalty active)
+--------------------
+----- Epoch 37 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 37: Train Loss 0.385672 | Val Loss 0.459472
+Epoch 37: Train R^2: 61.4616% | Val R^2: 51.7718%
+Epoch 37: baseline excess (mean) = 0.382407  (penalty active)
+--------------------
+----- Epoch 38 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 38: Train Loss 0.330115 | Val Loss 0.485637
+Epoch 38: Train R^2: 67.0131% | Val R^2: 49.0254%
+Epoch 38: baseline excess (mean) = 0.327927  (penalty active)
+--------------------
+----- Epoch 39 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 39: Train Loss 0.307904 | Val Loss 0.487330
+Epoch 39: Train R^2: 69.2326% | Val R^2: 48.8477%
+Epoch 39: baseline excess (mean) = 0.306009  (penalty active)
+--------------------
+----- Epoch 40 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 40: Train Loss 0.318227 | Val Loss 0.504884
+Epoch 40: Train R^2: 68.2010% | Val R^2: 47.0051%
+Epoch 40: baseline excess (mean) = 0.316270  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.098768  min: 0.051316  max: 0.145786
+--------------------
+----- Epoch 41 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 41: Train Loss 0.311031 | Val Loss 0.529110
+Epoch 41: Train R^2: 68.9202% | Val R^2: 44.4623%
+Epoch 41: baseline excess (mean) = 0.309124  (penalty active)
+--------------------
+----- Epoch 42 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 42: Train Loss 0.339264 | Val Loss 0.441209
+Epoch 42: Train R^2: 66.0989% | Val R^2: 53.6888%
+Epoch 42: baseline excess (mean) = 0.337183  (penalty active)
+--------------------
+----- Epoch 43 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 43: Train Loss 0.345161 | Val Loss 0.485877
+Epoch 43: Train R^2: 65.5096% | Val R^2: 49.0002%
+Epoch 43: baseline excess (mean) = 0.344065  (penalty active)
+--------------------
+----- Epoch 44 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 44: Train Loss 0.332080 | Val Loss 0.682479
+Epoch 44: Train R^2: 66.8168% | Val R^2: 28.3640%
+Epoch 44: baseline excess (mean) = 0.332074  (penalty active)
+--------------------
+----- Epoch 45 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 45: Train Loss 0.363350 | Val Loss 0.550675
+Epoch 45: Train R^2: 63.6921% | Val R^2: 42.1988%
+Epoch 45: baseline excess (mean) = 0.360791  (penalty active)
+--------------------
+----- Epoch 46 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 46: Train Loss 0.325264 | Val Loss 0.516262
+Epoch 46: Train R^2: 67.4979% | Val R^2: 45.8109%
+Epoch 46: baseline excess (mean) = 0.323001  (penalty active)
+--------------------
+----- Epoch 47 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 47: Train Loss 0.296450 | Val Loss 0.463599
+Epoch 47: Train R^2: 70.3771% | Val R^2: 51.3386%
+Epoch 47: baseline excess (mean) = 0.295452  (penalty active)
+--------------------
+----- Epoch 48 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 48: Train Loss 0.282375 | Val Loss 0.434750
+Epoch 48: Train R^2: 71.7836% | Val R^2: 54.3667%
+Epoch 48: baseline excess (mean) = 0.280482  (penalty active)
+--------------------
+----- Epoch 49 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 49: Train Loss 0.282440 | Val Loss 0.436145
+Epoch 49: Train R^2: 71.7771% | Val R^2: 54.2203%
+Epoch 49: baseline excess (mean) = 0.280063  (penalty active)
+--------------------
+----- Epoch 50 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 50: Train Loss 0.274669 | Val Loss 0.477144
+Epoch 50: Train R^2: 72.5537% | Val R^2: 49.9169%
+Epoch 50: baseline excess (mean) = 0.272570  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.096290  min: 0.055715  max: 0.138611
+--------------------
+----- Epoch 51 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 51: Train Loss 0.286903 | Val Loss 0.467382
+Epoch 51: Train R^2: 71.3312% | Val R^2: 50.9415%
+Epoch 51: baseline excess (mean) = 0.284476  (penalty active)
+--------------------
+----- Epoch 52 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 52: Train Loss 0.307532 | Val Loss 0.456387
+Epoch 52: Train R^2: 69.2698% | Val R^2: 52.0956%
+Epoch 52: baseline excess (mean) = 0.305717  (penalty active)
+--------------------
+----- Epoch 53 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 53: Train Loss 0.318875 | Val Loss 0.645567
+Epoch 53: Train R^2: 68.1363% | Val R^2: 32.2385%
+Epoch 53: baseline excess (mean) = 0.318316  (penalty active)
+--------------------
+----- Epoch 54 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 54: Train Loss 0.353367 | Val Loss 0.516677
+Epoch 54: Train R^2: 64.6897% | Val R^2: 45.7673%
+Epoch 54: baseline excess (mean) = 0.350806  (penalty active)
+--------------------
+----- Epoch 55 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 55: Train Loss 0.312162 | Val Loss 0.494127
+Epoch 55: Train R^2: 68.8072% | Val R^2: 48.1342%
+Epoch 55: baseline excess (mean) = 0.309404  (penalty active)
+--------------------
+----- Epoch 56 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 56: Train Loss 0.269508 | Val Loss 0.457249
+Epoch 56: Train R^2: 73.0694% | Val R^2: 52.0051%
+Epoch 56: baseline excess (mean) = 0.267732  (penalty active)
+--------------------
+----- Epoch 57 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 57: Train Loss 0.266567 | Val Loss 0.413581
+Epoch 57: Train R^2: 73.3632% | Val R^2: 56.5887%
+Epoch 57: baseline excess (mean) = 0.264258  (penalty active)
+--------------------
+----- Epoch 58 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 58: Train Loss 0.258676 | Val Loss 0.428045
+Epoch 58: Train R^2: 74.1518% | Val R^2: 55.0705%
+Epoch 58: baseline excess (mean) = 0.256650  (penalty active)
+--------------------
+----- Epoch 59 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 59: Train Loss 0.251889 | Val Loss 0.440051
+Epoch 59: Train R^2: 74.8299% | Val R^2: 53.8103%
+Epoch 59: baseline excess (mean) = 0.249705  (penalty active)
+--------------------
+----- Epoch 60 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 60: Train Loss 0.253576 | Val Loss 0.411254
+Epoch 60: Train R^2: 74.6614% | Val R^2: 56.8330%
+Epoch 60: baseline excess (mean) = 0.251206  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.095784  min: 0.055418  max: 0.136356
+--------------------
+----- Epoch 61 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 61: Train Loss 0.259222 | Val Loss 0.398317
+Epoch 61: Train R^2: 74.0971% | Val R^2: 58.1909%
+Epoch 61: baseline excess (mean) = 0.256782  (penalty active)
+--------------------
+----- Epoch 62 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 62: Train Loss 0.251060 | Val Loss 0.444709
+Epoch 62: Train R^2: 74.9127% | Val R^2: 53.3214%
+Epoch 62: baseline excess (mean) = 0.248721  (penalty active)
+--------------------
+----- Epoch 63 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 63: Train Loss 0.254209 | Val Loss 0.410722
+Epoch 63: Train R^2: 74.5981% | Val R^2: 56.8889%
+Epoch 63: baseline excess (mean) = 0.251675  (penalty active)
+--------------------
+----- Epoch 64 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 64: Train Loss 0.248385 | Val Loss 0.422842
+Epoch 64: Train R^2: 75.1801% | Val R^2: 55.6167%
+Epoch 64: baseline excess (mean) = 0.246106  (penalty active)
+--------------------
+----- Epoch 65 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 65: Train Loss 0.256490 | Val Loss 0.419347
+Epoch 65: Train R^2: 74.3702% | Val R^2: 55.9835%
+Epoch 65: baseline excess (mean) = 0.255029  (penalty active)
+--------------------
+----- Epoch 66 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 66: Train Loss 0.261750 | Val Loss 0.425325
+Epoch 66: Train R^2: 73.8445% | Val R^2: 55.3560%
+Epoch 66: baseline excess (mean) = 0.259322  (penalty active)
+--------------------
+----- Epoch 67 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 67: Train Loss 0.245633 | Val Loss 0.391001
+Epoch 67: Train R^2: 75.4551% | Val R^2: 58.9588%
+Epoch 67: baseline excess (mean) = 0.243134  (penalty active)
+--------------------
+----- Epoch 68 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 68: Train Loss 0.246020 | Val Loss 0.416314
+Epoch 68: Train R^2: 75.4164% | Val R^2: 56.3019%
+Epoch 68: baseline excess (mean) = 0.243570  (penalty active)
+--------------------
+----- Epoch 69 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 69: Train Loss 0.237671 | Val Loss 0.449541
+Epoch 69: Train R^2: 76.2507% | Val R^2: 52.8142%
+Epoch 69: baseline excess (mean) = 0.235406  (penalty active)
+--------------------
+----- Epoch 70 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 70: Train Loss 0.239520 | Val Loss 0.562944
+Epoch 70: Train R^2: 76.0659% | Val R^2: 40.9110%
+Epoch 70: baseline excess (mean) = 0.237427  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.095361  min: 0.055342  max: 0.138019
+--------------------
+----- Epoch 71 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 71: Train Loss 0.254300 | Val Loss 0.619705
+Epoch 71: Train R^2: 74.5890% | Val R^2: 34.9531%
+Epoch 71: baseline excess (mean) = 0.251838  (penalty active)
+--------------------
+----- Epoch 72 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 72: Train Loss 0.258207 | Val Loss 0.603767
+Epoch 72: Train R^2: 74.1986% | Val R^2: 36.6260%
+Epoch 72: baseline excess (mean) = 0.255495  (penalty active)
+--------------------
+----- Epoch 73 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 73: Train Loss 0.292227 | Val Loss 0.383877
+Epoch 73: Train R^2: 70.7991% | Val R^2: 59.7065%
+Epoch 73: baseline excess (mean) = 0.288802  (penalty active)
+--------------------
+----- Epoch 74 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 74: Train Loss 0.288839 | Val Loss 0.421054
+Epoch 74: Train R^2: 71.1377% | Val R^2: 55.8043%
+Epoch 74: baseline excess (mean) = 0.285463  (penalty active)
+--------------------
+----- Epoch 75 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 75: Train Loss 0.263269 | Val Loss 0.388555
+Epoch 75: Train R^2: 73.6928% | Val R^2: 59.2156%
+Epoch 75: baseline excess (mean) = 0.260492  (penalty active)
+--------------------
+----- Epoch 76 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 76: Train Loss 0.255205 | Val Loss 0.409532
+Epoch 76: Train R^2: 74.4985% | Val R^2: 57.0137%
+Epoch 76: baseline excess (mean) = 0.252831  (penalty active)
+--------------------
+----- Epoch 77 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 77: Train Loss 0.233097 | Val Loss 0.414569
+Epoch 77: Train R^2: 76.7077% | Val R^2: 56.4850%
+Epoch 77: baseline excess (mean) = 0.230798  (penalty active)
+--------------------
+----- Epoch 78 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 78: Train Loss 0.236888 | Val Loss 0.396001
+Epoch 78: Train R^2: 76.3289% | Val R^2: 58.4340%
+Epoch 78: baseline excess (mean) = 0.234210  (penalty active)
+--------------------
+----- Epoch 79 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 79: Train Loss 0.240127 | Val Loss 0.384391
+Epoch 79: Train R^2: 76.0052% | Val R^2: 59.6526%
+Epoch 79: baseline excess (mean) = 0.237525  (penalty active)
+--------------------
+----- Epoch 80 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 80: Train Loss 0.312883 | Val Loss 0.753418
+Epoch 80: Train R^2: 68.7351% | Val R^2: 20.9179%
+Epoch 80: baseline excess (mean) = 0.312506  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.093433  min: 0.051188  max: 0.140016
+--------------------
+----- Epoch 81 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 81: Train Loss 0.339312 | Val Loss 0.437287
+Epoch 81: Train R^2: 66.0942% | Val R^2: 54.1005%
+Epoch 81: baseline excess (mean) = 0.335702  (penalty active)
+--------------------
+----- Epoch 82 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 82: Train Loss 0.247469 | Val Loss 0.475574
+Epoch 82: Train R^2: 75.2716% | Val R^2: 50.0816%
+Epoch 82: baseline excess (mean) = 0.244767  (penalty active)
+--------------------
+----- Epoch 83 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 83: Train Loss 0.242152 | Val Loss 0.384058
+Epoch 83: Train R^2: 75.8029% | Val R^2: 59.6876%
+Epoch 83: baseline excess (mean) = 0.239310  (penalty active)
+--------------------
+Early stopping triggered. Loading best model weights...
+  Restored weights from best epoch 73 (val_loss=0.383877)
+  Checkpoint saved → model_fold_4.pth  (weights + history)  best_epoch=73
+========== Fold=5 ==========
+  torch.compile: enabled
+  Optimizer param groups:
+    decay    :  2,950,848 params  lr=1e-4  wd=1e-2
+    no-decay :     13,056 params  lr=1e-4  wd=0
+    gamma    :      2,304 params  lr=1e-3  wd=0   ← 10× boost
+    gate     :         18 params  lr=1e-2  wd=0   ← 100× boost
+  Gate warmup: gate_logit FROZEN for first 2 epochs
+----- Epoch 1 -----
+Training begins
+
+  ── LayerScale gamma gradient check (epoch 1, batch 1) ──
+    _orig_mod.blocks.0.ls1.gamma                        grad norm = 0.000187
+    _orig_mod.blocks.0.ls2.gamma                        grad norm = 0.000419
+    _orig_mod.blocks.1.ls1.gamma                        grad norm = 0.000156
+    _orig_mod.blocks.1.ls2.gamma                        grad norm = 0.000432
+    _orig_mod.blocks.2.ls1.gamma                        grad norm = 0.000166
+    _orig_mod.blocks.2.ls2.gamma                        grad norm = 0.000477
+    _orig_mod.blocks.3.ls1.gamma                        grad norm = 0.000128
+    _orig_mod.blocks.3.ls2.gamma                        grad norm = 0.000433
+    _orig_mod.blocks.4.ls1.gamma                        grad norm = 0.000167
+    _orig_mod.blocks.4.ls2.gamma                        grad norm = 0.000509
+    _orig_mod.blocks.5.ls1.gamma                        grad norm = 0.000129
+    _orig_mod.blocks.5.ls2.gamma                        grad norm = 0.000489
+  ── end gamma check ──
+
+
+  ── SectorGPSA gate_logit gradient check (epoch 1, batch 1) ──
+  (near-zero grads are expected at init; see docstring)
+    _orig_mod.blocks.0.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.1.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.2.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.3.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.4.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.5.attn.gate_logit                  grad = None  ← not connected!
+  ── end gate check ──
+
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.989543 | Val Loss 0.966815
+Epoch 1: Train R^2: 1.0264% | Val R^2: -15.7426%
+Epoch 1: baseline excess (mean) = 0.982167  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.022199  min: 0.015093  max: 0.029309
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.959028 | Val Loss 0.937438
+Epoch 2: Train R^2: 4.0784% | Val R^2: -12.2256%
+Epoch 2: baseline excess (mean) = 0.951647  (penalty active)
+--------------------
+----- Epoch 3 -----
+  Gate warmup complete: gate_logit UNFROZEN at epoch 3
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.921866 | Val Loss 0.904233
+Epoch 3: Train R^2: 7.7954% | Val R^2: -8.2506%
+Epoch 3: baseline excess (mean) = 0.914505  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.064884  min: 0.041781  max: 0.088778
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.881811 | Val Loss 0.860397
+Epoch 4: Train R^2: 11.8016% | Val R^2: -3.0027%
+Epoch 4: baseline excess (mean) = 0.874700  (penalty active)
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.840490 | Val Loss 0.808166
+Epoch 5: Train R^2: 15.9345% | Val R^2: 3.2501%
+Epoch 5: baseline excess (mean) = 0.833875  (penalty active)
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.803831 | Val Loss 0.759406
+Epoch 6: Train R^2: 19.6011% | Val R^2: 9.0874%
+Epoch 6: baseline excess (mean) = 0.797604  (penalty active)
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.771268 | Val Loss 0.729592
+Epoch 7: Train R^2: 22.8581% | Val R^2: 12.6566%
+Epoch 7: baseline excess (mean) = 0.765258  (penalty active)
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.743690 | Val Loss 0.706803
+Epoch 8: Train R^2: 25.6165% | Val R^2: 15.3848%
+Epoch 8: baseline excess (mean) = 0.737750  (penalty active)
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.717343 | Val Loss 0.687557
+Epoch 9: Train R^2: 28.2516% | Val R^2: 17.6889%
+Epoch 9: baseline excess (mean) = 0.711488  (penalty active)
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.692652 | Val Loss 0.669780
+Epoch 10: Train R^2: 30.7212% | Val R^2: 19.8170%
+Epoch 10: baseline excess (mean) = 0.686888  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.090491  min: 0.058889  max: 0.120660
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.668191 | Val Loss 0.658398
+Epoch 11: Train R^2: 33.1678% | Val R^2: 21.1797%
+Epoch 11: baseline excess (mean) = 0.662555  (penalty active)
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.646267 | Val Loss 0.648798
+Epoch 12: Train R^2: 35.3607% | Val R^2: 22.3289%
+Epoch 12: baseline excess (mean) = 0.640661  (penalty active)
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.621914 | Val Loss 0.641119
+Epoch 13: Train R^2: 37.7965% | Val R^2: 23.2482%
+Epoch 13: baseline excess (mean) = 0.616411  (penalty active)
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 0.599962 | Val Loss 0.631804
+Epoch 14: Train R^2: 39.9921% | Val R^2: 24.3633%
+Epoch 14: baseline excess (mean) = 0.594596  (penalty active)
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 0.571367 | Val Loss 0.612155
+Epoch 15: Train R^2: 42.8521% | Val R^2: 26.7157%
+Epoch 15: baseline excess (mean) = 0.566285  (penalty active)
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 0.543157 | Val Loss 0.609171
+Epoch 16: Train R^2: 45.6737% | Val R^2: 27.0729%
+Epoch 16: baseline excess (mean) = 0.538350  (penalty active)
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 0.519700 | Val Loss 0.604309
+Epoch 17: Train R^2: 48.0198% | Val R^2: 27.6550%
+Epoch 17: baseline excess (mean) = 0.515129  (penalty active)
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 0.491533 | Val Loss 0.615458
+Epoch 18: Train R^2: 50.8371% | Val R^2: 26.3203%
+Epoch 18: baseline excess (mean) = 0.487385  (penalty active)
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 0.462675 | Val Loss 0.616722
+Epoch 19: Train R^2: 53.7234% | Val R^2: 26.1689%
+Epoch 19: baseline excess (mean) = 0.458937  (penalty active)
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 0.432951 | Val Loss 0.650584
+Epoch 20: Train R^2: 56.6964% | Val R^2: 22.1151%
+Epoch 20: baseline excess (mean) = 0.429826  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.104801  min: 0.055770  max: 0.151119
+--------------------
+----- Epoch 21 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.410559 | Val Loss 0.609279
+Epoch 21: Train R^2: 58.9361% | Val R^2: 27.0599%
+Epoch 21: baseline excess (mean) = 0.407750  (penalty active)
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.414752 | Val Loss 0.609327
+Epoch 22: Train R^2: 58.5167% | Val R^2: 27.0542%
+Epoch 22: baseline excess (mean) = 0.411439  (penalty active)
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.415982 | Val Loss 0.769381
+Epoch 23: Train R^2: 58.3937% | Val R^2: 7.8934%
+Epoch 23: baseline excess (mean) = 0.412560  (penalty active)
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.374832 | Val Loss 0.841981
+Epoch 24: Train R^2: 62.5095% | Val R^2: -0.7980%
+Epoch 24: baseline excess (mean) = 0.372134  (penalty active)
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.363411 | Val Loss 0.933609
+Epoch 25: Train R^2: 63.6518% | Val R^2: -11.7673%
+Epoch 25: baseline excess (mean) = 0.360778  (penalty active)
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.427959 | Val Loss 0.725661
+Epoch 26: Train R^2: 57.1958% | Val R^2: 13.1273%
+Epoch 26: baseline excess (mean) = 0.424138  (penalty active)
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.465477 | Val Loss 0.476760
+Epoch 27: Train R^2: 53.4432% | Val R^2: 42.9245%
+Epoch 27: baseline excess (mean) = 0.462881  (penalty active)
+--------------------
+----- Epoch 28 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 28: Train Loss 0.400873 | Val Loss 0.458710
+Epoch 28: Train R^2: 59.9048% | Val R^2: 45.0854%
+Epoch 28: baseline excess (mean) = 0.398264  (penalty active)
+--------------------
+----- Epoch 29 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 29: Train Loss 0.362726 | Val Loss 0.434602
+Epoch 29: Train R^2: 63.7203% | Val R^2: 47.9714%
+Epoch 29: baseline excess (mean) = 0.360852  (penalty active)
+--------------------
+----- Epoch 30 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 30: Train Loss 0.346565 | Val Loss 0.445726
+Epoch 30: Train R^2: 65.3367% | Val R^2: 46.6397%
+Epoch 30: baseline excess (mean) = 0.343973  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.102321  min: 0.053466  max: 0.153778
+--------------------
+----- Epoch 31 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 31: Train Loss 0.340520 | Val Loss 0.471971
+Epoch 31: Train R^2: 65.9413% | Val R^2: 43.4979%
+Epoch 31: baseline excess (mean) = 0.338072  (penalty active)
+--------------------
+----- Epoch 32 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 32: Train Loss 0.339502 | Val Loss 0.454749
+Epoch 32: Train R^2: 66.0432% | Val R^2: 45.5595%
+Epoch 32: baseline excess (mean) = 0.336996  (penalty active)
+--------------------
+----- Epoch 33 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 33: Train Loss 0.327621 | Val Loss 0.491488
+Epoch 33: Train R^2: 67.2315% | Val R^2: 41.1613%
+Epoch 33: baseline excess (mean) = 0.325336  (penalty active)
+--------------------
+----- Epoch 34 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 34: Train Loss 0.325728 | Val Loss 0.693851
+Epoch 34: Train R^2: 67.4209% | Val R^2: 16.9354%
+Epoch 34: baseline excess (mean) = 0.324411  (penalty active)
+--------------------
+----- Epoch 35 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 35: Train Loss 0.361766 | Val Loss 0.965613
+Epoch 35: Train R^2: 63.8163% | Val R^2: -15.5987%
+Epoch 35: baseline excess (mean) = 0.360115  (penalty active)
+--------------------
+----- Epoch 36 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 36: Train Loss 0.394956 | Val Loss 0.706982
+Epoch 36: Train R^2: 60.4966% | Val R^2: 15.3634%
+Epoch 36: baseline excess (mean) = 0.391341  (penalty active)
+--------------------
+----- Epoch 37 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 37: Train Loss 0.340258 | Val Loss 0.515820
+Epoch 37: Train R^2: 65.9675% | Val R^2: 38.2484%
+Epoch 37: baseline excess (mean) = 0.337824  (penalty active)
+--------------------
+----- Epoch 38 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 38: Train Loss 0.324219 | Val Loss 0.443636
+Epoch 38: Train R^2: 67.5717% | Val R^2: 46.8899%
+Epoch 38: baseline excess (mean) = 0.322237  (penalty active)
+--------------------
+----- Epoch 39 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 39: Train Loss 0.331174 | Val Loss 0.418152
+Epoch 39: Train R^2: 66.8761% | Val R^2: 49.9407%
+Epoch 39: baseline excess (mean) = 0.331081  (penalty active)
+--------------------
+----- Epoch 40 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 40: Train Loss 0.343450 | Val Loss 0.431865
+Epoch 40: Train R^2: 65.6483% | Val R^2: 48.2991%
+Epoch 40: baseline excess (mean) = 0.340635  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.098137  min: 0.054209  max: 0.149650
+--------------------
+----- Epoch 41 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 41: Train Loss 0.317960 | Val Loss 0.527360
+Epoch 41: Train R^2: 68.1978% | Val R^2: 36.8670%
+Epoch 41: baseline excess (mean) = 0.315557  (penalty active)
+--------------------
+----- Epoch 42 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 42: Train Loss 0.314959 | Val Loss 0.863637
+Epoch 42: Train R^2: 68.4979% | Val R^2: -3.3906%
+Epoch 42: baseline excess (mean) = 0.313427  (penalty active)
+--------------------
+----- Epoch 43 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 43: Train Loss 0.386572 | Val Loss 0.677888
+Epoch 43: Train R^2: 61.3353% | Val R^2: 18.8464%
+Epoch 43: baseline excess (mean) = 0.382944  (penalty active)
+--------------------
+----- Epoch 44 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 44: Train Loss 0.325131 | Val Loss 0.526492
+Epoch 44: Train R^2: 67.4805% | Val R^2: 36.9708%
+Epoch 44: baseline excess (mean) = 0.322502  (penalty active)
+--------------------
+----- Epoch 45 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 45: Train Loss 0.298416 | Val Loss 0.436949
+Epoch 45: Train R^2: 70.1525% | Val R^2: 47.6905%
+Epoch 45: baseline excess (mean) = 0.296353  (penalty active)
+--------------------
+----- Epoch 46 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 46: Train Loss 0.307375 | Val Loss 0.430597
+Epoch 46: Train R^2: 69.2565% | Val R^2: 48.4509%
+Epoch 46: baseline excess (mean) = 0.305082  (penalty active)
+--------------------
+----- Epoch 47 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 47: Train Loss 0.300190 | Val Loss 0.508027
+Epoch 47: Train R^2: 69.9751% | Val R^2: 39.1814%
+Epoch 47: baseline excess (mean) = 0.298266  (penalty active)
+--------------------
+----- Epoch 48 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 48: Train Loss 0.293438 | Val Loss 0.546241
+Epoch 48: Train R^2: 70.6505% | Val R^2: 34.6066%
+Epoch 48: baseline excess (mean) = 0.291124  (penalty active)
+--------------------
+----- Epoch 49 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 49: Train Loss 0.283222 | Val Loss 0.501408
+Epoch 49: Train R^2: 71.6723% | Val R^2: 39.9738%
+Epoch 49: baseline excess (mean) = 0.281335  (penalty active)
+--------------------
+Early stopping triggered. Loading best model weights...
+  Restored weights from best epoch 39 (val_loss=0.418152)
+  Checkpoint saved → model_fold_5.pth  (weights + history)  best_epoch=39
+========== Fold=6 ==========
+  torch.compile: enabled
+  Optimizer param groups:
+    decay    :  2,950,848 params  lr=1e-4  wd=1e-2
+    no-decay :     13,056 params  lr=1e-4  wd=0
+    gamma    :      2,304 params  lr=1e-3  wd=0   ← 10× boost
+    gate     :         18 params  lr=1e-2  wd=0   ← 100× boost
+  Gate warmup: gate_logit FROZEN for first 2 epochs
+----- Epoch 1 -----
+Training begins
+
+  ── LayerScale gamma gradient check (epoch 1, batch 1) ──
+    _orig_mod.blocks.0.ls1.gamma                        grad norm = 0.000172
+    _orig_mod.blocks.0.ls2.gamma                        grad norm = 0.000446
+    _orig_mod.blocks.1.ls1.gamma                        grad norm = 0.000153
+    _orig_mod.blocks.1.ls2.gamma                        grad norm = 0.000448
+    _orig_mod.blocks.2.ls1.gamma                        grad norm = 0.000176
+    _orig_mod.blocks.2.ls2.gamma                        grad norm = 0.000465
+    _orig_mod.blocks.3.ls1.gamma                        grad norm = 0.000170
+    _orig_mod.blocks.3.ls2.gamma                        grad norm = 0.000413
+    _orig_mod.blocks.4.ls1.gamma                        grad norm = 0.000185
+    _orig_mod.blocks.4.ls2.gamma                        grad norm = 0.000439
+    _orig_mod.blocks.5.ls1.gamma                        grad norm = 0.000156
+    _orig_mod.blocks.5.ls2.gamma                        grad norm = 0.000489
+  ── end gamma check ──
+
+
+  ── SectorGPSA gate_logit gradient check (epoch 1, batch 1) ──
+  (near-zero grads are expected at init; see docstring)
+    _orig_mod.blocks.0.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.1.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.2.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.3.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.4.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.5.attn.gate_logit                  grad = None  ← not connected!
+  ── end gate check ──
+
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.989212 | Val Loss 0.837098
+Epoch 1: Train R^2: 1.0734% | Val R^2: -17.7666%
+Epoch 1: baseline excess (mean) = 0.985098  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.022486  min: 0.015854  max: 0.029404
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.959643 | Val Loss 0.810209
+Epoch 2: Train R^2: 4.0305% | Val R^2: -13.9838%
+Epoch 2: baseline excess (mean) = 0.955605  (penalty active)
+--------------------
+----- Epoch 3 -----
+  Gate warmup complete: gate_logit UNFROZEN at epoch 3
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.924638 | Val Loss 0.782080
+Epoch 3: Train R^2: 7.5312% | Val R^2: -10.0264%
+Epoch 3: baseline excess (mean) = 0.920728  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.063287  min: 0.040009  max: 0.085766
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.887916 | Val Loss 0.745646
+Epoch 4: Train R^2: 11.2036% | Val R^2: -4.9007%
+Epoch 4: baseline excess (mean) = 0.883958  (penalty active)
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.854883 | Val Loss 0.699650
+Epoch 5: Train R^2: 14.5071% | Val R^2: 1.5702%
+Epoch 5: baseline excess (mean) = 0.850613  (penalty active)
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.829059 | Val Loss 0.653030
+Epoch 6: Train R^2: 17.0896% | Val R^2: 8.1290%
+Epoch 6: baseline excess (mean) = 0.824334  (penalty active)
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.805486 | Val Loss 0.622253
+Epoch 7: Train R^2: 19.4471% | Val R^2: 12.4587%
+Epoch 7: baseline excess (mean) = 0.800562  (penalty active)
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.778374 | Val Loss 0.597774
+Epoch 8: Train R^2: 22.1584% | Val R^2: 15.9025%
+Epoch 8: baseline excess (mean) = 0.773541  (penalty active)
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.752790 | Val Loss 0.582168
+Epoch 9: Train R^2: 24.7169% | Val R^2: 18.0981%
+Epoch 9: baseline excess (mean) = 0.748084  (penalty active)
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.730473 | Val Loss 0.565249
+Epoch 10: Train R^2: 26.9488% | Val R^2: 20.4783%
+Epoch 10: baseline excess (mean) = 0.725841  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.087722  min: 0.048399  max: 0.119139
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.709230 | Val Loss 0.551680
+Epoch 11: Train R^2: 29.0732% | Val R^2: 22.3872%
+Epoch 11: baseline excess (mean) = 0.704715  (penalty active)
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.688697 | Val Loss 0.540478
+Epoch 12: Train R^2: 31.1265% | Val R^2: 23.9632%
+Epoch 12: baseline excess (mean) = 0.684248  (penalty active)
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.668151 | Val Loss 0.528803
+Epoch 13: Train R^2: 33.1813% | Val R^2: 25.6057%
+Epoch 13: baseline excess (mean) = 0.663860  (penalty active)
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 0.647804 | Val Loss 0.520512
+Epoch 14: Train R^2: 35.2161% | Val R^2: 26.7721%
+Epoch 14: baseline excess (mean) = 0.643577  (penalty active)
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 0.627317 | Val Loss 0.512990
+Epoch 15: Train R^2: 37.2649% | Val R^2: 27.8303%
+Epoch 15: baseline excess (mean) = 0.623241  (penalty active)
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 0.603139 | Val Loss 0.496772
+Epoch 16: Train R^2: 39.6829% | Val R^2: 30.1119%
+Epoch 16: baseline excess (mean) = 0.599320  (penalty active)
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 0.578277 | Val Loss 0.477422
+Epoch 17: Train R^2: 42.1692% | Val R^2: 32.8342%
+Epoch 17: baseline excess (mean) = 0.574288  (penalty active)
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 0.550294 | Val Loss 0.453182
+Epoch 18: Train R^2: 44.9676% | Val R^2: 36.2444%
+Epoch 18: baseline excess (mean) = 0.546541  (penalty active)
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 0.522598 | Val Loss 0.433190
+Epoch 19: Train R^2: 47.7374% | Val R^2: 39.0569%
+Epoch 19: baseline excess (mean) = 0.518882  (penalty active)
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 0.492612 | Val Loss 0.422753
+Epoch 20: Train R^2: 50.7361% | Val R^2: 40.5252%
+Epoch 20: baseline excess (mean) = 0.489046  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.102507  min: 0.056524  max: 0.157772
+--------------------
+----- Epoch 21 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.465134 | Val Loss 0.419210
+Epoch 21: Train R^2: 53.4841% | Val R^2: 41.0237%
+Epoch 21: baseline excess (mean) = 0.462050  (penalty active)
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.444915 | Val Loss 0.423940
+Epoch 22: Train R^2: 55.5061% | Val R^2: 40.3582%
+Epoch 22: baseline excess (mean) = 0.441950  (penalty active)
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.428943 | Val Loss 0.476521
+Epoch 23: Train R^2: 57.1034% | Val R^2: 32.9609%
+Epoch 23: baseline excess (mean) = 0.426703  (penalty active)
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.483502 | Val Loss 0.601430
+Epoch 24: Train R^2: 51.6472% | Val R^2: 15.3883%
+Epoch 24: baseline excess (mean) = 0.480320  (penalty active)
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.496750 | Val Loss 0.497186
+Epoch 25: Train R^2: 50.3223% | Val R^2: 30.0538%
+Epoch 25: baseline excess (mean) = 0.492990  (penalty active)
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.444024 | Val Loss 0.489185
+Epoch 26: Train R^2: 55.5952% | Val R^2: 31.1794%
+Epoch 26: baseline excess (mean) = 0.440691  (penalty active)
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.422207 | Val Loss 0.519145
+Epoch 27: Train R^2: 57.7770% | Val R^2: 26.9644%
+Epoch 27: baseline excess (mean) = 0.419231  (penalty active)
+--------------------
+----- Epoch 28 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 28: Train Loss 0.400136 | Val Loss 0.428991
+Epoch 28: Train R^2: 59.9843% | Val R^2: 39.6477%
+Epoch 28: baseline excess (mean) = 0.397295  (penalty active)
+--------------------
+----- Epoch 29 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 29: Train Loss 0.373044 | Val Loss 0.390511
+Epoch 29: Train R^2: 62.6936% | Val R^2: 45.0612%
+Epoch 29: baseline excess (mean) = 0.370523  (penalty active)
+--------------------
+----- Epoch 30 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 30: Train Loss 0.362746 | Val Loss 0.366460
+Epoch 30: Train R^2: 63.7234% | Val R^2: 48.4447%
+Epoch 30: baseline excess (mean) = 0.360415  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.105300  min: 0.054608  max: 0.165551
+--------------------
+----- Epoch 31 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 31: Train Loss 0.360656 | Val Loss 0.366294
+Epoch 31: Train R^2: 63.9325% | Val R^2: 48.4682%
+Epoch 31: baseline excess (mean) = 0.358258  (penalty active)
+--------------------
+----- Epoch 32 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 32: Train Loss 0.387820 | Val Loss 0.438732
+Epoch 32: Train R^2: 61.2159% | Val R^2: 38.2773%
+Epoch 32: baseline excess (mean) = 0.386005  (penalty active)
+--------------------
+----- Epoch 33 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 33: Train Loss 0.385280 | Val Loss 0.509217
+Epoch 33: Train R^2: 61.4699% | Val R^2: 28.3612%
+Epoch 33: baseline excess (mean) = 0.383078  (penalty active)
+--------------------
+----- Epoch 34 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 34: Train Loss 0.360860 | Val Loss 0.445818
+Epoch 34: Train R^2: 63.9120% | Val R^2: 37.2803%
+Epoch 34: baseline excess (mean) = 0.358724  (penalty active)
+--------------------
+----- Epoch 35 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 35: Train Loss 0.340844 | Val Loss 0.464000
+Epoch 35: Train R^2: 65.9138% | Val R^2: 34.7225%
+Epoch 35: baseline excess (mean) = 0.338687  (penalty active)
+--------------------
+----- Epoch 36 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 36: Train Loss 0.328736 | Val Loss 0.469686
+Epoch 36: Train R^2: 67.1246% | Val R^2: 33.9225%
+Epoch 36: baseline excess (mean) = 0.326596  (penalty active)
+--------------------
+----- Epoch 37 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 37: Train Loss 0.334619 | Val Loss 0.374541
+Epoch 37: Train R^2: 66.5363% | Val R^2: 47.3079%
+Epoch 37: baseline excess (mean) = 0.332421  (penalty active)
+--------------------
+----- Epoch 38 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 38: Train Loss 0.319138 | Val Loss 0.349069
+Epoch 38: Train R^2: 68.0845% | Val R^2: 50.8914%
+Epoch 38: baseline excess (mean) = 0.317181  (penalty active)
+--------------------
+----- Epoch 39 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 39: Train Loss 0.316896 | Val Loss 0.345733
+Epoch 39: Train R^2: 68.3087% | Val R^2: 51.3608%
+Epoch 39: baseline excess (mean) = 0.315022  (penalty active)
+--------------------
+----- Epoch 40 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 40: Train Loss 0.335284 | Val Loss 0.376991
+Epoch 40: Train R^2: 66.4698% | Val R^2: 46.9633%
+Epoch 40: baseline excess (mean) = 0.333290  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.102867  min: 0.049127  max: 0.160716
+--------------------
+----- Epoch 41 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 41: Train Loss 0.322045 | Val Loss 0.404129
+Epoch 41: Train R^2: 67.7938% | Val R^2: 43.1453%
+Epoch 41: baseline excess (mean) = 0.320208  (penalty active)
+--------------------
+----- Epoch 42 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 42: Train Loss 0.314654 | Val Loss 0.464121
+Epoch 42: Train R^2: 68.5329% | Val R^2: 34.7054%
+Epoch 42: baseline excess (mean) = 0.312835  (penalty active)
+--------------------
+----- Epoch 43 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 43: Train Loss 0.309165 | Val Loss 0.501979
+Epoch 43: Train R^2: 69.0819% | Val R^2: 29.3794%
+Epoch 43: baseline excess (mean) = 0.307326  (penalty active)
+--------------------
+----- Epoch 44 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 44: Train Loss 0.315449 | Val Loss 0.419896
+Epoch 44: Train R^2: 68.4534% | Val R^2: 40.9272%
+Epoch 44: baseline excess (mean) = 0.313255  (penalty active)
+--------------------
+----- Epoch 45 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 45: Train Loss 0.307368 | Val Loss 0.341519
+Epoch 45: Train R^2: 69.2615% | Val R^2: 51.9536%
+Epoch 45: baseline excess (mean) = 0.305332  (penalty active)
+--------------------
+----- Epoch 46 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 46: Train Loss 0.305984 | Val Loss 0.330351
+Epoch 46: Train R^2: 69.3999% | Val R^2: 53.5248%
+Epoch 46: baseline excess (mean) = 0.303988  (penalty active)
+--------------------
+----- Epoch 47 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 47: Train Loss 0.313174 | Val Loss 0.355874
+Epoch 47: Train R^2: 68.6809% | Val R^2: 49.9340%
+Epoch 47: baseline excess (mean) = 0.311007  (penalty active)
+--------------------
+----- Epoch 48 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 48: Train Loss 0.298751 | Val Loss 0.395755
+Epoch 48: Train R^2: 70.1233% | Val R^2: 44.3235%
+Epoch 48: baseline excess (mean) = 0.296956  (penalty active)
+--------------------
+----- Epoch 49 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 49: Train Loss 0.286821 | Val Loss 0.409732
+Epoch 49: Train R^2: 71.3163% | Val R^2: 42.3571%
+Epoch 49: baseline excess (mean) = 0.284964  (penalty active)
+--------------------
+----- Epoch 50 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 50: Train Loss 0.282093 | Val Loss 0.469424
+Epoch 50: Train R^2: 71.7892% | Val R^2: 33.9594%
+Epoch 50: baseline excess (mean) = 0.280391  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.100484  min: 0.046489  max: 0.147170
+--------------------
+----- Epoch 51 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 51: Train Loss 0.288677 | Val Loss 0.435873
+Epoch 51: Train R^2: 71.1308% | Val R^2: 38.6794%
+Epoch 51: baseline excess (mean) = 0.286685  (penalty active)
+--------------------
+----- Epoch 52 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 52: Train Loss 0.294318 | Val Loss 0.336824
+Epoch 52: Train R^2: 70.5667% | Val R^2: 52.6142%
+Epoch 52: baseline excess (mean) = 0.292234  (penalty active)
+--------------------
+----- Epoch 53 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 53: Train Loss 0.305919 | Val Loss 0.321056
+Epoch 53: Train R^2: 69.4064% | Val R^2: 54.8325%
+Epoch 53: baseline excess (mean) = 0.303689  (penalty active)
+--------------------
+----- Epoch 54 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 54: Train Loss 0.295754 | Val Loss 0.333617
+Epoch 54: Train R^2: 70.4230% | Val R^2: 53.0653%
+Epoch 54: baseline excess (mean) = 0.293499  (penalty active)
+--------------------
+----- Epoch 55 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 55: Train Loss 0.274959 | Val Loss 0.343734
+Epoch 55: Train R^2: 72.5026% | Val R^2: 51.6420%
+Epoch 55: baseline excess (mean) = 0.273066  (penalty active)
+--------------------
+----- Epoch 56 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 56: Train Loss 0.268359 | Val Loss 0.364237
+Epoch 56: Train R^2: 73.1627% | Val R^2: 48.7576%
+Epoch 56: baseline excess (mean) = 0.266540  (penalty active)
+--------------------
+----- Epoch 57 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 57: Train Loss 0.268287 | Val Loss 0.395045
+Epoch 57: Train R^2: 73.1699% | Val R^2: 44.4234%
+Epoch 57: baseline excess (mean) = 0.266377  (penalty active)
+--------------------
+----- Epoch 58 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 58: Train Loss 0.285424 | Val Loss 0.445882
+Epoch 58: Train R^2: 71.4560% | Val R^2: 37.2714%
+Epoch 58: baseline excess (mean) = 0.283476  (penalty active)
+--------------------
+----- Epoch 59 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 59: Train Loss 0.284218 | Val Loss 0.363982
+Epoch 59: Train R^2: 71.5767% | Val R^2: 48.7934%
+Epoch 59: baseline excess (mean) = 0.282069  (penalty active)
+--------------------
+----- Epoch 60 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 60: Train Loss 0.273364 | Val Loss 0.324104
+Epoch 60: Train R^2: 72.6621% | Val R^2: 54.4037%
+Epoch 60: baseline excess (mean) = 0.271300  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.099825  min: 0.043147  max: 0.149028
+--------------------
+----- Epoch 61 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 61: Train Loss 0.263807 | Val Loss 0.301256
+Epoch 61: Train R^2: 73.6179% | Val R^2: 57.6180%
+Epoch 61: baseline excess (mean) = 0.262013  (penalty active)
+--------------------
+----- Epoch 62 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 62: Train Loss 0.284997 | Val Loss 0.316762
+Epoch 62: Train R^2: 71.4987% | Val R^2: 55.4366%
+Epoch 62: baseline excess (mean) = 0.282713  (penalty active)
+--------------------
+----- Epoch 63 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 63: Train Loss 0.272842 | Val Loss 0.347306
+Epoch 63: Train R^2: 72.7143% | Val R^2: 51.1395%
+Epoch 63: baseline excess (mean) = 0.271017  (penalty active)
+--------------------
+----- Epoch 64 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 64: Train Loss 0.256085 | Val Loss 0.340260
+Epoch 64: Train R^2: 74.3902% | Val R^2: 52.1307%
+Epoch 64: baseline excess (mean) = 0.254132  (penalty active)
+--------------------
+----- Epoch 65 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 65: Train Loss 0.249574 | Val Loss 0.391797
+Epoch 65: Train R^2: 75.0413% | Val R^2: 44.8803%
+Epoch 65: baseline excess (mean) = 0.247959  (penalty active)
+--------------------
+----- Epoch 66 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 66: Train Loss 0.250805 | Val Loss 0.448112
+Epoch 66: Train R^2: 74.9181% | Val R^2: 36.9576%
+Epoch 66: baseline excess (mean) = 0.249000  (penalty active)
+--------------------
+----- Epoch 67 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 67: Train Loss 0.264822 | Val Loss 0.388387
+Epoch 67: Train R^2: 73.5164% | Val R^2: 45.3600%
+Epoch 67: baseline excess (mean) = 0.262900  (penalty active)
+--------------------
+----- Epoch 68 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 68: Train Loss 0.274770 | Val Loss 0.303401
+Epoch 68: Train R^2: 72.5215% | Val R^2: 57.3162%
+Epoch 68: baseline excess (mean) = 0.272555  (penalty active)
+--------------------
+----- Epoch 69 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 69: Train Loss 0.283963 | Val Loss 0.310054
+Epoch 69: Train R^2: 71.6022% | Val R^2: 56.3802%
+Epoch 69: baseline excess (mean) = 0.281539  (penalty active)
+--------------------
+----- Epoch 70 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 70: Train Loss 0.243883 | Val Loss 0.299069
+Epoch 70: Train R^2: 75.6104% | Val R^2: 57.9256%
+Epoch 70: baseline excess (mean) = 0.241963  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.099625  min: 0.043385  max: 0.149173
+--------------------
+----- Epoch 71 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 71: Train Loss 0.236402 | Val Loss 0.300152
+Epoch 71: Train R^2: 76.3585% | Val R^2: 57.7734%
+Epoch 71: baseline excess (mean) = 0.234669  (penalty active)
+--------------------
+----- Epoch 72 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 72: Train Loss 0.232460 | Val Loss 0.321340
+Epoch 72: Train R^2: 76.7527% | Val R^2: 54.7925%
+Epoch 72: baseline excess (mean) = 0.230756  (penalty active)
+--------------------
+----- Epoch 73 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 73: Train Loss 0.238525 | Val Loss 0.348086
+Epoch 73: Train R^2: 76.1462% | Val R^2: 51.0298%
+Epoch 73: baseline excess (mean) = 0.236718  (penalty active)
+--------------------
+----- Epoch 74 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 74: Train Loss 0.240136 | Val Loss 0.342309
+Epoch 74: Train R^2: 75.9851% | Val R^2: 51.8424%
+Epoch 74: baseline excess (mean) = 0.238166  (penalty active)
+--------------------
+----- Epoch 75 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 75: Train Loss 0.264987 | Val Loss 0.396288
+Epoch 75: Train R^2: 73.4998% | Val R^2: 44.2485%
+Epoch 75: baseline excess (mean) = 0.262895  (penalty active)
+--------------------
+----- Epoch 76 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 76: Train Loss 0.257893 | Val Loss 0.350587
+Epoch 76: Train R^2: 74.2093% | Val R^2: 50.6779%
+Epoch 76: baseline excess (mean) = 0.255699  (penalty active)
+--------------------
+----- Epoch 77 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 77: Train Loss 0.244893 | Val Loss 0.310497
+Epoch 77: Train R^2: 75.5094% | Val R^2: 56.3179%
+Epoch 77: baseline excess (mean) = 0.242910  (penalty active)
+--------------------
+----- Epoch 78 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 78: Train Loss 0.234569 | Val Loss 0.280539
+Epoch 78: Train R^2: 76.5418% | Val R^2: 60.5325%
+Epoch 78: baseline excess (mean) = 0.232750  (penalty active)
+--------------------
+----- Epoch 79 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 79: Train Loss 0.235178 | Val Loss 0.273183
+Epoch 79: Train R^2: 76.4810% | Val R^2: 61.5674%
+Epoch 79: baseline excess (mean) = 0.233288  (penalty active)
+--------------------
+----- Epoch 80 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 80: Train Loss 0.234537 | Val Loss 0.279798
+Epoch 80: Train R^2: 76.5451% | Val R^2: 60.6368%
+Epoch 80: baseline excess (mean) = 0.232661  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.098368  min: 0.044658  max: 0.148873
+--------------------
+----- Epoch 81 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 81: Train Loss 0.256673 | Val Loss 0.414052
+Epoch 81: Train R^2: 74.3313% | Val R^2: 41.7494%
+Epoch 81: baseline excess (mean) = 0.255202  (penalty active)
+--------------------
+----- Epoch 82 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 82: Train Loss 0.253539 | Val Loss 0.389564
+Epoch 82: Train R^2: 74.6448% | Val R^2: 45.1944%
+Epoch 82: baseline excess (mean) = 0.251615  (penalty active)
+--------------------
+----- Epoch 83 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 83: Train Loss 0.228108 | Val Loss 0.420291
+Epoch 83: Train R^2: 77.1879% | Val R^2: 40.8716%
+Epoch 83: baseline excess (mean) = 0.226293  (penalty active)
+--------------------
+----- Epoch 84 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 84: Train Loss 0.238997 | Val Loss 0.326812
+Epoch 84: Train R^2: 76.0990% | Val R^2: 54.0226%
+Epoch 84: baseline excess (mean) = 0.237013  (penalty active)
+--------------------
+----- Epoch 85 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 85: Train Loss 0.233927 | Val Loss 0.296850
+Epoch 85: Train R^2: 76.6060% | Val R^2: 58.2379%
+Epoch 85: baseline excess (mean) = 0.231896  (penalty active)
+--------------------
+----- Epoch 86 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 86: Train Loss 0.227412 | Val Loss 0.270485
+Epoch 86: Train R^2: 77.2576% | Val R^2: 61.9470%
+Epoch 86: baseline excess (mean) = 0.225575  (penalty active)
+--------------------
+----- Epoch 87 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 87: Train Loss 0.221945 | Val Loss 0.266247
+Epoch 87: Train R^2: 77.8043% | Val R^2: 62.5432%
+Epoch 87: baseline excess (mean) = 0.220076  (penalty active)
+--------------------
+----- Epoch 88 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 88: Train Loss 0.219920 | Val Loss 0.278156
+Epoch 88: Train R^2: 78.0068% | Val R^2: 60.8678%
+Epoch 88: baseline excess (mean) = 0.218064  (penalty active)
+--------------------
+----- Epoch 89 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 89: Train Loss 0.247540 | Val Loss 0.385942
+Epoch 89: Train R^2: 75.2446% | Val R^2: 45.7040%
+Epoch 89: baseline excess (mean) = 0.245645  (penalty active)
+--------------------
+----- Epoch 90 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 90: Train Loss 0.235049 | Val Loss 0.377950
+Epoch 90: Train R^2: 76.4938% | Val R^2: 46.8284%
+Epoch 90: baseline excess (mean) = 0.233189  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.095181  min: 0.044341  max: 0.141858
+--------------------
+----- Epoch 91 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 91: Train Loss 0.216266 | Val Loss 0.414337
+Epoch 91: Train R^2: 78.3722% | Val R^2: 41.7093%
+Epoch 91: baseline excess (mean) = 0.214551  (penalty active)
+--------------------
+----- Epoch 92 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 92: Train Loss 0.228359 | Val Loss 0.333278
+Epoch 92: Train R^2: 77.1629% | Val R^2: 53.1131%
+Epoch 92: baseline excess (mean) = 0.226395  (penalty active)
+--------------------
+----- Epoch 93 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 93: Train Loss 0.232666 | Val Loss 0.288694
+Epoch 93: Train R^2: 76.7321% | Val R^2: 59.3853%
+Epoch 93: baseline excess (mean) = 0.230556  (penalty active)
+--------------------
+----- Epoch 94 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 94: Train Loss 0.231338 | Val Loss 0.271006
+Epoch 94: Train R^2: 76.8650% | Val R^2: 61.8737%
+Epoch 94: baseline excess (mean) = 0.229252  (penalty active)
+--------------------
+----- Epoch 95 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 95: Train Loss 0.211569 | Val Loss 0.265487
+Epoch 95: Train R^2: 78.8420% | Val R^2: 62.6501%
+Epoch 95: baseline excess (mean) = 0.209733  (penalty active)
+--------------------
+----- Epoch 96 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 96: Train Loss 0.206764 | Val Loss 0.282133
+Epoch 96: Train R^2: 79.3225% | Val R^2: 60.3083%
+Epoch 96: baseline excess (mean) = 0.204946  (penalty active)
+--------------------
+----- Epoch 97 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 97: Train Loss 0.217283 | Val Loss 0.303092
+Epoch 97: Train R^2: 78.2705% | Val R^2: 57.3597%
+Epoch 97: baseline excess (mean) = 0.215283  (penalty active)
+--------------------
+----- Epoch 98 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 98: Train Loss 0.214758 | Val Loss 0.322854
+Epoch 98: Train R^2: 78.5230% | Val R^2: 54.5795%
+Epoch 98: baseline excess (mean) = 0.212705  (penalty active)
+--------------------
+----- Epoch 99 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 99: Train Loss 0.214859 | Val Loss 0.332913
+Epoch 99: Train R^2: 78.5129% | Val R^2: 53.1644%
+Epoch 99: baseline excess (mean) = 0.212988  (penalty active)
+--------------------
+----- Epoch 100 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 100: Train Loss 0.204478 | Val Loss 0.446967
+Epoch 100: Train R^2: 79.5511% | Val R^2: 37.1187%
+Epoch 100: baseline excess (mean) = 0.202715  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.093702  min: 0.047565  max: 0.138396
+--------------------
+  Checkpoint saved → model_fold_6.pth  (weights + history)  best_epoch=95
+========== Fold=7 ==========
+  torch.compile: enabled
+  Optimizer param groups:
+    decay    :  2,950,848 params  lr=1e-4  wd=1e-2
+    no-decay :     13,056 params  lr=1e-4  wd=0
+    gamma    :      2,304 params  lr=1e-3  wd=0   ← 10× boost
+    gate     :         18 params  lr=1e-2  wd=0   ← 100× boost
+  Gate warmup: gate_logit FROZEN for first 2 epochs
+----- Epoch 1 -----
+Training begins
+
+  ── LayerScale gamma gradient check (epoch 1, batch 1) ──
+    _orig_mod.blocks.0.ls1.gamma                        grad norm = 0.000112
+    _orig_mod.blocks.0.ls2.gamma                        grad norm = 0.000409
+    _orig_mod.blocks.1.ls1.gamma                        grad norm = 0.000123
+    _orig_mod.blocks.1.ls2.gamma                        grad norm = 0.000433
+    _orig_mod.blocks.2.ls1.gamma                        grad norm = 0.000105
+    _orig_mod.blocks.2.ls2.gamma                        grad norm = 0.000411
+    _orig_mod.blocks.3.ls1.gamma                        grad norm = 0.000095
+    _orig_mod.blocks.3.ls2.gamma                        grad norm = 0.000430
+    _orig_mod.blocks.4.ls1.gamma                        grad norm = 0.000115
+    _orig_mod.blocks.4.ls2.gamma                        grad norm = 0.000464
+    _orig_mod.blocks.5.ls1.gamma                        grad norm = 0.000129
+    _orig_mod.blocks.5.ls2.gamma                        grad norm = 0.000463
+  ── end gamma check ──
+
+
+  ── SectorGPSA gate_logit gradient check (epoch 1, batch 1) ──
+  (near-zero grads are expected at init; see docstring)
+    _orig_mod.blocks.0.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.1.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.2.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.3.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.4.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.5.attn.gate_logit                  grad = None  ← not connected!
+  ── end gate check ──
+
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.992644 | Val Loss 0.717859
+Epoch 1: Train R^2: 0.7291% | Val R^2: 2.9176%
+Epoch 1: baseline excess (mean) = 0.988380  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.019942  min: 0.013823  max: 0.025811
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.966039 | Val Loss 0.688475
+Epoch 2: Train R^2: 3.3897% | Val R^2: 6.8914%
+Epoch 2: baseline excess (mean) = 0.961689  (penalty active)
+--------------------
+----- Epoch 3 -----
+  Gate warmup complete: gate_logit UNFROZEN at epoch 3
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.934945 | Val Loss 0.656628
+Epoch 3: Train R^2: 6.4993% | Val R^2: 11.1983%
+Epoch 3: baseline excess (mean) = 0.930494  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.059188  min: 0.035641  max: 0.083667
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.902667 | Val Loss 0.628379
+Epoch 4: Train R^2: 9.7274% | Val R^2: 15.0186%
+Epoch 4: baseline excess (mean) = 0.898162  (penalty active)
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.868517 | Val Loss 0.605099
+Epoch 5: Train R^2: 13.1426% | Val R^2: 18.1670%
+Epoch 5: baseline excess (mean) = 0.863942  (penalty active)
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.842551 | Val Loss 0.587907
+Epoch 6: Train R^2: 15.7394% | Val R^2: 20.4921%
+Epoch 6: baseline excess (mean) = 0.837817  (penalty active)
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.819607 | Val Loss 0.582822
+Epoch 7: Train R^2: 18.0339% | Val R^2: 21.1797%
+Epoch 7: baseline excess (mean) = 0.814769  (penalty active)
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.809889 | Val Loss 0.583172
+Epoch 8: Train R^2: 19.0058% | Val R^2: 21.1324%
+Epoch 8: baseline excess (mean) = 0.804931  (penalty active)
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.790284 | Val Loss 0.577037
+Epoch 9: Train R^2: 20.9664% | Val R^2: 21.9622%
+Epoch 9: baseline excess (mean) = 0.785346  (penalty active)
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.768378 | Val Loss 0.563404
+Epoch 10: Train R^2: 23.1571% | Val R^2: 23.8058%
+Epoch 10: baseline excess (mean) = 0.763355  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.087995  min: 0.049379  max: 0.122920
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.748560 | Val Loss 0.549426
+Epoch 11: Train R^2: 25.1391% | Val R^2: 25.6962%
+Epoch 11: baseline excess (mean) = 0.743596  (penalty active)
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.728082 | Val Loss 0.536785
+Epoch 12: Train R^2: 27.1870% | Val R^2: 27.4058%
+Epoch 12: baseline excess (mean) = 0.723164  (penalty active)
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.706742 | Val Loss 0.524601
+Epoch 13: Train R^2: 29.3211% | Val R^2: 29.0535%
+Epoch 13: baseline excess (mean) = 0.701854  (penalty active)
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 0.688357 | Val Loss 0.515399
+Epoch 14: Train R^2: 31.1598% | Val R^2: 30.2980%
+Epoch 14: baseline excess (mean) = 0.683518  (penalty active)
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 0.667938 | Val Loss 0.502008
+Epoch 15: Train R^2: 33.2018% | Val R^2: 32.1090%
+Epoch 15: baseline excess (mean) = 0.663170  (penalty active)
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 0.644526 | Val Loss 0.492254
+Epoch 16: Train R^2: 35.5432% | Val R^2: 33.4281%
+Epoch 16: baseline excess (mean) = 0.639871  (penalty active)
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 0.622159 | Val Loss 0.481791
+Epoch 17: Train R^2: 37.7800% | Val R^2: 34.8431%
+Epoch 17: baseline excess (mean) = 0.617677  (penalty active)
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 0.596993 | Val Loss 0.465388
+Epoch 18: Train R^2: 40.2968% | Val R^2: 37.0615%
+Epoch 18: baseline excess (mean) = 0.592627  (penalty active)
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 0.570908 | Val Loss 0.450562
+Epoch 19: Train R^2: 42.9054% | Val R^2: 39.0664%
+Epoch 19: baseline excess (mean) = 0.566702  (penalty active)
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 0.542407 | Val Loss 0.435394
+Epoch 20: Train R^2: 45.7557% | Val R^2: 41.1178%
+Epoch 20: baseline excess (mean) = 0.538422  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.099175  min: 0.049385  max: 0.167134
+--------------------
+----- Epoch 21 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.522847 | Val Loss 0.428841
+Epoch 21: Train R^2: 47.7119% | Val R^2: 42.0040%
+Epoch 21: baseline excess (mean) = 0.518987  (penalty active)
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.497963 | Val Loss 0.420932
+Epoch 22: Train R^2: 50.2005% | Val R^2: 43.0736%
+Epoch 22: baseline excess (mean) = 0.494330  (penalty active)
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.476504 | Val Loss 0.419010
+Epoch 23: Train R^2: 52.3464% | Val R^2: 43.3336%
+Epoch 23: baseline excess (mean) = 0.473065  (penalty active)
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.457752 | Val Loss 0.420550
+Epoch 24: Train R^2: 54.2217% | Val R^2: 43.1253%
+Epoch 24: baseline excess (mean) = 0.454500  (penalty active)
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.435589 | Val Loss 0.431064
+Epoch 25: Train R^2: 56.4382% | Val R^2: 41.7034%
+Epoch 25: baseline excess (mean) = 0.432573  (penalty active)
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.418882 | Val Loss 0.453589
+Epoch 26: Train R^2: 58.1091% | Val R^2: 38.6571%
+Epoch 26: baseline excess (mean) = 0.416092  (penalty active)
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.408679 | Val Loss 0.490567
+Epoch 27: Train R^2: 59.1294% | Val R^2: 33.6562%
+Epoch 27: baseline excess (mean) = 0.406009  (penalty active)
+--------------------
+----- Epoch 28 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 28: Train Loss 0.427399 | Val Loss 0.467514
+Epoch 28: Train R^2: 57.2573% | Val R^2: 36.7739%
+Epoch 28: baseline excess (mean) = 0.424485  (penalty active)
+--------------------
+----- Epoch 29 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 29: Train Loss 0.416281 | Val Loss 0.423738
+Epoch 29: Train R^2: 58.3691% | Val R^2: 42.6941%
+Epoch 29: baseline excess (mean) = 0.413711  (penalty active)
+--------------------
+----- Epoch 30 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 30: Train Loss 0.412509 | Val Loss 0.418677
+Epoch 30: Train R^2: 58.7464% | Val R^2: 43.3786%
+Epoch 30: baseline excess (mean) = 0.411221  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.101242  min: 0.046870  max: 0.174573
+--------------------
+----- Epoch 31 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 31: Train Loss 0.381080 | Val Loss 0.371198
+Epoch 31: Train R^2: 61.8895% | Val R^2: 49.7996%
+Epoch 31: baseline excess (mean) = 0.378861  (penalty active)
+--------------------
+----- Epoch 32 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 32: Train Loss 0.369257 | Val Loss 0.353141
+Epoch 32: Train R^2: 63.0719% | Val R^2: 52.2416%
+Epoch 32: baseline excess (mean) = 0.367476  (penalty active)
+--------------------
+----- Epoch 33 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 33: Train Loss 0.363149 | Val Loss 0.352497
+Epoch 33: Train R^2: 63.6827% | Val R^2: 52.3287%
+Epoch 33: baseline excess (mean) = 0.361406  (penalty active)
+--------------------
+----- Epoch 34 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 34: Train Loss 0.345078 | Val Loss 0.339013
+Epoch 34: Train R^2: 65.4899% | Val R^2: 54.1522%
+Epoch 34: baseline excess (mean) = 0.343188  (penalty active)
+--------------------
+----- Epoch 35 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 35: Train Loss 0.346372 | Val Loss 0.337933
+Epoch 35: Train R^2: 65.3605% | Val R^2: 54.2983%
+Epoch 35: baseline excess (mean) = 0.344415  (penalty active)
+--------------------
+----- Epoch 36 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 36: Train Loss 0.326385 | Val Loss 0.341466
+Epoch 36: Train R^2: 67.3593% | Val R^2: 53.8205%
+Epoch 36: baseline excess (mean) = 0.324650  (penalty active)
+--------------------
+----- Epoch 37 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 37: Train Loss 0.314425 | Val Loss 0.379566
+Epoch 37: Train R^2: 68.5554% | Val R^2: 48.6679%
+Epoch 37: baseline excess (mean) = 0.312993  (penalty active)
+--------------------
+----- Epoch 38 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 38: Train Loss 0.305212 | Val Loss 0.407980
+Epoch 38: Train R^2: 69.4768% | Val R^2: 44.8252%
+Epoch 38: baseline excess (mean) = 0.303786  (penalty active)
+--------------------
+----- Epoch 39 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 39: Train Loss 0.298034 | Val Loss 0.422846
+Epoch 39: Train R^2: 70.1947% | Val R^2: 42.8148%
+Epoch 39: baseline excess (mean) = 0.296657  (penalty active)
+--------------------
+----- Epoch 40 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 40: Train Loss 0.293321 | Val Loss 0.410341
+Epoch 40: Train R^2: 70.6660% | Val R^2: 44.5060%
+Epoch 40: baseline excess (mean) = 0.291845  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.101226  min: 0.043075  max: 0.173885
+--------------------
+----- Epoch 41 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 41: Train Loss 0.289540 | Val Loss 0.419618
+Epoch 41: Train R^2: 71.0441% | Val R^2: 43.2512%
+Epoch 41: baseline excess (mean) = 0.288078  (penalty active)
+--------------------
+----- Epoch 42 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 42: Train Loss 0.286073 | Val Loss 0.399984
+Epoch 42: Train R^2: 71.3908% | Val R^2: 45.9066%
+Epoch 42: baseline excess (mean) = 0.284599  (penalty active)
+--------------------
+----- Epoch 43 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 43: Train Loss 0.306892 | Val Loss 0.349352
+Epoch 43: Train R^2: 69.3088% | Val R^2: 52.7540%
+Epoch 43: baseline excess (mean) = 0.305261  (penalty active)
+--------------------
+----- Epoch 44 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 44: Train Loss 0.326477 | Val Loss 0.318937
+Epoch 44: Train R^2: 67.3501% | Val R^2: 56.8673%
+Epoch 44: baseline excess (mean) = 0.324616  (penalty active)
+--------------------
+----- Epoch 45 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 45: Train Loss 0.291372 | Val Loss 0.320440
+Epoch 45: Train R^2: 70.8609% | Val R^2: 56.6641%
+Epoch 45: baseline excess (mean) = 0.289829  (penalty active)
+--------------------
+----- Epoch 46 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 46: Train Loss 0.277708 | Val Loss 0.313784
+Epoch 46: Train R^2: 72.2274% | Val R^2: 57.5642%
+Epoch 46: baseline excess (mean) = 0.276188  (penalty active)
+--------------------
+----- Epoch 47 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 47: Train Loss 0.275737 | Val Loss 0.316791
+Epoch 47: Train R^2: 72.4244% | Val R^2: 57.1576%
+Epoch 47: baseline excess (mean) = 0.274179  (penalty active)
+--------------------
+----- Epoch 48 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 48: Train Loss 0.278311 | Val Loss 0.370596
+Epoch 48: Train R^2: 72.1671% | Val R^2: 49.8810%
+Epoch 48: baseline excess (mean) = 0.277404  (penalty active)
+--------------------
+----- Epoch 49 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 49: Train Loss 0.277967 | Val Loss 0.410226
+Epoch 49: Train R^2: 72.2014% | Val R^2: 44.5214%
+Epoch 49: baseline excess (mean) = 0.277060  (penalty active)
+--------------------
+----- Epoch 50 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 50: Train Loss 0.283736 | Val Loss 0.386149
+Epoch 50: Train R^2: 71.6245% | Val R^2: 47.7776%
+Epoch 50: baseline excess (mean) = 0.282152  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.099522  min: 0.041899  max: 0.166059
+--------------------
+----- Epoch 51 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 51: Train Loss 0.279933 | Val Loss 0.369058
+Epoch 51: Train R^2: 72.0048% | Val R^2: 50.0889%
+Epoch 51: baseline excess (mean) = 0.278166  (penalty active)
+--------------------
+----- Epoch 52 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 52: Train Loss 0.264735 | Val Loss 0.331573
+Epoch 52: Train R^2: 73.5247% | Val R^2: 55.1584%
+Epoch 52: baseline excess (mean) = 0.263209  (penalty active)
+--------------------
+----- Epoch 53 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 53: Train Loss 0.270825 | Val Loss 0.360458
+Epoch 53: Train R^2: 72.9157% | Val R^2: 51.2520%
+Epoch 53: baseline excess (mean) = 0.270127  (penalty active)
+--------------------
+----- Epoch 54 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 54: Train Loss 0.283054 | Val Loss 0.295528
+Epoch 54: Train R^2: 71.6928% | Val R^2: 60.0331%
+Epoch 54: baseline excess (mean) = 0.281275  (penalty active)
+--------------------
+----- Epoch 55 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 55: Train Loss 0.274100 | Val Loss 0.300739
+Epoch 55: Train R^2: 72.5882% | Val R^2: 59.3283%
+Epoch 55: baseline excess (mean) = 0.272402  (penalty active)
+--------------------
+----- Epoch 56 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 56: Train Loss 0.248985 | Val Loss 0.321179
+Epoch 56: Train R^2: 75.0999% | Val R^2: 56.5641%
+Epoch 56: baseline excess (mean) = 0.247597  (penalty active)
+--------------------
+----- Epoch 57 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 57: Train Loss 0.250962 | Val Loss 0.296511
+Epoch 57: Train R^2: 74.9021% | Val R^2: 59.9001%
+Epoch 57: baseline excess (mean) = 0.249539  (penalty active)
+--------------------
+----- Epoch 58 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 58: Train Loss 0.267751 | Val Loss 0.375578
+Epoch 58: Train R^2: 73.2232% | Val R^2: 49.2073%
+Epoch 58: baseline excess (mean) = 0.266675  (penalty active)
+--------------------
+----- Epoch 59 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 59: Train Loss 0.277637 | Val Loss 0.395548
+Epoch 59: Train R^2: 72.2345% | Val R^2: 46.5065%
+Epoch 59: baseline excess (mean) = 0.276108  (penalty active)
+--------------------
+----- Epoch 60 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 60: Train Loss 0.266189 | Val Loss 0.367344
+Epoch 60: Train R^2: 73.3793% | Val R^2: 50.3207%
+Epoch 60: baseline excess (mean) = 0.264427  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.096154  min: 0.039592  max: 0.156252
+--------------------
+----- Epoch 61 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 61: Train Loss 0.244219 | Val Loss 0.337217
+Epoch 61: Train R^2: 75.5765% | Val R^2: 54.3951%
+Epoch 61: baseline excess (mean) = 0.242693  (penalty active)
+--------------------
+----- Epoch 62 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 62: Train Loss 0.236562 | Val Loss 0.316339
+Epoch 62: Train R^2: 76.3423% | Val R^2: 57.2186%
+Epoch 62: baseline excess (mean) = 0.235092  (penalty active)
+--------------------
+----- Epoch 63 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 63: Train Loss 0.236064 | Val Loss 0.301790
+Epoch 63: Train R^2: 76.3920% | Val R^2: 59.1863%
+Epoch 63: baseline excess (mean) = 0.234698  (penalty active)
+--------------------
+----- Epoch 64 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 64: Train Loss 0.247102 | Val Loss 0.308756
+Epoch 64: Train R^2: 75.2882% | Val R^2: 58.2441%
+Epoch 64: baseline excess (mean) = 0.245775  (penalty active)
+--------------------
+Early stopping triggered. Loading best model weights...
+  Restored weights from best epoch 54 (val_loss=0.295528)
+  Checkpoint saved → model_fold_7.pth  (weights + history)  best_epoch=54
+========== Fold=8 ==========
+  torch.compile: enabled
+  Optimizer param groups:
+    decay    :  2,950,848 params  lr=1e-4  wd=1e-2
+    no-decay :     13,056 params  lr=1e-4  wd=0
+    gamma    :      2,304 params  lr=1e-3  wd=0   ← 10× boost
+    gate     :         18 params  lr=1e-2  wd=0   ← 100× boost
+  Gate warmup: gate_logit FROZEN for first 2 epochs
+----- Epoch 1 -----
+Training begins
+
+  ── LayerScale gamma gradient check (epoch 1, batch 1) ──
+    _orig_mod.blocks.0.ls1.gamma                        grad norm = 0.000355
+    _orig_mod.blocks.0.ls2.gamma                        grad norm = 0.000800
+    _orig_mod.blocks.1.ls1.gamma                        grad norm = 0.000357
+    _orig_mod.blocks.1.ls2.gamma                        grad norm = 0.000842
+    _orig_mod.blocks.2.ls1.gamma                        grad norm = 0.000338
+    _orig_mod.blocks.2.ls2.gamma                        grad norm = 0.000766
+    _orig_mod.blocks.3.ls1.gamma                        grad norm = 0.000404
+    _orig_mod.blocks.3.ls2.gamma                        grad norm = 0.000920
+    _orig_mod.blocks.4.ls1.gamma                        grad norm = 0.000318
+    _orig_mod.blocks.4.ls2.gamma                        grad norm = 0.000787
+    _orig_mod.blocks.5.ls1.gamma                        grad norm = 0.000375
+    _orig_mod.blocks.5.ls2.gamma                        grad norm = 0.000791
+  ── end gamma check ──
+
+
+  ── SectorGPSA gate_logit gradient check (epoch 1, batch 1) ──
+  (near-zero grads are expected at init; see docstring)
+    _orig_mod.blocks.0.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.1.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.2.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.3.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.4.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.5.attn.gate_logit                  grad = None  ← not connected!
+  ── end gate check ──
+
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.989855 | Val Loss 1.361226
+Epoch 1: Train R^2: 0.9527% | Val R^2: -32.4073%
+Epoch 1: baseline excess (mean) = 0.987761  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.021500  min: 0.014790  max: 0.028211
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.956663 | Val Loss 1.322124
+Epoch 2: Train R^2: 4.2740% | Val R^2: -28.6038%
+Epoch 2: baseline excess (mean) = 0.954456  (penalty active)
+--------------------
+----- Epoch 3 -----
+  Gate warmup complete: gate_logit UNFROZEN at epoch 3
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.912768 | Val Loss 1.286187
+Epoch 3: Train R^2: 8.6662% | Val R^2: -25.1082%
+Epoch 3: baseline excess (mean) = 0.910553  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.063775  min: 0.037034  max: 0.090521
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.867414 | Val Loss 1.250486
+Epoch 4: Train R^2: 13.2044% | Val R^2: -21.6355%
+Epoch 4: baseline excess (mean) = 0.865219  (penalty active)
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.822107 | Val Loss 1.232944
+Epoch 5: Train R^2: 17.7380% | Val R^2: -19.9292%
+Epoch 5: baseline excess (mean) = 0.820049  (penalty active)
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.784312 | Val Loss 1.211624
+Epoch 6: Train R^2: 21.5198% | Val R^2: -17.8554%
+Epoch 6: baseline excess (mean) = 0.782302  (penalty active)
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.752163 | Val Loss 1.186276
+Epoch 7: Train R^2: 24.7367% | Val R^2: -15.3897%
+Epoch 7: baseline excess (mean) = 0.750116  (penalty active)
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.723432 | Val Loss 1.161181
+Epoch 8: Train R^2: 27.6116% | Val R^2: -12.9488%
+Epoch 8: baseline excess (mean) = 0.721348  (penalty active)
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.698736 | Val Loss 1.136753
+Epoch 9: Train R^2: 30.0828% | Val R^2: -10.5727%
+Epoch 9: baseline excess (mean) = 0.696575  (penalty active)
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.676770 | Val Loss 1.112371
+Epoch 10: Train R^2: 32.2808% | Val R^2: -8.2010%
+Epoch 10: baseline excess (mean) = 0.674538  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.081279  min: 0.034346  max: 0.122991
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.656894 | Val Loss 1.088523
+Epoch 11: Train R^2: 34.2695% | Val R^2: -5.8812%
+Epoch 11: baseline excess (mean) = 0.654555  (penalty active)
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.638063 | Val Loss 1.064671
+Epoch 12: Train R^2: 36.1538% | Val R^2: -3.5612%
+Epoch 12: baseline excess (mean) = 0.635627  (penalty active)
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.620301 | Val Loss 1.040277
+Epoch 13: Train R^2: 37.9311% | Val R^2: -1.1884%
+Epoch 13: baseline excess (mean) = 0.617769  (penalty active)
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 0.603333 | Val Loss 1.015270
+Epoch 14: Train R^2: 39.6291% | Val R^2: 1.2441%
+Epoch 14: baseline excess (mean) = 0.600724  (penalty active)
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 0.586146 | Val Loss 0.986520
+Epoch 15: Train R^2: 41.3488% | Val R^2: 4.0407%
+Epoch 15: baseline excess (mean) = 0.583461  (penalty active)
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 0.569869 | Val Loss 0.961455
+Epoch 16: Train R^2: 42.9775% | Val R^2: 6.4787%
+Epoch 16: baseline excess (mean) = 0.567144  (penalty active)
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 0.552795 | Val Loss 0.928595
+Epoch 17: Train R^2: 44.6859% | Val R^2: 9.6750%
+Epoch 17: baseline excess (mean) = 0.550025  (penalty active)
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 0.536119 | Val Loss 0.904785
+Epoch 18: Train R^2: 46.3546% | Val R^2: 11.9911%
+Epoch 18: baseline excess (mean) = 0.533373  (penalty active)
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 0.518963 | Val Loss 0.880820
+Epoch 19: Train R^2: 48.0713% | Val R^2: 14.3222%
+Epoch 19: baseline excess (mean) = 0.516252  (penalty active)
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 0.499974 | Val Loss 0.843785
+Epoch 20: Train R^2: 49.9713% | Val R^2: 17.9246%
+Epoch 20: baseline excess (mean) = 0.497332  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.089915  min: 0.036485  max: 0.163178
+--------------------
+----- Epoch 21 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.478674 | Val Loss 0.804392
+Epoch 21: Train R^2: 52.1027% | Val R^2: 21.7564%
+Epoch 21: baseline excess (mean) = 0.476220  (penalty active)
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.457639 | Val Loss 0.776277
+Epoch 22: Train R^2: 54.2076% | Val R^2: 24.4911%
+Epoch 22: baseline excess (mean) = 0.455385  (penalty active)
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.441006 | Val Loss 0.758673
+Epoch 23: Train R^2: 55.8718% | Val R^2: 26.2035%
+Epoch 23: baseline excess (mean) = 0.438787  (penalty active)
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.425329 | Val Loss 0.743080
+Epoch 24: Train R^2: 57.4405% | Val R^2: 27.7202%
+Epoch 24: baseline excess (mean) = 0.423139  (penalty active)
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.410602 | Val Loss 0.729048
+Epoch 25: Train R^2: 58.9142% | Val R^2: 29.0851%
+Epoch 25: baseline excess (mean) = 0.408370  (penalty active)
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.395203 | Val Loss 0.707104
+Epoch 26: Train R^2: 60.4550% | Val R^2: 31.2196%
+Epoch 26: baseline excess (mean) = 0.392995  (penalty active)
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.382961 | Val Loss 0.724858
+Epoch 27: Train R^2: 61.6800% | Val R^2: 29.4926%
+Epoch 27: baseline excess (mean) = 0.380830  (penalty active)
+--------------------
+----- Epoch 28 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 28: Train Loss 0.374909 | Val Loss 0.654783
+Epoch 28: Train R^2: 62.4857% | Val R^2: 36.3089%
+Epoch 28: baseline excess (mean) = 0.372548  (penalty active)
+--------------------
+----- Epoch 29 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 29: Train Loss 0.368677 | Val Loss 0.647144
+Epoch 29: Train R^2: 63.1093% | Val R^2: 37.0519%
+Epoch 29: baseline excess (mean) = 0.366427  (penalty active)
+--------------------
+----- Epoch 30 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 30: Train Loss 0.359832 | Val Loss 0.671058
+Epoch 30: Train R^2: 63.9943% | Val R^2: 34.7258%
+Epoch 30: baseline excess (mean) = 0.357546  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.095180  min: 0.035870  max: 0.182413
+--------------------
+----- Epoch 31 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 31: Train Loss 0.361273 | Val Loss 0.664210
+Epoch 31: Train R^2: 63.8501% | Val R^2: 35.3919%
+Epoch 31: baseline excess (mean) = 0.359116  (penalty active)
+--------------------
+----- Epoch 32 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 32: Train Loss 0.360921 | Val Loss 0.696326
+Epoch 32: Train R^2: 63.8854% | Val R^2: 32.2680%
+Epoch 32: baseline excess (mean) = 0.359129  (penalty active)
+--------------------
+----- Epoch 33 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 33: Train Loss 0.370056 | Val Loss 0.619120
+Epoch 33: Train R^2: 62.9713% | Val R^2: 39.7778%
+Epoch 33: baseline excess (mean) = 0.367801  (penalty active)
+--------------------
+----- Epoch 34 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 34: Train Loss 0.352404 | Val Loss 0.520240
+Epoch 34: Train R^2: 64.7376% | Val R^2: 49.3960%
+Epoch 34: baseline excess (mean) = 0.350300  (penalty active)
+--------------------
+----- Epoch 35 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 35: Train Loss 0.341963 | Val Loss 0.474891
+Epoch 35: Train R^2: 65.7823% | Val R^2: 53.8071%
+Epoch 35: baseline excess (mean) = 0.339846  (penalty active)
+--------------------
+----- Epoch 36 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 36: Train Loss 0.344825 | Val Loss 0.509989
+Epoch 36: Train R^2: 65.4960% | Val R^2: 50.3930%
+Epoch 36: baseline excess (mean) = 0.342424  (penalty active)
+--------------------
+----- Epoch 37 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 37: Train Loss 0.353019 | Val Loss 0.614244
+Epoch 37: Train R^2: 64.6761% | Val R^2: 40.2521%
+Epoch 37: baseline excess (mean) = 0.350496  (penalty active)
+--------------------
+----- Epoch 38 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 38: Train Loss 0.332916 | Val Loss 0.579266
+Epoch 38: Train R^2: 66.6876% | Val R^2: 43.6544%
+Epoch 38: baseline excess (mean) = 0.330529  (penalty active)
+--------------------
+----- Epoch 39 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 39: Train Loss 0.324446 | Val Loss 0.638092
+Epoch 39: Train R^2: 67.5351% | Val R^2: 37.9325%
+Epoch 39: baseline excess (mean) = 0.322092  (penalty active)
+--------------------
+----- Epoch 40 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 40: Train Loss 0.322586 | Val Loss 0.782650
+Epoch 40: Train R^2: 67.7213% | Val R^2: 23.8712%
+Epoch 40: baseline excess (mean) = 0.320583  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.094719  min: 0.034460  max: 0.175341
+--------------------
+----- Epoch 41 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 41: Train Loss 0.325552 | Val Loss 0.881441
+Epoch 41: Train R^2: 67.4245% | Val R^2: 14.2617%
+Epoch 41: baseline excess (mean) = 0.323869  (penalty active)
+--------------------
+----- Epoch 42 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 42: Train Loss 0.346170 | Val Loss 0.660593
+Epoch 42: Train R^2: 65.3614% | Val R^2: 35.7437%
+Epoch 42: baseline excess (mean) = 0.343620  (penalty active)
+--------------------
+----- Epoch 43 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 43: Train Loss 0.331639 | Val Loss 0.556501
+Epoch 43: Train R^2: 66.8154% | Val R^2: 45.8688%
+Epoch 43: baseline excess (mean) = 0.329196  (penalty active)
+--------------------
+----- Epoch 44 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 44: Train Loss 0.319328 | Val Loss 0.483588
+Epoch 44: Train R^2: 68.0473% | Val R^2: 52.9612%
+Epoch 44: baseline excess (mean) = 0.317149  (penalty active)
+--------------------
+----- Epoch 45 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 45: Train Loss 0.313942 | Val Loss 0.440424
+Epoch 45: Train R^2: 68.5862% | Val R^2: 57.1597%
+Epoch 45: baseline excess (mean) = 0.311865  (penalty active)
+--------------------
+----- Epoch 46 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 46: Train Loss 0.320099 | Val Loss 0.433436
+Epoch 46: Train R^2: 67.9701% | Val R^2: 57.8395%
+Epoch 46: baseline excess (mean) = 0.317996  (penalty active)
+--------------------
+----- Epoch 47 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 47: Train Loss 0.359173 | Val Loss 0.658982
+Epoch 47: Train R^2: 64.0603% | Val R^2: 35.9004%
+Epoch 47: baseline excess (mean) = 0.356528  (penalty active)
+--------------------
+----- Epoch 48 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 48: Train Loss 0.333987 | Val Loss 0.570602
+Epoch 48: Train R^2: 66.5804% | Val R^2: 44.4972%
+Epoch 48: baseline excess (mean) = 0.331244  (penalty active)
+--------------------
+----- Epoch 49 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 49: Train Loss 0.295095 | Val Loss 0.562841
+Epoch 49: Train R^2: 70.4721% | Val R^2: 45.2521%
+Epoch 49: baseline excess (mean) = 0.292902  (penalty active)
+--------------------
+----- Epoch 50 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 50: Train Loss 0.288593 | Val Loss 0.575249
+Epoch 50: Train R^2: 71.1227% | Val R^2: 44.0452%
+Epoch 50: baseline excess (mean) = 0.286356  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.093743  min: 0.034403  max: 0.165836
+--------------------
+----- Epoch 51 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 51: Train Loss 0.282380 | Val Loss 0.543949
+Epoch 51: Train R^2: 71.7444% | Val R^2: 47.0898%
+Epoch 51: baseline excess (mean) = 0.280103  (penalty active)
+--------------------
+----- Epoch 52 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 52: Train Loss 0.279201 | Val Loss 0.536964
+Epoch 52: Train R^2: 72.0625% | Val R^2: 47.7692%
+Epoch 52: baseline excess (mean) = 0.276916  (penalty active)
+--------------------
+----- Epoch 53 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 53: Train Loss 0.276875 | Val Loss 0.455119
+Epoch 53: Train R^2: 72.2952% | Val R^2: 55.7303%
+Epoch 53: baseline excess (mean) = 0.274741  (penalty active)
+--------------------
+----- Epoch 54 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 54: Train Loss 0.274851 | Val Loss 0.417925
+Epoch 54: Train R^2: 72.4978% | Val R^2: 59.3482%
+Epoch 54: baseline excess (mean) = 0.272661  (penalty active)
+--------------------
+----- Epoch 55 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 55: Train Loss 0.272018 | Val Loss 0.413212
+Epoch 55: Train R^2: 72.7812% | Val R^2: 59.8066%
+Epoch 55: baseline excess (mean) = 0.269732  (penalty active)
+--------------------
+----- Epoch 56 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 56: Train Loss 0.274667 | Val Loss 0.462487
+Epoch 56: Train R^2: 72.5161% | Val R^2: 55.0136%
+Epoch 56: baseline excess (mean) = 0.272520  (penalty active)
+--------------------
+----- Epoch 57 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 57: Train Loss 0.283595 | Val Loss 0.541858
+Epoch 57: Train R^2: 71.6228% | Val R^2: 47.2931%
+Epoch 57: baseline excess (mean) = 0.281343  (penalty active)
+--------------------
+----- Epoch 58 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 58: Train Loss 0.279211 | Val Loss 0.433542
+Epoch 58: Train R^2: 72.0614% | Val R^2: 57.8291%
+Epoch 58: baseline excess (mean) = 0.276869  (penalty active)
+--------------------
+----- Epoch 59 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 59: Train Loss 0.267146 | Val Loss 0.407451
+Epoch 59: Train R^2: 73.2688% | Val R^2: 60.3670%
+Epoch 59: baseline excess (mean) = 0.264911  (penalty active)
+--------------------
+----- Epoch 60 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 60: Train Loss 0.265525 | Val Loss 0.379055
+Epoch 60: Train R^2: 73.4309% | Val R^2: 63.1291%
+Epoch 60: baseline excess (mean) = 0.263176  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.092873  min: 0.035280  max: 0.152603
+--------------------
+----- Epoch 61 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 61: Train Loss 0.263140 | Val Loss 0.383578
+Epoch 61: Train R^2: 73.6695% | Val R^2: 62.6892%
+Epoch 61: baseline excess (mean) = 0.260796  (penalty active)
+--------------------
+----- Epoch 62 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 62: Train Loss 0.281898 | Val Loss 0.526608
+Epoch 62: Train R^2: 71.7926% | Val R^2: 48.7765%
+Epoch 62: baseline excess (mean) = 0.279500  (penalty active)
+--------------------
+----- Epoch 63 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 63: Train Loss 0.259493 | Val Loss 0.498354
+Epoch 63: Train R^2: 74.0345% | Val R^2: 51.5249%
+Epoch 63: baseline excess (mean) = 0.257176  (penalty active)
+--------------------
+----- Epoch 64 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 64: Train Loss 0.250583 | Val Loss 0.538050
+Epoch 64: Train R^2: 74.9261% | Val R^2: 47.6636%
+Epoch 64: baseline excess (mean) = 0.248328  (penalty active)
+--------------------
+----- Epoch 65 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 65: Train Loss 0.251912 | Val Loss 0.494471
+Epoch 65: Train R^2: 74.7931% | Val R^2: 51.9025%
+Epoch 65: baseline excess (mean) = 0.249719  (penalty active)
+--------------------
+----- Epoch 66 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 66: Train Loss 0.276066 | Val Loss 0.753526
+Epoch 66: Train R^2: 72.3761% | Val R^2: 26.7041%
+Epoch 66: baseline excess (mean) = 0.274945  (penalty active)
+--------------------
+----- Epoch 67 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 67: Train Loss 0.273695 | Val Loss 0.682507
+Epoch 67: Train R^2: 72.6134% | Val R^2: 33.6122%
+Epoch 67: baseline excess (mean) = 0.271757  (penalty active)
+--------------------
+----- Epoch 68 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 68: Train Loss 0.275557 | Val Loss 0.565545
+Epoch 68: Train R^2: 72.4271% | Val R^2: 44.9891%
+Epoch 68: baseline excess (mean) = 0.273021  (penalty active)
+--------------------
+----- Epoch 69 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 69: Train Loss 0.267544 | Val Loss 0.471085
+Epoch 69: Train R^2: 73.2289% | Val R^2: 54.1773%
+Epoch 69: baseline excess (mean) = 0.265035  (penalty active)
+--------------------
+----- Epoch 70 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 70: Train Loss 0.256717 | Val Loss 0.422357
+Epoch 70: Train R^2: 74.3122% | Val R^2: 58.9171%
+Epoch 70: baseline excess (mean) = 0.254458  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.091836  min: 0.034161  max: 0.150372
+--------------------
+Early stopping triggered. Loading best model weights...
+  Restored weights from best epoch 60 (val_loss=0.379055)
+  Checkpoint saved → model_fold_8.pth  (weights + history)  best_epoch=60
+========== Fold=9 ==========
+  torch.compile: enabled
+  Optimizer param groups:
+    decay    :  2,950,848 params  lr=1e-4  wd=1e-2
+    no-decay :     13,056 params  lr=1e-4  wd=0
+    gamma    :      2,304 params  lr=1e-3  wd=0   ← 10× boost
+    gate     :         18 params  lr=1e-2  wd=0   ← 100× boost
+  Gate warmup: gate_logit FROZEN for first 2 epochs
+----- Epoch 1 -----
+Training begins
+
+  ── LayerScale gamma gradient check (epoch 1, batch 1) ──
+    _orig_mod.blocks.0.ls1.gamma                        grad norm = 0.000161
+    _orig_mod.blocks.0.ls2.gamma                        grad norm = 0.000468
+    _orig_mod.blocks.1.ls1.gamma                        grad norm = 0.000143
+    _orig_mod.blocks.1.ls2.gamma                        grad norm = 0.000507
+    _orig_mod.blocks.2.ls1.gamma                        grad norm = 0.000152
+    _orig_mod.blocks.2.ls2.gamma                        grad norm = 0.000504
+    _orig_mod.blocks.3.ls1.gamma                        grad norm = 0.000170
+    _orig_mod.blocks.3.ls2.gamma                        grad norm = 0.000463
+    _orig_mod.blocks.4.ls1.gamma                        grad norm = 0.000169
+    _orig_mod.blocks.4.ls2.gamma                        grad norm = 0.000526
+    _orig_mod.blocks.5.ls1.gamma                        grad norm = 0.000153
+    _orig_mod.blocks.5.ls2.gamma                        grad norm = 0.000435
+  ── end gamma check ──
+
+
+  ── SectorGPSA gate_logit gradient check (epoch 1, batch 1) ──
+  (near-zero grads are expected at init; see docstring)
+    _orig_mod.blocks.0.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.1.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.2.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.3.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.4.attn.gate_logit                  grad = None  ← not connected!
+    _orig_mod.blocks.5.attn.gate_logit                  grad = None  ← not connected!
+  ── end gate check ──
+
+Validation begins
+----- Train/Validation results -----
+Epoch 1: Train Loss 0.987899 | Val Loss 0.932248
+Epoch 1: Train R^2: 1.2293% | Val R^2: -1.9531%
+Epoch 1: baseline excess (mean) = 0.987269  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (FROZEN)
+  LayerScale γ — mean: 0.024213  min: 0.016415  max: 0.030829
+--------------------
+----- Epoch 2 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 2: Train Loss 0.952191 | Val Loss 0.890600
+Epoch 2: Train R^2: 4.7994% | Val R^2: 2.6017%
+Epoch 2: baseline excess (mean) = 0.951490  (penalty active)
+--------------------
+----- Epoch 3 -----
+  Gate warmup complete: gate_logit UNFROZEN at epoch 3
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 3: Train Loss 0.908746 | Val Loss 0.843159
+Epoch 3: Train R^2: 9.1431% | Val R^2: 7.7899%
+Epoch 3: baseline excess (mean) = 0.908017  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.066235  min: 0.042902  max: 0.085324
+--------------------
+----- Epoch 4 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 4: Train Loss 0.862842 | Val Loss 0.797034
+Epoch 4: Train R^2: 13.7326% | Val R^2: 12.8342%
+Epoch 4: baseline excess (mean) = 0.862079  (penalty active)
+--------------------
+----- Epoch 5 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 5: Train Loss 0.816907 | Val Loss 0.754269
+Epoch 5: Train R^2: 18.3252% | Val R^2: 17.5112%
+Epoch 5: baseline excess (mean) = 0.816105  (penalty active)
+--------------------
+----- Epoch 6 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 6: Train Loss 0.773320 | Val Loss 0.719290
+Epoch 6: Train R^2: 22.6830% | Val R^2: 21.3366%
+Epoch 6: baseline excess (mean) = 0.772649  (penalty active)
+--------------------
+----- Epoch 7 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 7: Train Loss 0.731643 | Val Loss 0.686154
+Epoch 7: Train R^2: 26.8500% | Val R^2: 24.9604%
+Epoch 7: baseline excess (mean) = 0.730888  (penalty active)
+--------------------
+----- Epoch 8 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 8: Train Loss 0.698163 | Val Loss 0.657025
+Epoch 8: Train R^2: 30.1973% | Val R^2: 28.1460%
+Epoch 8: baseline excess (mean) = 0.697329  (penalty active)
+--------------------
+----- Epoch 9 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 9: Train Loss 0.669252 | Val Loss 0.634842
+Epoch 9: Train R^2: 33.0878% | Val R^2: 30.5720%
+Epoch 9: baseline excess (mean) = 0.668391  (penalty active)
+--------------------
+----- Epoch 10 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 10: Train Loss 0.644141 | Val Loss 0.615200
+Epoch 10: Train R^2: 35.5984% | Val R^2: 32.7201%
+Epoch 10: baseline excess (mean) = 0.643202  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.085546  min: 0.054523  max: 0.112441
+--------------------
+----- Epoch 11 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 11: Train Loss 0.620940 | Val Loss 0.596757
+Epoch 11: Train R^2: 37.9180% | Val R^2: 34.7371%
+Epoch 11: baseline excess (mean) = 0.619901  (penalty active)
+--------------------
+----- Epoch 12 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 12: Train Loss 0.601651 | Val Loss 0.581889
+Epoch 12: Train R^2: 39.8466% | Val R^2: 36.3631%
+Epoch 12: baseline excess (mean) = 0.600497  (penalty active)
+--------------------
+----- Epoch 13 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 13: Train Loss 0.581885 | Val Loss 0.563482
+Epoch 13: Train R^2: 41.8229% | Val R^2: 38.3762%
+Epoch 13: baseline excess (mean) = 0.580512  (penalty active)
+--------------------
+----- Epoch 14 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 14: Train Loss 0.565252 | Val Loss 0.548922
+Epoch 14: Train R^2: 43.4858% | Val R^2: 39.9684%
+Epoch 14: baseline excess (mean) = 0.563803  (penalty active)
+--------------------
+----- Epoch 15 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 15: Train Loss 0.548822 | Val Loss 0.534678
+Epoch 15: Train R^2: 45.1285% | Val R^2: 41.5262%
+Epoch 15: baseline excess (mean) = 0.547234  (penalty active)
+--------------------
+----- Epoch 16 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 16: Train Loss 0.533433 | Val Loss 0.523008
+Epoch 16: Train R^2: 46.6670% | Val R^2: 42.8025%
+Epoch 16: baseline excess (mean) = 0.531680  (penalty active)
+--------------------
+----- Epoch 17 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 17: Train Loss 0.517943 | Val Loss 0.510983
+Epoch 17: Train R^2: 48.2157% | Val R^2: 44.1176%
+Epoch 17: baseline excess (mean) = 0.516014  (penalty active)
+--------------------
+----- Epoch 18 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 18: Train Loss 0.502399 | Val Loss 0.496645
+Epoch 18: Train R^2: 49.7699% | Val R^2: 45.6856%
+Epoch 18: baseline excess (mean) = 0.500393  (penalty active)
+--------------------
+----- Epoch 19 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 19: Train Loss 0.486756 | Val Loss 0.484944
+Epoch 19: Train R^2: 51.3339% | Val R^2: 46.9653%
+Epoch 19: baseline excess (mean) = 0.484729  (penalty active)
+--------------------
+----- Epoch 20 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 20: Train Loss 0.470963 | Val Loss 0.471713
+Epoch 20: Train R^2: 52.9129% | Val R^2: 48.4123%
+Epoch 20: baseline excess (mean) = 0.468794  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.099032  min: 0.058573  max: 0.143882
+--------------------
+----- Epoch 21 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 21: Train Loss 0.456197 | Val Loss 0.459343
+Epoch 21: Train R^2: 54.3892% | Val R^2: 49.7651%
+Epoch 21: baseline excess (mean) = 0.454114  (penalty active)
+--------------------
+----- Epoch 22 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 22: Train Loss 0.440734 | Val Loss 0.447863
+Epoch 22: Train R^2: 55.9352% | Val R^2: 51.0206%
+Epoch 22: baseline excess (mean) = 0.438547  (penalty active)
+--------------------
+----- Epoch 23 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 23: Train Loss 0.426223 | Val Loss 0.437754
+Epoch 23: Train R^2: 57.3859% | Val R^2: 52.1261%
+Epoch 23: baseline excess (mean) = 0.424057  (penalty active)
+--------------------
+----- Epoch 24 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 24: Train Loss 0.415163 | Val Loss 0.428950
+Epoch 24: Train R^2: 58.4918% | Val R^2: 53.0889%
+Epoch 24: baseline excess (mean) = 0.412897  (penalty active)
+--------------------
+----- Epoch 25 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 25: Train Loss 0.404241 | Val Loss 0.424541
+Epoch 25: Train R^2: 59.5837% | Val R^2: 53.5711%
+Epoch 25: baseline excess (mean) = 0.402046  (penalty active)
+--------------------
+----- Epoch 26 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 26: Train Loss 0.393314 | Val Loss 0.417869
+Epoch 26: Train R^2: 60.6762% | Val R^2: 54.3008%
+Epoch 26: baseline excess (mean) = 0.391083  (penalty active)
+--------------------
+----- Epoch 27 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 27: Train Loss 0.384214 | Val Loss 0.410496
+Epoch 27: Train R^2: 61.5861% | Val R^2: 55.1071%
+Epoch 27: baseline excess (mean) = 0.381888  (penalty active)
+--------------------
+----- Epoch 28 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 28: Train Loss 0.378634 | Val Loss 0.411220
+Epoch 28: Train R^2: 62.1440% | Val R^2: 55.0279%
+Epoch 28: baseline excess (mean) = 0.376216  (penalty active)
+--------------------
+----- Epoch 29 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 29: Train Loss 0.372384 | Val Loss 0.413671
+Epoch 29: Train R^2: 62.7688% | Val R^2: 54.7598%
+Epoch 29: baseline excess (mean) = 0.370081  (penalty active)
+--------------------
+----- Epoch 30 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 30: Train Loss 0.364211 | Val Loss 0.416118
+Epoch 30: Train R^2: 63.5860% | Val R^2: 54.4922%
+Epoch 30: baseline excess (mean) = 0.361901  (penalty active)
+  Gate g=sigmoid(λ) — mean: 0.8808  min: 0.8808  max: 0.8808  (trainable)
+  LayerScale γ — mean: 0.103524  min: 0.058841  max: 0.165932
+--------------------
+----- Epoch 31 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 31: Train Loss 0.356951 | Val Loss 0.423807
+Epoch 31: Train R^2: 64.3118% | Val R^2: 53.6513%
+Epoch 31: baseline excess (mean) = 0.354671  (penalty active)
+--------------------
+----- Epoch 32 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 32: Train Loss 0.352226 | Val Loss 0.435554
+Epoch 32: Train R^2: 64.7842% | Val R^2: 52.3667%
+Epoch 32: baseline excess (mean) = 0.349958  (penalty active)
+--------------------
+----- Epoch 33 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 33: Train Loss 0.350176 | Val Loss 0.460067
+Epoch 33: Train R^2: 64.9892% | Val R^2: 49.6859%
+Epoch 33: baseline excess (mean) = 0.347967  (penalty active)
+--------------------
+----- Epoch 34 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 34: Train Loss 0.361218 | Val Loss 0.447558
+Epoch 34: Train R^2: 63.8852% | Val R^2: 51.0539%
+Epoch 34: baseline excess (mean) = 0.359000  (penalty active)
+--------------------
+----- Epoch 35 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 35: Train Loss 0.415768 | Val Loss 0.571850
+Epoch 35: Train R^2: 58.4313% | Val R^2: 37.4609%
+Epoch 35: baseline excess (mean) = 0.415512  (penalty active)
+--------------------
+----- Epoch 36 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 36: Train Loss 0.386406 | Val Loss 0.504255
+Epoch 36: Train R^2: 61.3669% | Val R^2: 44.8533%
+Epoch 36: baseline excess (mean) = 0.385073  (penalty active)
+--------------------
+----- Epoch 37 -----
+Training begins
+Validation begins
+----- Train/Validation results -----
+Epoch 37: Train Loss 0.380596 | Val Loss 0.462332
+Epoch 37: Train R^2: 61.9478% | Val R^2: 49.4381%
+Epoch 37: baseline excess (mean) = 0.379165  (penalty active)
+--------------------
+Early stopping triggered. Loading best model weights...
+  Restored weights from best epoch 27 (val_loss=0.410496)
+  Checkpoint saved → model_fold_9.pth  (weights + history)  best_epoch=27
+Lowest val_mse model != highest val_r2 model, choosing lowest mse model.
+Model 7 has the lowest val_MSE.
+Model 4 has the highest val_R^2.
+Saved → fold_summary.png
+Saved → ./attention_maps.png
+Saved → ./attention_maps_last_block.png
+Saved → ./attention_maps_overlay.png
+Saved → ./ind_attention_maps_overlay.png
+Saved → ./attention_maps_overlay_last_block.png
+Saved → ./ind_attention_maps_overlay_last_block.png
+
+── Gate Values g = sigmoid(λ) ──────────────────────────────────
+  Block  Head 1  Head 2  Head 3
+  ----------------------------------
+      1   0.881   0.881   0.881
+      2   0.881   0.881   0.881
+      3   0.881   0.881   0.881
+      4   0.881   0.881   0.881
+      5   0.881   0.881   0.881
+      6   0.881   0.881   0.881
+
+  g≈1 = positional (sector prior)  |  g≈0 = content-driven
+
+Saved → ./gate_values.png
+
+── Mean Attention Distance Baselines (grid=29×29, N=841) ──
+  Uniform attention baseline   : 15.1119
+  Pure positional (g=1) baseline: 7.6444  (mean intra-sector distance)
+  → Effective distance < positional baseline  ⟹ content head is also local
+  → Effective distance between baselines  ⟹ gate is blending meaningfully
+
+Saved → ./mean_attention_distance.png
+Saved → ./bar_mean_attention_distance.png
+Saved → ./layerscale_gammas.png
+Saved → ./attention_weights.png
+
+── Naive baseline check (full val set (N=126 samples)) ─────────────────
+  Baseline: ŷ_{t+1} = x_t  (persistence / copy-last-step)
+  MSE scope : full val set (N=126 samples)
+  NOTE: MSEs are averaged over the full validation set,
+        matching the val_mse reported during training.
+  Baseline MSE : 1.079615e-03
+  Model MSE    : 3.426663e-01
+  NOTE: D is symmetric and the diagonal is constant across
+        time steps, so effective independent pairs = 457×456/2
+        = 104,196 (not 457² = 208,849 as the mean suggests).
+        The model vs baseline comparison remains unbiased.
+  Relative improvement vs baseline : -31639.66%
+  ✗ WARNING: model does NOT beat the naive baseline — investigate.
+
+Saved → ./prediction_error_map.png
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			Resource Usage on 2026-03-14 18:40:32.030446:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	JobId: 3149955.hpc-pbs-sched1
+	Project: as_spms_cheongsa
+	Exit Status: 0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	NCPUs: Requested(19), Used(19)
+	CPU Time Used: 79:32:16
+	Memory: Requested(100gb), Used(23485208kb)
+	Vmem Used: 51082172kb
+	Walltime: Requested(48:00:00), Used(10:14:04)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Execution Nodes Used: (hpc-wfly-a001:ncpus=19:mem=104857600kb)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	No GPU-related information available for this job.
