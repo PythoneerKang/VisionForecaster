@@ -16,7 +16,7 @@ from transformer import SmallDataDecoderViT
 
 GATE_WARMUP_EPOCHS       = 5
 GATE_ENTROPY_WEIGHT      = 0.0
-BASELINE_PENALTY_WEIGHT  = 1.0   # λ in BaselineRegularisedMSE (see below)
+BASELINE_PENALTY_WEIGHT  = 2.0   # λ in BaselineRegularisedMSE — stronger penalty when worse than null
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -58,8 +58,8 @@ class BaselineRegularisedMSE(nn.Module):
     Usage
     -----
         criterion = BaselineRegularisedMSE(baseline_weight=1.0)
-        loss = criterion(outputs, y, x)   # x is the model input (= baseline pred)
-    """
+        loss, mse_raw, excess = criterion(outputs, y, x)   # x = model input (= baseline pred)
+"""
 
     def __init__(self, baseline_weight: float = 1.0):
         super().__init__()
@@ -72,7 +72,7 @@ class BaselineRegularisedMSE(nn.Module):
         y_pred: torch.Tensor,   # (B, C, H, W)  model prediction ŷ
         y_true: torch.Tensor,   # (B, C, H, W)  ground truth y
         x:      torch.Tensor,   # (B, C, H, W)  model input x (= persistence forecast)
-    ) -> tuple[torch.Tensor, torch.Tensor]:
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Returns
         -------
@@ -80,6 +80,8 @@ class BaselineRegularisedMSE(nn.Module):
         mse_raw  : scalar tensor — plain MSE (no penalty), for logging.
                    Always use mse_raw for val_mse tracking so metrics stay
                    comparable across experiments and against the baseline.
+        excess   : scalar tensor — ReLU(mse_model - mse_baseline), for logging.
+                   > 0 when model is worse than persistence baseline.
         """
         mse_model    = F.mse_loss(y_pred, y_true)
         mse_baseline = F.mse_loss(x, y_true).detach()   # detach: constant, no grad
@@ -87,7 +89,7 @@ class BaselineRegularisedMSE(nn.Module):
         excess = torch.relu(mse_model - mse_baseline)
         loss   = mse_model + self.baseline_weight * excess
 
-        return loss, mse_model
+        return loss, mse_model, excess
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -353,6 +355,8 @@ def train_with_validation(
         train_sse   = 0.0
         train_n     = 0
         train_sum_y = 0.0
+        train_excess_sum = 0.0
+        train_excess_n   = 0
         y_batches:    list[torch.Tensor] = []
         pred_batches: list[torch.Tensor] = []
         print("Training begins")
@@ -366,7 +370,9 @@ def train_with_validation(
             # the model is outperformed by the persistence forecast (ŷ = x).
             # mse_raw is the plain MSE used for metrics; it stays comparable
             # to val_mse and to the baseline regardless of λ.
-            total_mse, mse_raw = criterion(outputs, y, x)
+            total_mse, mse_raw, excess = criterion(outputs, y, x)
+            train_excess_sum += excess.detach().item()
+            train_excess_n   += 1
 
             # Gate entropy regulariser is only meaningful once gates are
             # unfrozen; during warmup gate_logit.requires_grad is False so
@@ -437,11 +443,14 @@ def train_with_validation(
 
         avg_train = train_sse / train_n if train_n > 0 else 0.0
         avg_val   = val_sse   / val_n   if val_n   > 0 else 0.0
+        mean_excess = train_excess_sum / train_excess_n if train_excess_n > 0 else 0.0
 
         print(f"----- Train/Validation results -----")
         print(f"Epoch {epoch}: Train Loss {avg_train:.6f} | Val Loss {avg_val:.6f}")
         print(f"Epoch {epoch}: Train R^2: {epoch_training_r2_score * 100:.4f}% | "
               f"Val R^2: {epoch_validation_r2_score * 100:.4f}%")
+        print(f"Epoch {epoch}: baseline excess (mean) = {mean_excess:.6f}  "
+              f"({'penalty active' if mean_excess > 0 else 'model ≥ baseline'})")
 
         # ── Gate and gamma monitoring ──────────────────────────────────────
         if epoch % 10 == 0 or epoch == 1 or epoch == GATE_WARMUP_EPOCHS + 1:

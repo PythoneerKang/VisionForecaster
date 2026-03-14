@@ -476,29 +476,8 @@ def main():
     X_val = X_t[last_val_idx]
     y_val = y_t[last_val_idx]
 
-    # ── Full-validation baseline sanity check ─────────────────────────────
-    # Persistence baseline: ŷ_{t+1} = x_t
-    with torch.no_grad():
-        y_pred_val = model(X_val)
-    mse_model = float(((y_pred_val - y_val) ** 2).mean().item())
-    mse_base  = float(((X_val      - y_val) ** 2).mean().item())
-    rel_improve = (1.0 - mse_model / mse_base) if mse_base > 0.0 else 0.0
-
-    print("\n── Full validation baseline check ───────────────────────────────")
-    print(f"  Scope        : last CV validation fold (N={len(X_val)} samples)")
-    print("  Baseline     : ŷ_{t+1} = x_t  (persistence / copy-last-step)")
-    print(f"  Baseline MSE : {mse_base:.6e}")
-    print(f"  Model MSE    : {mse_model:.6e}")
-    if mse_base > 0.0:
-        print(f"  Rel. improve : {rel_improve * 100:.2f}%")
-        if mse_model < mse_base:
-            print("  ✓ Model beats persistence on full validation fold.")
-        else:
-            print("  ✗ WARNING: model is worse than persistence on full validation fold.")
-            print("    This often indicates a fundamental issue (signal/model/data),")
-            print("    but also double-check scaling/checkpoint/eval settings.")
-    else:
-        print("  WARNING: baseline MSE is zero on this fold (degenerate); investigate data.")
+    # Baseline vs model MSE is computed and printed once in
+    # plot_prediction_error_map(..., X_val=X_val, y_val=y_val) (naive baseline check).
 
     # Single displayed sample (still used for the heatmaps), but MSE comparison
     # is computed over X_val/y_val.
