@@ -103,14 +103,14 @@ from model_interpretability import ModelInterpreter, plot_fold_summary
 # ─────────────────────────────────────────────────────────────────────────────
 MODEL_CFG = dict(
     in_channels=1,
-    embed_dim=192,
-    depth=4,
+    embed_dim=96,        # must match main.py — reduced for better param/sample ratio
+    depth=2,             # must match main.py
     num_heads=3,
-    proj_drop=0.2,      # must match main.py / training_and_validation_functions.py
-    attn_drop=0.1,      # must match main.py / training_and_validation_functions.py
+    proj_drop=0.2,
+    attn_drop=0.1,
     drop_path_rate=0.05,
     ls_init_value=1e-2,
-    gate_init=2.0,
+    gate_init=0.0,       # must match main.py — sigmoid(0)=0.5 balanced init
 )
 
 

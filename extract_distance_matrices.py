@@ -269,11 +269,15 @@ def reorder_by_gics(
     reordered_tickers: list[str] = []
     sector_labels: list[str] = []
 
+    # Single O(N) pass: bucket each ticker into its sector, then emit in
+    # GICS_SECTOR_ORDER.  The old implementation iterated tickers once per
+    # sector (O(S×N)); this builds the same permutation in one pass.
+    sector_buckets: dict[str, list[str]] = {s: [] for s in GICS_SECTOR_ORDER}
+    for t in tickers:
+        sector_buckets[ticker_to_sector[t]].append(t)
+
     for sector in GICS_SECTOR_ORDER:
-        sector_tickers_in_data = [
-            t for t in tickers if ticker_to_sector.get(t) == sector
-        ]
-        for t in sector_tickers_in_data:
+        for t in sector_buckets[sector]:
             perm.append(ticker_index[t])
             reordered_tickers.append(t)
             sector_labels.append(sector)
@@ -293,6 +297,8 @@ def get_gics_sector_boundaries(sector_labels: list[str]) -> list[tuple[str, int,
     Given the per-stock sector_labels list returned by reorder_by_gics(),
     compute the start and end index of each GICS sector block.
     """
+    if not sector_labels:
+        return []
     boundaries: list[tuple[str, int, int]] = []
     current_sector = sector_labels[0]
     start = 0
@@ -395,6 +401,18 @@ def build_patch_sector_ids(
     n_cross  = n_groups - n_same
     print(f"  build_patch_sector_ids: {N} patches → {n_groups} groups "
           f"({n_same} same-sector, {n_cross} cross-sector pairs)")
+
+    # Warn if any group is very small — a positional prior averaged over
+    # fewer than 9 patches (3×3) has high variance and provides little signal.
+    group_counts: dict[int, int] = {}
+    for gid in patch_group_ids:
+        group_counts[gid] = group_counts.get(gid, 0) + 1
+    small_groups = {gid: cnt for gid, cnt in group_counts.items() if cnt < 9}
+    if small_groups:
+        id_to_pair = {v: k for k, v in pair_to_id.items()}
+        for gid, cnt in sorted(small_groups.items(), key=lambda x: x[1]):
+            print(f"  WARNING: group {gid} ({id_to_pair[gid]}) has only "
+                  f"{cnt} patch(es) — positional prior may be high-variance.")
 
     return torch.tensor(patch_group_ids, dtype=torch.long)
 

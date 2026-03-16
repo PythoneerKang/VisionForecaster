@@ -13,7 +13,10 @@
 #PBS -o transformer.out
 #PBS -e transformer.err
 
-## Walltime — 9 folds × up to 100 epochs on CPU; monitor first run to calibrate
+## Walltime — 9 folds × up to 100 epochs on CPU.
+## Model is now smaller (embed_dim=96, depth=2) so each epoch is faster,
+## but patience=20 (was 10) means more epochs per fold before early stopping.
+## 48h is conservative; calibrate after the first run.
 #PBS -l walltime=48:00:00
 
 ## 1 CPU-only node, 19 cores, ~100GB memory for Intel HPC training
@@ -46,5 +49,6 @@ cd $PBS_O_WORKDIR
 pyenv shell 3.13
 poetry env use 3.13
 poetry run python main.py
+## To run interpretability on a saved checkpoint after training:
 #cd test
-#poetry run python scratch.py --pth model_fold_4.pth --dm-pkl "../../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file/IQDw35.pkl"
+#poetry run python test_one_fold.py --pth model_fold_4.pth --dm-pkl "../../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file/IQDw35.pkl"

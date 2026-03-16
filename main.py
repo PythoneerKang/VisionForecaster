@@ -21,14 +21,15 @@ import torch
 # ─────────────────────────────────────────────────────────────────────────────
 MODEL_CFG = dict(
     in_channels=1,
-    embed_dim=192,
-    depth=4,
+    embed_dim=96,        # reduced from 192 — better param/sample ratio (~250K vs ~2M)
+    depth=2,             # reduced from 4 — less overfitting on ~500 training samples
     num_heads=3,
-    proj_drop=0.2,      # dropout on MLP / projection layers
-    attn_drop=0.1,      # dropout on attention weights
+    proj_drop=0.2,
+    attn_drop=0.1,
     drop_path_rate=0.05,
     ls_init_value=1e-2,
-    gate_init=2.0,
+    gate_init=0.0,       # sigmoid(0)=0.5: balanced prior/content from epoch 1
+                         # (was 2.0 → sigmoid≈0.88, gate nearly frozen near init)
 )
 
 

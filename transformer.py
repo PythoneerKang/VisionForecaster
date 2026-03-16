@@ -1,6 +1,6 @@
 """
-Decoder-only Vision Transformer for Small Datasets (~2000 images)
-==================================================================
+Vision Transformer Encoder for Small Datasets (~2000 images)
+=============================================================
 
 Input:  (B, C, 457, 457)
 Output: (B, C, 457, 457)
@@ -369,8 +369,13 @@ class DecoderBlock(nn.Module):
 
 class SmallDataDecoderViT(nn.Module):
     """
-    Decoder-only Vision Transformer with Sector-GPSA, tuned for small
+    Vision Transformer Encoder with Sector-GPSA, tuned for small
     datasets (~2 000 samples) on GICS-reordered distance matrices.
+
+    Despite the legacy class name (kept for checkpoint compatibility), this
+    is a standard ViT encoder with a pixel reconstruction head — not a
+    decoder-only autoregressive model.  There is no causal masking and no
+    cross-attention to encoder memory.
 
     Attention mechanism
     -------------------
@@ -417,11 +422,15 @@ class SmallDataDecoderViT(nn.Module):
         sector_ids:     torch.Tensor  = None,
     ):
         super().__init__()
-        assert 16 <= patch_size <= 32, "patch_size must be in [16, 32]"
-        assert sector_ids is not None, (
-            "sector_ids (N,) must be provided.  "
-            "Call build_patch_sector_ids() from extract_distance_matrices.py."
-        )
+        if not (16 <= patch_size <= 32):
+            raise ValueError(
+                f"patch_size must be in [16, 32], got {patch_size}."
+            )
+        if sector_ids is None:
+            raise ValueError(
+                "sector_ids (N,) must be provided.  "
+                "Call build_patch_sector_ids() from extract_distance_matrices.py."
+            )
 
         self.in_channels  = in_channels
         self.img_size     = img_size
@@ -431,9 +440,11 @@ class SmallDataDecoderViT(nn.Module):
         self.num_patches  = self.grid_h * self.grid_w
 
         # Validate sector_ids length
-        assert len(sector_ids) == self.num_patches, (
-            f"sector_ids length {len(sector_ids)} != num_patches {self.num_patches}"
-        )
+        if len(sector_ids) != self.num_patches:
+            raise ValueError(
+                f"sector_ids length {len(sector_ids)} != num_patches {self.num_patches}. "
+                f"Rebuild sector_ids with patch_size={patch_size} and img_size={img_size}."
+            )
 
         # ── Patch embedding ───────────────────────────────────────────────
         self.patch_embed = StandardPatchEmbed(
@@ -531,7 +542,11 @@ def small_data_vit_tiny(
     sector_ids: torch.Tensor = None,
     **kwargs,
 ) -> SmallDataDecoderViT:
-    """~5.5 M params — training config; single-channel inputs, ~2 000 samples."""
+    """~3.3 M params (depth=6) — default factory config; single-channel inputs, ~2 000 samples.
+
+    NOTE: main.py overrides depth=4 via MODEL_CFG (~2.2 M params).  When using
+    this factory directly (e.g. smoke tests), the model has depth=6.
+    """
     return SmallDataDecoderViT(
         in_channels=in_channels,
         embed_dim=192, depth=6, num_heads=3,
@@ -636,28 +651,31 @@ if __name__ == "__main__":
     print("""
 Actual training config (main.py / training_and_validation_functions.py)
 ------------------------------------------------------------------------
-model        : small_data_vit_tiny  (embed_dim=192, depth=6, num_heads=3)
+model        : SmallDataDecoderViT  (embed_dim=96, depth=2, num_heads=3)
+               NOTE: class is named "DecoderViT" for checkpoint compatibility
+               but is architecturally a ViT encoder with a pixel-reconstruction
+               head — no causal masking, no cross-attention.
 attention    : SectorGPSA  (sector-gated positional self-attention)
-               g_h = sigmoid(λ_h), init λ=+2 → g≈0.88 (nearly fully positional)
-               positional prior: uniform attention within GICS sector
+               g_h = sigmoid(λ_h), init λ=0 → g=0.5 (balanced prior/content)
+               positional prior: uniform attention within GICS sector pair
                content:          scaled-dot-product QKᵀ/√d
-patch_embed  : StandardPatchEmbed  (256 → 192)
+patch_embed  : StandardPatchEmbed  (256 → 96)
 in_channels  : 1  (single-channel z-scored GICS-reordered distance matrix)
 img_size     : 457  (padded to 464 = 29×16 before tokenisation)
-optimizer    : AdamW — 4 param groups:
+optimizer    : AdamW — 4 named param groups:
                  decay    lr=1e-4, wd=1e-2  (weight matrices)
                  no-decay lr=1e-4, wd=0     (biases, LayerNorm)
                  gamma    lr=1e-3, wd=0     (LayerScale γ — 10× boost)
-                 gate     lr=1e-2, wd=0     (gate_logit — 100× boost)
-scheduler    : none (early stopping, patience=10)
+                 gate     lr=1e-3, wd=0     (gate_logit — 10× boost)
+scheduler    : CosineAnnealingLR + 5-epoch warmup; early stopping patience=20
 epochs       : up to 100 per fold
-batch size   : configured via parameters.BATCH_SIZE
+batch size   : configured via parameters.BATCH_SIZE; shuffle=True within fold
 cv           : TimeSeriesSplit(n_splits=9, max_train_size=504, test_size=126)
-loss         : MSE
+loss         : MSE  (null-model SS uses correct scaled null = −y_mean/y_std)
 ls_init      : 1e-2
-gate_init    : +2.0  (sigmoid ≈ 0.88 positional at init)
+gate_init    : 0.0  (sigmoid=0.5, balanced prior/content from epoch 1)
 GICS order   : stocks reordered by GICS sector before training
                (see extract_distance_matrices.reorder_by_gics)
-sector_ids   : patch→sector mapping from build_patch_sector_ids()
+sector_ids   : patch→(row_sec, col_sec) pair mapping from build_patch_sector_ids()
                in extract_distance_matrices.py
 """)

@@ -46,24 +46,24 @@ USE_GPU = False
 # Model & training hyperparameters
 # -----------------------------------------------------------------------------
 
-# BATCH_SIZE: with max 504 training samples per fold and BATCH_SIZE=8,
-# each epoch produces ~63 gradient steps — a healthy number for convergence.
-# Recommended range: 4–16. Increase cautiously if training is stable.
+# BATCH_SIZE: with max 504 training samples per fold and BATCH_SIZE=16,
+# each epoch produces ~31 gradient steps.  shuffle=True in the DataLoader
+# means these are 31 diverse steps — consecutive batches are not from the
+# same market-regime window.
 BATCH_SIZE = 16
 
 # -----------------------------------------------------------------------------
 # Legacy hyperparameters — NOT used by SmallDataDecoderViT
 # These were used by the previous VisionForecaster model and are kept here
 # only for reference. Do not use these to configure the current model.
-# The active model config lives in diff_model_multi_fold_cv_train_test()
-# in training_and_validation_functions.py.
+# The active model config lives in MODEL_CFG in main.py.
 # -----------------------------------------------------------------------------
 # IMG_SIZE  = 457
 # PATCH_SIZE = 16
 # CHANNELS  = 1
-# EMBED_DIM = 64
-# HEADS     = 8
-# DEPTH     = 3
+# EMBED_DIM = 96   (current; was 192, reduced for better param/sample ratio)
+# HEADS     = 3
+# DEPTH     = 2    (current; was 4, reduced to cut overfitting)
 # MLP_DIM   = 4 * EMBED_DIM
 # BATCH_SIZE (legacy) = 128
 

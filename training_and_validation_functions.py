@@ -1,3 +1,4 @@
+import os
 import pickle
 import numpy as np
 from sklearn.model_selection import TimeSeriesSplit
@@ -51,27 +52,68 @@ def _to_float(val) -> float:
 class EarlyStopping:
     """
     Save the best model weights seen so far based on validation loss.
+
+    The checkpoint saved at each improvement is the FULL dict (model weights +
+    training history + scalers), not a bare state_dict.  This means there is
+    no intermediate temporary file — the file at `path` is always a valid,
+    self-contained checkpoint that can be loaded by test_one_fold.py.
+
+    Parameters
+    ----------
+    patience : int
+        Number of epochs with no improvement before training is stopped.
+    path : str
+        File path for the checkpoint (e.g. "model_fold_3.pth").
     """
 
-    def __init__(self, patience=7, path='best_model.pt'):
+    def __init__(self, patience: int = 20, path: str = 'best_model.pt'):
         self.patience   = patience
         self.best_loss  = float('inf')
         self.best_epoch = 0
         self.counter    = 0
         self.path       = path
 
-    def __call__(self, val_loss, model, epoch: int = 0):
+    def __call__(
+        self,
+        val_loss: float,
+        model,
+        epoch: int = 0,
+        *,
+        fold_history: dict | None = None,
+        scaler_X_mean: float | None = None,
+        scaler_X_std:  float | None = None,
+        scaler_y_mean: float | None = None,
+        scaler_y_std:  float | None = None,
+    ) -> bool:
+        """
+        Evaluate val_loss.  If improved, save a full checkpoint and return False.
+        After `patience` epochs without improvement, return True (stop training).
+        """
         if val_loss < self.best_loss:
             self.best_loss  = val_loss
             self.best_epoch = epoch
             self.counter    = 0
-            torch.save(_unwrap_state_dict(model), self.path)
+            # Build the full checkpoint dict so the saved file is always
+            # self-contained — no separate scaler-injection step needed later.
+            save_dict = {
+                "model_state_dict": _unwrap_state_dict(model),
+                "best_val_mse":     val_loss,
+                "best_epoch":       epoch,
+                "scaler_X_mean":    scaler_X_mean,
+                "scaler_X_std":     scaler_X_std,
+                "scaler_y_mean":    scaler_y_mean,
+                "scaler_y_std":     scaler_y_std,
+            }
+            # Snapshot current history lists (shallow copy is sufficient —
+            # the lists are rebuilt each epoch so old snapshots stay valid).
+            if fold_history is not None:
+                for k in ("train_mse", "val_mse", "train_r2", "val_r2"):
+                    save_dict[k] = list(fold_history.get(k, []))
+            torch.save(save_dict, self.path)
             return False
         else:
             self.counter += 1
-            if self.counter >= self.patience:
-                return True
-            return False
+            return self.counter >= self.patience
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -122,12 +164,13 @@ def _build_optimizer(model):
     print(f"    gate     : {sum(param.numel() for param in gate_params):>10,} params  lr=1e-3  wd=0   ← 10× boost (reduced from 1e-2)")
 
     optimizer = torch.optim.AdamW([
-        {"params": decay_params,   "lr": 1e-4, "weight_decay": 1e-2},
-        {"params": nodecay_params, "lr": 1e-4, "weight_decay": 0.0},
-        {"params": gamma_params,   "lr": 1e-3, "weight_decay": 0.0},
+        {"name": "decay",    "params": decay_params,   "lr": 1e-4, "weight_decay": 1e-2},
+        {"name": "no-decay", "params": nodecay_params, "lr": 1e-4, "weight_decay": 0.0},
+        {"name": "gamma",    "params": gamma_params,   "lr": 1e-3, "weight_decay": 0.0},
         # Gate group: base_lr=1e-3 (10× boost).  Frozen to 0 during warmup
         # via the GATE_WARMUP_EPOCHS block in train_with_validation().
-        {"params": gate_params,    "lr": 1e-3, "weight_decay": 0.0},
+        # Identified by name="gate" — never use a hardcoded index.
+        {"name": "gate",     "params": gate_params,    "lr": 1e-3, "weight_decay": 0.0},
     ], lr=1e-4)
 
     return optimizer
@@ -137,9 +180,9 @@ def _build_optimizer(model):
 # Gradient diagnostics
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _check_gamma_gradients(model):
+def _check_gamma_gradients(model, epoch: int, batch_idx: int):
     """Print gradient norms for all LayerScale gamma parameters."""
-    print("\n  ── LayerScale gamma gradient check (epoch 1, batch 1) ──")
+    print(f"\n  ── LayerScale gamma gradient check (epoch {epoch}, batch {batch_idx}) ──")
     any_printed = False
     for name, param in model.named_parameters():
         if "gamma" in name:
@@ -182,14 +225,29 @@ def train_with_validation(
     device = torch.device("cuda" if p.USE_GPU and torch.cuda.is_available() else "cpu")
     model.to(device)
 
-    try:
-        model = torch.compile(model)
-        print("  torch.compile: enabled")
-    except Exception as e:
-        print(f"  torch.compile: skipped ({e})")
+    # torch.compile is intentionally skipped: this codebase targets CPU-only
+    # HPC nodes where compilation overhead exceeds any runtime benefit for
+    # models of this size.  Re-enable with caution on GPU nodes.
+    # try:
+    #     model = torch.compile(model)
+    # except Exception as e:
+    #     print(f"  torch.compile: skipped ({e})")
 
     optimizer = _build_optimizer(model)
-    stopper   = EarlyStopping(patience=10, path=f'best_model_fold_{fold}.pt')
+
+    # Fix #10: EarlyStopping saves directly to the final checkpoint path so
+    # there is no intermediate bare-.pt file to manage or accidentally leave
+    # behind if the process crashes between save and delete.
+    model_path = f"model_fold_{fold}.pth"
+    stopper    = EarlyStopping(patience=20, path=model_path)
+
+    # Locate the gate param group by name — never by fragile index.
+    # If _build_optimizer's group order changes, this still finds the right group.
+    def _gate_group():
+        for g in optimizer.param_groups:
+            if g.get("name") == "gate":
+                return g
+        raise RuntimeError("Gate param group not found — check _build_optimizer().")
 
     # Store base LRs for each param group before any modifications.
     # This ensures warmup and cosine annealing use the correct base values.
@@ -206,42 +264,60 @@ def train_with_validation(
     fold_history     = {'train_mse': [], 'val_mse': [], 'train_r2': [], 'val_r2': []}
     _grad_check_done = False
 
+    # Fix #1: compute the correct null prediction in scaled space once per fold.
+    # The null model predicts ΔD=0 in raw space, which in scaled space is
+    #   ŷ_null = (0 − y_mean) / y_std = −y_mean / y_std
+    # SS_null must use this constant, not 0, unless y_mean happens to be 0.
+    # scaler_y_mean / scaler_y_std may be None for legacy callers — fall back to 0.
+    if scaler_y_mean is not None and scaler_y_std is not None and float(scaler_y_std) != 0.0:
+        null_pred_scaled = float(-scaler_y_mean) / float(scaler_y_std)
+    else:
+        null_pred_scaled = 0.0   # legacy / unknown scaler: assume y_mean≈0
+
     for epoch in range(1, epochs + 1):
         print(f"----- Epoch {epoch} -----")
 
         # ── LR scheduling ────────────────────────────────────────────────
-        # Two independent schedules run in parallel:
+        # Two schedules interact each epoch:
         #
         # 1. Gate warmup (epochs 1–GATE_WARMUP_EPOCHS):
-        #    Gate LR is held at exactly 0 so the sector-positional prior
-        #    is stable while all other parameters initialise.  On epoch
-        #    GATE_WARMUP_EPOCHS+1 the gate LR is restored to its base value.
+        #    Gate LR is held at exactly 0 so the sector-positional prior is
+        #    stable while all other parameters initialise.
         #
         # 2. Cosine warmup for all other params (epochs 1–warmup_epochs):
         #    LR rises linearly from 0 to base_lr, then cosine-decays.
         #
-        # Gate param group is index 3 (last group built by _build_optimizer).
-        GATE_GROUP_IDX = 3
+        # Interaction note: at epoch GATE_WARMUP_EPOCHS+1 (epoch 3), if we
+        # are still inside the cosine warmup window (epoch <= warmup_epochs=5),
+        # the cosine warmup block below will scale the restored gate LR by
+        # (epoch/warmup_epochs).  This is intentional — the gate LR ramps up
+        # together with all other LRs during the cosine warmup window.
+        # The print statement reflects the final LR set this epoch, not an
+        # intermediate value.
+
+        gate_grp = _gate_group()
 
         if epoch <= GATE_WARMUP_EPOCHS:
-            optimizer.param_groups[GATE_GROUP_IDX]["lr"] = 0.0
+            gate_grp["lr"] = 0.0
         elif epoch == GATE_WARMUP_EPOCHS + 1:
-            # Restore gate LR to its base value (cosine warmup will scale it
-            # further if we are still inside the cosine warmup window).
-            optimizer.param_groups[GATE_GROUP_IDX]["lr"] = (
-                optimizer.param_groups[GATE_GROUP_IDX]["base_lr"]
-            )
-            print(f"  Gate warmup complete: gate_logit LR restored to "
-                  f"{optimizer.param_groups[GATE_GROUP_IDX]['lr']:.0e} at epoch {epoch}")
+            # Restore gate LR to base; cosine warmup below may scale it further.
+            gate_grp["lr"] = gate_grp["base_lr"]
 
         if epoch <= warmup_epochs:
             warmup_factor = epoch / warmup_epochs
-            for i, param_group in enumerate(optimizer.param_groups):
-                if i == GATE_GROUP_IDX and epoch <= GATE_WARMUP_EPOCHS:
+            for param_group in optimizer.param_groups:
+                if param_group.get("name") == "gate" and epoch <= GATE_WARMUP_EPOCHS:
                     continue   # keep gate frozen — don't overwrite the 0
                 param_group["lr"] = param_group["base_lr"] * warmup_factor
+            if epoch == GATE_WARMUP_EPOCHS + 1:
+                print(f"  Gate warmup complete: gate_logit LR set to "
+                      f"{gate_grp['lr']:.2e} at epoch {epoch} "
+                      f"(warmup factor {warmup_factor:.2f} applied)")
         else:
             scheduler.step()
+            if epoch == GATE_WARMUP_EPOCHS + 1:
+                print(f"  Gate warmup complete: gate_logit LR restored to "
+                      f"{gate_grp['lr']:.2e} at epoch {epoch}")
 
         # ── TRAINING ──────────────────────────────────────────────────────
         model.train()
@@ -265,7 +341,7 @@ def train_with_validation(
             total_loss.backward()
 
             if not _grad_check_done:
-                _check_gamma_gradients(model)
+                _check_gamma_gradients(model, epoch, batch_idx)
                 _grad_check_done = True
 
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
@@ -282,11 +358,11 @@ def train_with_validation(
         p_all    = torch.cat(pred_batches)
 
         # R² vs zero-change null model (null: predict ΔD=0 in raw space).
-        # In scaled space this null predicts −y_mean/y_std ≠ 0, so
-        # SS_null = Σ y_scaled²  (not Σ (y − ȳ)²).
+        # In scaled space the null predicts null_pred_scaled = −y_mean/y_std,
+        # so SS_null = Σ (y_scaled − null_pred_scaled)².
         # R² > 0  ⟺  model beats the zero-change null model.
         train_ss_res  = ((p_all - y_all) ** 2).sum().item()
-        train_ss_null = (y_all ** 2).sum().item()
+        train_ss_null = ((y_all - null_pred_scaled) ** 2).sum().item()
         epoch_training_r2_score = _r2_from_scalars(train_ss_res, train_ss_null)
         train_mean_abs_pred = p_all.abs().mean().item()
         train_mean_abs_y    = y_all.abs().mean().item()
@@ -315,7 +391,7 @@ def train_with_validation(
         vp_all  = torch.cat(vp_batches)
         # R² vs zero-change null model (same definition as training)
         val_ss_res  = ((vp_all - vy_all) ** 2).sum().item()
-        val_ss_null = (vy_all ** 2).sum().item()
+        val_ss_null = ((vy_all - null_pred_scaled) ** 2).sum().item()
         epoch_validation_r2_score = _r2_from_scalars(val_ss_res, val_ss_null)
         val_mean_abs_pred = vp_all.abs().mean().item()
         val_mean_abs_y    = vy_all.abs().mean().item()
@@ -323,8 +399,7 @@ def train_with_validation(
 
         avg_train = train_sse / train_n if train_n > 0 else 0.0
         avg_val   = val_sse   / val_n   if val_n   > 0 else 0.0
-        # Null-model MSE in scaled space ≈ 1.0 (mean(y_scaled²)); exact value
-        # drifts on val because val is scaled by train stats.
+        # Null-model MSE in scaled space: mean((y_scaled − null_pred_scaled)²)
         null_mse_approx = val_ss_null / val_n if val_n > 0 else 1.0
         print(f"----- Train/Validation results -----")
         print(f"Epoch {epoch}: Train MSE {avg_train:.6f} | Val MSE {avg_val:.6f} | "
@@ -346,8 +421,8 @@ def train_with_validation(
                 mean_g = sum(gate_vals.values()) / len(gate_vals)
                 min_g  = min(gate_vals.values())
                 max_g  = max(gate_vals.values())
-                frozen = epoch <= GATE_WARMUP_EPOCHS
-                gate_lr = optimizer.param_groups[GATE_GROUP_IDX]["lr"]
+                frozen   = epoch <= GATE_WARMUP_EPOCHS
+                gate_lr  = _gate_group()["lr"]
                 print(f"  Gate g=sigmoid(λ) — mean: {mean_g:.4f}  "
                       f"min: {min_g:.4f}  max: {max_g:.4f}  "
                       f"({'FROZEN lr=0' if frozen else f'trainable lr={gate_lr:.2e}'})")
@@ -371,51 +446,61 @@ def train_with_validation(
         fold_history['train_r2'].append(epoch_training_r2_score)
         fold_history['val_r2'].append(epoch_validation_r2_score)
 
-        if stopper(avg_val, model, epoch):
+        if stopper(
+            avg_val, model, epoch,
+            fold_history=fold_history,
+            scaler_X_mean=scaler_X_mean,
+            scaler_X_std=scaler_X_std,
+            scaler_y_mean=scaler_y_mean,
+            scaler_y_std=scaler_y_std,
+        ):
             print("Early stopping triggered. Loading best model weights...")
+            best_ckpt = torch.load(stopper.path, weights_only=False)
             getattr(model, '_orig_mod', model).load_state_dict(
-                torch.load(stopper.path)
+                best_ckpt["model_state_dict"]
             )
-            print(f"  Restored weights from best epoch {stopper.best_epoch} (val_loss={stopper.best_loss:.6f})")
+            print(f"  Restored weights from best epoch {stopper.best_epoch} "
+                  f"(val_loss={stopper.best_loss:.6f})")
             break
 
     # Print final learning rates for all groups
     print("\n  Final learning rates:")
-    for i, group in enumerate(optimizer.param_groups):
-        lr = group["lr"]
-        print(f"    Group {i}: lr={lr:.6f}")
+    for group in optimizer.param_groups:
+        print(f"    {group.get('name', '?'):10s}: lr={group['lr']:.6f}")
 
-    model_path = f"model_fold_{fold}.pth"
-    # Determine X and y scalers to save, supporting both new (explicit) and old (implicit) formats
-    if scaler_X_mean is not None and scaler_X_std is not None:
-        final_scaler_X_mean = scaler_X_mean
-        final_scaler_X_std = scaler_X_std
-        final_scaler_y_mean = scaler_y_mean if scaler_y_mean is not None else scaler_mean
-        final_scaler_y_std = scaler_y_std if scaler_y_std is not None else scaler_std
+    # The final checkpoint was already saved by EarlyStopping (or on the last
+    # epoch if training ran to completion without early stopping).  Update it
+    # now to include the complete history and best_val_mse.
+    # If training ended naturally (no early stopping), save the final state.
+    if not os.path.isfile(model_path):
+        # Training completed all epochs without early stopping — save now.
+        save_dict = {
+            "model_state_dict": _unwrap_state_dict(model),
+            "best_val_mse":     stopper.best_loss,
+            "best_epoch":       stopper.best_epoch,
+            "scaler_X_mean":    scaler_X_mean,
+            "scaler_X_std":     scaler_X_std,
+            "scaler_y_mean":    scaler_y_mean,
+            "scaler_y_std":     scaler_y_std,
+            "train_mse":        fold_history["train_mse"],
+            "val_mse":          fold_history["val_mse"],
+            "train_r2":         fold_history["train_r2"],
+            "val_r2":           fold_history["val_r2"],
+        }
+        torch.save(save_dict, model_path)
     else:
-        final_scaler_X_mean = scaler_mean
-        final_scaler_X_std = scaler_std
-        final_scaler_y_mean = scaler_mean
-        final_scaler_y_std = scaler_std
+        # EarlyStopping already saved the best-epoch checkpoint.  Overwrite it
+        # with the full history (EarlyStopping snapshots history up to the best
+        # epoch; we now have the complete run history to store).
+        existing = torch.load(model_path, weights_only=False)
+        existing["train_mse"] = fold_history["train_mse"]
+        existing["val_mse"]   = fold_history["val_mse"]
+        existing["train_r2"]  = fold_history["train_r2"]
+        existing["val_r2"]    = fold_history["val_r2"]
+        torch.save(existing, model_path)
 
-    save_dict = {
-        "model_state_dict": _unwrap_state_dict(model),
-        "train_mse":        fold_history["train_mse"],
-        "val_mse":          fold_history["val_mse"],
-        "train_r2":         fold_history["train_r2"],
-        "val_r2":           fold_history["val_r2"],
-        "best_val_mse":     stopper.best_loss,   # best epoch's val MSE, not last
-        "scaler_X_mean":    final_scaler_X_mean,
-        "scaler_X_std":     final_scaler_X_std,
-        "scaler_y_mean":    final_scaler_y_mean,
-        "scaler_y_std":     final_scaler_y_std,
-    }
-    if hasattr(stopper, "best_epoch"):
-        save_dict["best_epoch"] = stopper.best_epoch
-    # Also record best_val_mse in fold_history so multi-fold selection can use it
     fold_history["best_val_mse"] = stopper.best_loss
-    torch.save(save_dict, model_path)
-    best_epoch_msg = f"  best_epoch={stopper.best_epoch}" if hasattr(stopper, "best_epoch") else ""
+    best_epoch_msg = f"  best_epoch={stopper.best_epoch}"
     print(f"  Checkpoint saved → {model_path}  (weights + history){best_epoch_msg}")
 
     return model_path, fold_history
@@ -485,7 +570,7 @@ def diff_model_multi_fold_cv_train_test(
         val_dataset   = TensorDataset(X_val,   y_val)
 
         train_loader = DataLoader(
-            train_dataset, batch_size=p.BATCH_SIZE, shuffle=False,
+            train_dataset, batch_size=p.BATCH_SIZE, shuffle=True,
             num_workers=p.NUM_WORKERS, pin_memory=True,
         )
         val_loader = DataLoader(
@@ -511,13 +596,6 @@ def diff_model_multi_fold_cv_train_test(
         )
         fold_models.append(model_path)
         all_fold_history.append(fold_history)
-
-        # Remove the temporary early-stopping checkpoint (raw state_dict, no
-        # scaler info) to avoid confusion with the final model_fold_N.pth file.
-        import os
-        tmp_pt = f'best_model_fold_{fold}.pt'
-        if os.path.exists(tmp_pt):
-            os.remove(tmp_pt)
 
         del model, train_loader, val_loader, train_dataset, val_dataset
         if torch.cuda.is_available():
