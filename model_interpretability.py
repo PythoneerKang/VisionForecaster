@@ -31,12 +31,15 @@ Public API
             useful for checking entropy / sharpness of the content stream.
 
         .plot_prediction_error_map(x, y_true, tickers, sector_boundaries,
-                                   X_val, y_val)
-            Input | Prediction | Ground Truth | Absolute Error heatmaps
-            with optional GICS sector annotations.
-            When X_val / y_val are supplied the baseline MSE is computed
-            over the full validation set (matching training val_mse),
-            rather than on the single displayed sample.
+                                   X_val, y_val, baseline_pred,
+                                   baseline_val_full, baseline_name)
+            Input D_t | Predicted ΔD̂_t | Ground Truth ΔD_t |
+            Signed Error (ΔD̂−ΔD) | Per-pixel Skill Score (ΔD̂−ΔD)²/ΔD²
+            Panel 4: direction of mistakes (red=over, blue=under).
+            Panel 5: skill score — green<1 beats null, red>1 worse, grey=|ΔD|≈0.
+            All y tensors are scaled ΔD (change), not scaled D (level).
+            baseline_pred / baseline_val_full must be the null-model prediction
+            in scaled space (= −y_mean/y_std), supplied from main.py.
 
     plot_fold_summary(all_fold_history, save_path)
         Multi-fold CV training summary (MSE + R² curves and bar charts).
@@ -72,7 +75,10 @@ Usage
     interp.plot_prediction_error_map(sample_x, sample_y,
                                      tickers=tickers_gics,
                                      sector_boundaries=sector_boundaries,
-                                     X_val=X_val, y_val=y_val)
+                                     X_val=X_val, y_val=y_val,
+                                     baseline_pred=baseline_pred,       # torch.full_like(sample_y, -y_mean/y_std)
+                                     baseline_val_full=baseline_val_full, # torch.full_like(y_val, -y_mean/y_std)
+                                     baseline_name="zero (ΔD=0)")
     plot_fold_summary(all_fold_history)
 """
 
@@ -100,23 +106,21 @@ class _GPSAHook:
 
     Implementation note
     -------------------
-    The hook re-derives attention weights from the module's parameters and
-    the pre-built _a_pos buffer rather than intercepting live intermediate
-    tensors.  This is intentional: hooks on intermediate values inside
-    forward() require in-place tensor modifications or custom autograd
-    functions that break torch.compile.
+    The hook re-derives attention weights from the module's inputs and
+    parameters rather than intercepting intermediate tensors from forward().
+    This avoids in-place modifications and custom autograd functions that
+    break torch.compile.  The computation exactly matches SectorGPSA.forward():
 
-    IMPORTANT: The attention computation here must stay in sync with
-    SectorGPSA.forward() in transformer.py.  Specifically:
-        - Content attention uses scale = head_dim ** -0.5  (no per-head temp)
-        - Positional attention reads module._a_pos directly (pre-built buffer,
-          NOT a call to any _pos_attn() method — that method no longer exists)
-        - Gate: g = sigmoid(gate_logit), shape (H,)
-        - Effective = g * A_pos + (1 - g) * A_content
+        qkv = module.qkv(x).reshape(B, N, 3, H, D)
+        q, k, v = permute/unbind
+        A_content = softmax((q @ k.transpose(-2,-1)) * scale)
+        A_pos = module._a_pos  (pre-built buffer)
+        g = sigmoid(module.gate_logit)
+        effective = g * A_pos + (1-g) * A_content
 
-    If transformer.py's forward() changes (e.g. different scaling, masking,
-    or gate formula), update this hook accordingly — silent divergence will
-    produce misleading interpretability plots.
+    The hook uses einsum("mn,bhnd->bhmd") for the positional matmul, matching
+    the forward implementation.  If SectorGPSA.forward() changes, update this
+    hook to maintain consistency.
     """
 
     def __init__(self):
@@ -725,55 +729,75 @@ class ModelInterpreter:
         sector_boundaries: Optional[List[Tuple[str, int, int]]] = None,
         X_val: Optional[torch.Tensor] = None,
         y_val: Optional[torch.Tensor] = None,
+        baseline_pred: Optional[torch.Tensor] = None,
+        baseline_name: str = "persistence",
+        baseline_val_full: Optional[torch.Tensor] = None,
     ):
         """
-        For one sample, show:
-          1. Input x_t
-          2. Prediction ŷ_{t+1}
-          3. Ground truth y_{t+1}
-          4. Absolute error |ŷ − y|  (model)
-          5. Improvement map  |x_t − y| − |ŷ − y|
-               green (> 0) : model is more accurate than persistence at this cell
-               red   (< 0) : model is less accurate than persistence
-               white (= 0) : tied
-             Symmetric RdYlGn colormap centred at 0.
+        For one sample, show five panels:
+          1. Input  D_t  (scaled level — what the model sees)
+          2. Prediction  ΔD̂_t  = model(D_t)  (predicted change)
+          3. Ground truth  ΔD_t  = D_{t+1} − D_t  (actual change)
+          4. Signed Error  ΔD̂_t − ΔD_t
+               red   (> 0) : model over-predicts the change
+               blue  (< 0) : model under-predicts the change
+               white (= 0) : exact prediction
+             Symmetric RdBu_r colourmap centred at 0.  Shows the *direction*
+             of mistakes, which is invisible in any absolute/squared error map.
+          5. Per-pixel Skill Score  (ΔD̂_t − ΔD_t)² / ΔD_t²
+               = per-pixel contribution to the Skill Score training loss.
+               < 1 (green) : model error < null error — beats null at this cell
+               = 1 (white) : model ties the null (dashed line on colourbar)
+               > 1 (red)   : model error > null error — worse than null here
+               grey        : |ΔD_t| < 5th percentile — masked, carries no loss weight
+
+        The model predicts the *change* ΔD_t = D_{t+1} − D_t, not the next
+        level D_{t+1}.  All y tensors passed here must therefore be scaled ΔD,
+        not scaled D.
 
         When tickers and sector_boundaries are supplied, GICS sector divider
         lines and sector name labels are drawn on every panel.
 
-        Baseline MSE
-        ------------
-        The naive "persistence" baseline predicts ŷ_{t+1} = x_t (copy last step).
+        Null model
+        ----------
+        The null model predicts ΔD = 0 (no change in raw space).  In scaled
+        space this corresponds to the constant −y_mean_train / y_std_train,
+        NOT zero.  The caller (main.py) must supply this as `baseline_pred`
+        (single sample) and `baseline_val_full` (full val set).
 
+        Full-Validation MSE Comparison
+        ------------------------------
         When X_val / y_val are supplied (the full validation split), both the
-        model MSE and the baseline MSE are computed over all validation samples,
-        matching the val_mse metric reported during training.  This gives a
-        meaningful apples-to-apples comparison.
-
-        When X_val / y_val are omitted the MSEs are computed on the single
-        displayed sample only — useful as a quick spot check but high-variance.
+        model MSE and the null-model MSE are computed over all validation
+        samples, matching the val_mse metric reported during training.
 
         Notes on the MSE denominator
         ----------------------------
         The distance matrix is symmetric (D[i,j] == D[j,i]) and the diagonal
-        is constant across time steps (D[i,i] = (0 - mean)/std always).
-        Both facts affect MSE equally for the model and the baseline, so the
-        relative comparison (improvement %) is unbiased.  The effective number
+        is constant across time steps, so both facts affect model and null MSE
+        equally — the relative improvement % is unbiased.  The effective number
         of independent observations is 457×456/2 = 104,196 (upper triangle,
         excluding diagonal), not 457² = 208,849.
 
         Parameters
         ----------
-        x                 : (1, 1, 457, 457) input tensor (GICS-reordered).
-        y_true            : (1, 1, 457, 457) ground truth tensor.
+        x                 : (1, 1, 457, 457) input D_t tensor (scaled, GICS-reordered).
+        y_true            : (1, 1, 457, 457) ground truth ΔD_t tensor (scaled).
         filename          : Output filename.
         tickers           : list[str] of 457 ticker labels in GICS order.
         sector_boundaries : list of (sector_name, start_idx, end_idx) tuples.
                             end_idx is exclusive.
-        X_val             : (N_val, 1, 457, 457) full validation inputs.
+        X_val             : (N_val, 1, 457, 457) full validation D_t inputs (scaled).
                             When supplied, MSE stats use the full val set.
-        y_val             : (N_val, 1, 457, 457) full validation targets.
+        y_val             : (N_val, 1, 457, 457) full validation ΔD_t targets (scaled).
                             Must be supplied together with X_val.
+        baseline_pred     : (1, 1, 457, 457) null-model prediction for the single
+                            displayed sample, in scaled space
+                            (= torch.full_like(sample_y, −y_mean/y_std)).
+        baseline_name     : str — label for the null model in plot titles.
+        baseline_val_full : (N_val, 1, 457, 457) null-model prediction for the
+                            full validation set, in scaled space.  Must be
+                            supplied; without it the null-model MSE is wrong.
         """
         self.model.eval()
         with torch.no_grad():
@@ -782,110 +806,164 @@ class ModelInterpreter:
         x_np      = x[0, 0].cpu().numpy()
         y_np      = y_true[0, 0].cpu().numpy()
         y_pred_np = y_pred[0, 0].numpy()
-        err_np    = np.abs(y_pred_np - y_np)
 
-        # Naive persistence baseline: predict y_{t+1} = x_t
-        baseline_pred_np = x_np
-        baseline_err_np  = np.abs(baseline_pred_np - y_np)
+        # ── Single-sample baseline prediction ─────────────────────────────
+        # For ΔD forecasting the null model is "predict no change" (ΔD=0
+        # in raw space).  In scaled space this is −y_mean/y_std, which is
+        # captured by `baseline_pred` passed from main.py.  Passing x_t
+        # (persistence) as a baseline is wrong here because x_t is the
+        # *level* D_t, not a ΔD prediction.
+        if baseline_pred is not None:
+            baseline_pred_np = baseline_pred[0, 0].cpu().numpy()
+        elif baseline_name == "zero":
+            baseline_pred_np = np.zeros_like(y_np)
+        else:
+            baseline_pred_np = np.zeros_like(y_np)
+        # baseline_pred_np is retained for the full-val MSE computation below
 
         # ── Compute MSE over the full validation set (required) ───────────
         if (X_val is None) or (y_val is None):
             raise ValueError(
-                "plot_prediction_error_map now requires X_val and y_val so "
+                "plot_prediction_error_map requires X_val and y_val so that "
                 "baseline/model MSE is computed on the full validation set "
-                "(single-sample MSE was removed due to high variance)."
+                "(single-sample MSE is too noisy)."
             )
 
         mse_scope_label = f"full val set (N={len(X_val)} samples)"
         with torch.no_grad():
             y_pred_val = self.model(X_val).cpu()
-        y_val_np       = y_val[:, 0].numpy()           # (N, 457, 457)
-        y_pred_val_np  = y_pred_val[:, 0].numpy()      # (N, 457, 457)
-        X_val_np       = X_val[:, 0].numpy()           # (N, 457, 457)
+        y_val_np      = y_val[:, 0].numpy()          # (N, 457, 457)
+        y_pred_val_np = y_pred_val[:, 0].numpy()     # (N, 457, 457)
+
+        # ── Null-model baseline for full validation set ───────────────────
+        # For ΔD prediction the null is "predict no change" (ΔD=0 raw).
+        # In scaled space this is the constant −y_mean_train/y_std_train,
+        # NOT zero, because y was standardised with train-set statistics.
+        # The caller (main.py) must supply baseline_val_full as a tensor of
+        # shape (N_val, 1, 457, 457) filled with −y_mean/y_std.
+        # If not supplied we fall back to raw zeros with a warning.
+        if baseline_val_full is not None:
+            baseline_val_np = baseline_val_full[:, 0].numpy()
+        elif baseline_name == "zero":
+            print(
+                "  WARNING: baseline_val_full not supplied. Using 0 in scaled "
+                "space as the null model, which is only correct when y_mean_train≈0. "
+                "Pass baseline_val_full=torch.full_like(y_val, -y_mean/y_std) "
+                "from main.py for an exact null-model comparison."
+            )
+            baseline_val_np = np.zeros_like(y_val_np)
+        else:
+            # Persistence baseline (level prediction): X_val as ΔD predictor
+            # only makes sense if the model was NOT trained on deltas.
+            print("  WARNING: using X_val (persistence) as baseline for a ΔD model. "
+                  "Pass baseline_val_full for the correct zero-change null model.")
+            baseline_val_np = X_val[:, 0].numpy()
 
         mse_model    = float(((y_pred_val_np - y_val_np) ** 2).mean())
-        mse_baseline = float(((X_val_np      - y_val_np) ** 2).mean())
+        mse_baseline = float(((baseline_val_np - y_val_np) ** 2).mean())
 
         rel_improve = (
             1.0 - mse_model / mse_baseline if mse_baseline > 0.0 else 0.0
         )
 
         # ── Console diagnostics ───────────────────────────────────────────
-        print(f"\n── Naive baseline check ({mse_scope_label}) ─────────────────")
-        print("  Baseline: ŷ_{t+1} = x_t  (persistence / copy-last-step)")
+        print(f"\n── Null-model baseline check ({mse_scope_label}) ──────────────")
+        print(f"  Baseline: {baseline_name}  (predict ΔD=0, i.e. no change)")
         print(f"  MSE scope : {mse_scope_label}")
-        print("  NOTE: MSEs are averaged over the full validation set,")
-        print("        matching the val_mse reported during training.")
-
-        print(f"  Baseline MSE : {mse_baseline:.6e}")
-        print(f"  Model MSE    : {mse_model:.6e}")
+        print("  NOTE: MSEs are in scaled ΔD space (y_std-normalised).")
+        print("        Null-model MSE ≈ 1.0 on training set by construction;")
+        print("        it may differ slightly on val due to fold-specific scaling.")
+        print(f"  Null-model MSE : {mse_baseline:.6e}")
+        print(f"  Model MSE      : {mse_model:.6e}")
         print(f"  NOTE: D is symmetric and the diagonal is constant across")
         print(f"        time steps, so effective independent pairs = 457×456/2")
         print(f"        = 104,196 (not 457² = 208,849 as the mean suggests).")
-        print(f"        The model vs baseline comparison remains unbiased.")
+        print(f"        The model vs null comparison remains unbiased.")
 
         if mse_baseline > 0.0:
-            print(f"  Relative improvement vs baseline : {rel_improve * 100:.2f}%")
+            print(f"  Relative improvement vs null model : {rel_improve * 100:.2f}%")
             if mse_model < mse_baseline:
-                print("  ✓ Model beats the naive persistence baseline.")
+                print("  ✓ Model beats the zero-change null model.")
             else:
-                print("  ✗ WARNING: model does NOT beat the naive baseline — investigate.")
+                print("  ✗ WARNING: model does NOT beat the null model — investigate.")
         else:
-            print("  WARNING: baseline MSE = 0 — x_t == y_{t+1} exactly for "
-                  "this sample.\n"
-                  "           This is a degenerate sample (e.g. holiday / "
-                  "forward-fill).\n"
-                  "           Use _build_sample() backtracking or pick a "
-                  "different sample index.")
+            print("  WARNING: null-model MSE = 0 — degenerate case.")
         print()
 
-        # ── Build plot title ──────────────────────────────────────────────
-        scope_short  = "val-set"  # X_val/y_val are required, so always full val set
+        skill_score_val = mse_model / mse_baseline if mse_baseline > 0.0 else float("nan")
+        scope_short  = "val-set"
         gics_note    = " | GICS-reordered" if sector_boundaries is not None else ""
         rel_pct      = f"{rel_improve * 100:+.2f}%" if mse_baseline > 0.0 else "N/A"
         title_str    = (
-            f"Sample Prediction  |  "
-            f"MSE_model ({scope_short}) = {mse_model:.3e}  |  "
-            f"MSE_baseline ({scope_short}) = {mse_baseline:.3e}  |  "
+            f"ΔD Prediction Sample  |  "
+            f"Skill Score ({scope_short}) = {skill_score_val:.4f}  "
+            f"[<1 beats null]  |  "
+            f"MSE_model = {mse_model:.3e}  |  MSE_null = {mse_baseline:.3e}  |  "
             f"Improvement = {rel_pct}"
             f"{gics_note}"
         )
 
-        # ── Panel 5: signed improvement map ──────────────────────────────
-        # improvement[i,j] = baseline_abs_err[i,j] - model_abs_err[i,j]
-        #   > 0 (green) : model is more accurate than persistence at this cell
-        #   < 0 (red)   : model is less accurate than persistence at this cell
-        #   = 0 (white) : tied
-        improvement_np = baseline_err_np - err_np   # |x-y| - |ŷ-y|
+        # ── Panel 4: signed prediction error ─────────────────────────────
+        # Shows the *direction* of the model's mistakes — lost in any absolute
+        # or squared error map.  Positive (red) = model over-predicts the
+        # change; negative (blue) = model under-predicts.  Symmetric colourmap
+        # centred at 0 so white = exact prediction.
+        signed_err_np  = y_pred_np - y_np
+        max_abs_serr   = float(np.abs(signed_err_np).max()) or 1.0
 
-        # Symmetric colour scale: centre at 0, equal extent on both sides
-        max_abs_imp = float(np.abs(improvement_np).max()) or 1.0
+        # ── Panel 5: per-pixel skill score ────────────────────────────────
+        # The training loss is Skill Score = MSE_model / MSE_null, where
+        # MSE_null = mean(y²).  The per-pixel contribution to this ratio is:
+        #
+        #   skill_pixel[i,j] = (ΔD̂[i,j] − ΔD[i,j])² / ΔD[i,j]²
+        #
+        # Interpretation:
+        #   skill_pixel < 1  →  model error < null error at this cell (green)
+        #   skill_pixel = 1  →  model ties the null (white) — null-parity line
+        #   skill_pixel > 1  →  model error > null error at this cell (red)
+        #
+        # Cells where ΔD ≈ 0 (nearly constant pairs) are masked (grey):
+        # the null error is also ≈ 0 there, the ratio diverges, and they
+        # carry negligible weight in the actual loss.
+        # Mask threshold = 5th percentile of |ΔD| values.
+        eps_mask      = np.percentile(np.abs(y_np), 5)
+        denom_safe    = np.where(np.abs(y_np) > eps_mask, y_np ** 2, np.nan)
+        skill_pix_np  = (y_pred_np - y_np) ** 2 / denom_safe   # NaN where masked
+        skill_vmin, skill_vmax = 0.0, 2.0
 
         # ── Panels ────────────────────────────────────────────────────────
         titles = [
-            "Input  x_t",
-            "Prediction  ŷ_{t+1}",
-            "Ground Truth  y_{t+1}",
-            "Abs Error  |ŷ − y|  (model)",
-            "Improvement  |x_t − y| − |ŷ − y|\n"
-            "▲ green = model better  ▼ red = baseline better",
+            "Input  D_t  (scaled level)",
+            "Prediction  ΔD̂_{t→t+1}",
+            "Ground Truth  ΔD_{t→t+1}",
+            "Signed Error  ΔD̂ − ΔD\n"
+            "red = over-predict  blue = under-predict  white = exact",
+            "Per-pixel Skill Score  (ΔD̂−ΔD)²/ΔD²\n"
+            "<1 = beats null (green)  >1 = worse (red)  grey = |ΔD|≈0",
         ]
-        arrays = [x_np, y_pred_np, y_np, err_np, improvement_np]
-        cmaps  = ["RdYlBu_r", "RdYlBu_r", "RdYlBu_r", "hot", "RdYlGn"]
-        # vmin/vmax: None lets matplotlib auto-scale the first 4 panels;
-        # the improvement panel uses a symmetric scale centred at 0.
-        vmins  = [None, None, None, None, -max_abs_imp]
-        vmaxs  = [None, None, None, None,  max_abs_imp]
+        arrays = [x_np, y_pred_np, y_np, signed_err_np, skill_pix_np]
+        cmaps  = ["RdYlBu_r", "RdYlBu_r", "RdYlBu_r", "RdBu_r", "RdYlGn_r"]
+        vmins  = [None, None, None, -max_abs_serr, skill_vmin]
+        vmaxs  = [None, None, None,  max_abs_serr, skill_vmax]
 
         fig, axes = plt.subplots(1, 5, figsize=(30, 6))
 
         for ax, title, arr, cmap, vmin, vmax in zip(
             axes, titles, arrays, cmaps, vmins, vmaxs
         ):
-            im = ax.imshow(arr, cmap=cmap, interpolation="nearest",
+            cmap_obj = plt.get_cmap(cmap).copy()
+            if arr is skill_pix_np:
+                cmap_obj.set_bad(color="lightgrey")   # masked (|ΔD|≈0) cells
+            im = ax.imshow(arr, cmap=cmap_obj, interpolation="nearest",
                            vmin=vmin, vmax=vmax)
-            ax.set_title(title, fontweight="bold", fontsize=10)
-            fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+            ax.set_title(title, fontweight="bold", fontsize=9)
+            cb = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+            if arr is skill_pix_np:
+                cb.ax.axhline(1.0, color="black", linewidth=1.2, linestyle="--")
+                cb.ax.text(
+                    1.05, 1.0, "null", transform=cb.ax.get_yaxis_transform(),
+                    va="center", ha="left", fontsize=7, color="black",
+                )
 
             if sector_boundaries is not None:
                 for _, start, end in sector_boundaries:
@@ -964,9 +1042,10 @@ def plot_fold_summary(
         r2_val   = [_to_float(t) for t in fh["val_r2"]]
         ax_r2.plot(epochs, r2_train, alpha=0.55, color=cmap(i), linewidth=1.2)
         ax_r2.plot(epochs, r2_val,   color=cmap(i), linewidth=1.8, linestyle="--")
-        ax_r2.axhline(0, color="gray", linewidth=0.7, linestyle=":")
+        ax_r2.axhline(0, color="gray", linewidth=0.7, linestyle=":",
+                      label="null model (ΔD=0)")
         if i == 0:
-            ax_r2.set_ylabel("R²", fontsize=8)
+            ax_r2.set_ylabel("R² (vs zero-change null model)", fontsize=8)
         ax_r2.set_xlabel("Epoch", fontsize=7)
         ax_r2.tick_params(labelsize=7)
 
@@ -1000,13 +1079,14 @@ def plot_fold_summary(
                   edgecolor="white")
     ax_bar_r2.set_title("Final Val R² per Fold\n(green = best)",
                         fontweight="bold", fontsize=9)
-    ax_bar_r2.set_ylabel("R²")
+    ax_bar_r2.set_ylabel("R² (vs zero-change null model)", fontsize=9)
     ax_bar_r2.axhline(0, color="gray", linewidth=0.8, linestyle=":")
     ax_bar_r2.tick_params(labelsize=8)
     ax_bar_r2.grid(axis="y", alpha=0.3)
 
     fig.suptitle(
-        "Multi-Fold Cross-Validation Summary — SectorGPSA",
+        "Multi-Fold Cross-Validation Summary — SectorGPSA\n"
+        "R² > 0  ⟺  model beats the zero-change null model (ΔD=0)",
         fontsize=14, fontweight="bold", y=1.01,
     )
     fig.savefig(save_path, dpi=150, bbox_inches="tight")

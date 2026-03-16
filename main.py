@@ -14,15 +14,18 @@ import torch
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Model hyperparameters — single source of truth shared by training and
-# interpretability so the loaded checkpoint always matches training config.
+# Model hyperparameters — SINGLE SOURCE OF TRUTH.
+# diff_model_multi_fold_cv_train_test() imports and uses this dict directly,
+# so any change here automatically propagates to both training and
+# interpretability.  Never hard-code these values in two places.
 # ─────────────────────────────────────────────────────────────────────────────
 MODEL_CFG = dict(
     in_channels=1,
     embed_dim=192,
-    depth=6,
+    depth=4,
     num_heads=3,
-    proj_drop=0.1,
+    proj_drop=0.2,      # dropout on MLP / projection layers
+    attn_drop=0.1,      # dropout on attention weights
     drop_path_rate=0.05,
     ls_init_value=1e-2,
     gate_init=2.0,
@@ -30,6 +33,15 @@ MODEL_CFG = dict(
 
 
 if __name__ == "__main__":
+    # Set random seeds for reproducibility
+    import random
+    random.seed(RANDOM_SEED)
+    np.random.seed(RANDOM_SEED)
+    torch.manual_seed(RANDOM_SEED)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(RANDOM_SEED)
+    print(f"Random seeds set to {RANDOM_SEED}")
+
     # ── Step 1: Extract distance matrices from pkl file ───────────────────────
     distance_matrix = extract_distance_matrix()
 
@@ -69,7 +81,7 @@ if __name__ == "__main__":
 
     # ── Step 4: Train with multi-fold CV ─────────────────────────────────────
     model_path, all_fold_history = diff_model_multi_fold_cv_train_test(
-        distance_matrix_gics, sector_ids
+        distance_matrix_gics, sector_ids, MODEL_CFG
     )
 
     # ── Step 5: Interpretability ──────────────────────────────────────────────
@@ -90,31 +102,57 @@ if __name__ == "__main__":
     interp = ModelInterpreter(best_model, save_dir=".")
 
     # 5c. Rebuild one sample from the last validation fold
-    # IMPORTANT: apply the fold-wise scaler from the chosen checkpoint so
-    # interpretability metrics match what the model was trained/evaluated on.
-    scaler_mean = best_ckpt.get("scaler_mean") if isinstance(best_ckpt, dict) else None
-    scaler_std  = best_ckpt.get("scaler_std")  if isinstance(best_ckpt, dict) else None
-    if scaler_mean is not None and scaler_std is not None:
-        dm_for_eval = (distance_matrix_gics - scaler_mean) / scaler_std
-    else:
-        dm_for_eval = distance_matrix_gics
+    # Apply the fold-wise scalers from the chosen checkpoint so
+    # interpretability metrics match what the model was trained on.
+    scaler_X_mean = best_ckpt.get("scaler_X_mean") if isinstance(best_ckpt, dict) else None
+    scaler_X_std  = best_ckpt.get("scaler_X_std")  if isinstance(best_ckpt, dict) else None
+    scaler_y_mean = best_ckpt.get("scaler_y_mean") if isinstance(best_ckpt, dict) else None
+    scaler_y_std  = best_ckpt.get("scaler_y_std")  if isinstance(best_ckpt, dict) else None
 
-    X   = dm_for_eval[:-1][:, np.newaxis, :]
-    y   = dm_for_eval[1:][:, np.newaxis, :]
+    if scaler_X_mean is not None and scaler_y_mean is not None:
+        X_scaled = (distance_matrix_gics[:-1] - scaler_X_mean) / scaler_X_std
+        y_scaled = ((distance_matrix_gics[1:] - distance_matrix_gics[:-1]) - scaler_y_mean) / scaler_y_std
+    else:
+        # Legacy checkpoint — single scaler (level prediction)
+        scaler_mean = best_ckpt.get("scaler_mean") if isinstance(best_ckpt, dict) else None
+        scaler_std  = best_ckpt.get("scaler_std")  if isinstance(best_ckpt, dict) else None
+        if scaler_mean is not None:
+            X_scaled = (distance_matrix_gics[:-1] - scaler_mean) / scaler_std
+            y_scaled = (distance_matrix_gics[1:]  - scaler_mean) / scaler_std
+        else:
+            X_scaled = distance_matrix_gics[:-1]
+            y_scaled = distance_matrix_gics[1:]
+
+    X   = X_scaled[:, np.newaxis, :]
+    y   = y_scaled[:, np.newaxis, :]
     X_t = torch.from_numpy(X).float()
     y_t = torch.from_numpy(y).float()
 
     tscv = TimeSeriesSplit(n_splits=9, max_train_size=504, test_size=126)
     *_, (_, last_val_idx) = tscv.split(X_t)
 
-    # Full validation fold — used for val-set MSE comparison in the error map,
-    # matching the val_mse numbers logged during training exactly.
-    X_val   = X_t[last_val_idx]          # (N_val, 1, 457, 457)
-    y_val   = y_t[last_val_idx]
+    X_val = X_t[last_val_idx]   # (N_val, 1, 457, 457)
+    y_val = y_t[last_val_idx]
 
-    # Single display sample: last day of the validation fold (never seen in training)
-    sample_x = X_val[-1:]                # (1, 1, 457, 457)
+    # Single display sample: last day of the validation fold
+    sample_x = X_val[-1:]
     sample_y = y_val[-1:]
+
+    # ── Null-model baseline (predict ΔD=0 in raw space) ──────────────────
+    # In scaled space, predicting ΔD=0 (raw) corresponds to predicting
+    #   ΔD_scaled = (0 − y_mean_train) / y_std_train = −y_mean / y_std
+    # for every pixel.  This is a constant tensor, not raw zero.
+    # We need this for both the single sample and the full val set.
+    if scaler_y_mean is not None and scaler_y_std is not None and float(scaler_y_std) != 0.0:
+        null_value = float(-scaler_y_mean) / float(scaler_y_std)
+    else:
+        null_value = 0.0   # fallback for legacy checkpoints
+
+    # Single-sample null prediction: constant tensor (1, 1, 457, 457)
+    baseline_pred = torch.full_like(sample_y, null_value)
+
+    # Full-val-set null prediction: constant tensor (N_val, 1, 457, 457)
+    baseline_val_full = torch.full_like(y_val, null_value)
 
     # 5d. Generate all interpretation plots
     interp.plot_attention_maps(sample_x, layer=0)
@@ -133,8 +171,12 @@ if __name__ == "__main__":
     interp.plot_mean_attention_distance(sample_x)
     interp.plot_layerscale_gammas()
     interp.plot_attention_weights(sample_x)
-    # X_val / y_val passed so MSE is computed over the full validation fold,
-    # giving an apples-to-apples comparison with the baseline and train logs.
+
+    # Prediction error map: compare model against the zero-change null model.
+    # baseline_pred      — single-sample null prediction in scaled space
+    # baseline_val_full  — full-val-set null prediction in scaled space
+    # Both were computed above as torch.full(..., null_value) where
+    #   null_value = −y_mean_train / y_std_train  (predict ΔD=0 raw).
     interp.plot_prediction_error_map(
         sample_x,
         sample_y,
@@ -142,4 +184,7 @@ if __name__ == "__main__":
         sector_boundaries=sector_boundaries,
         X_val=X_val,
         y_val=y_val,
+        baseline_pred=baseline_pred,
+        baseline_val_full=baseline_val_full,
+        baseline_name="zero (ΔD=0)",
     )

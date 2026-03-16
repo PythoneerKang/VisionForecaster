@@ -15,84 +15,6 @@ from transformer import SmallDataDecoderViT
 # ─────────────────────────────────────────────────────────────────────────────
 
 GATE_WARMUP_EPOCHS       = 2
-# Gate entropy regulariser: set > 0 (e.g. 0.01) to push gates toward 0.5 so they
-# move away from init. If gates stay at init (g ≈ 0.88), task gradient through the
-# gate is tiny when (v_pos - v_content) ≈ 0; entropy loss gives a direct signal.
-GATE_ENTROPY_WEIGHT      = 0.0
-BASELINE_PENALTY_WEIGHT  = 1.0   # λ in BaselineRegularisedMSE — stronger penalty when worse than null
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Baseline-regularised MSE loss
-# ─────────────────────────────────────────────────────────────────────────────
-
-class BaselineRegularisedMSE(nn.Module):
-    """
-    MSE loss with an additive penalty that fires whenever the model performs
-    worse than the naive persistence (copy-last-step) baseline.
-
-    Formula
-    -------
-        mse_model    = mean((ŷ - y)²)
-        mse_baseline = mean((x - y)²)   ← constant w.r.t. model parameters
-        excess       = ReLU(mse_model - mse_baseline)
-        loss         = mse_model + λ · excess
-
-    Behaviour
-    ---------
-        model beats baseline  →  excess = 0, loss = mse_model   (no penalty)
-        model equals baseline →  excess = 0, loss = mse_model
-        model worse           →  excess > 0, loss = (1+λ)·mse_model − λ·mse_baseline
-                                 Gradient is (1+λ) times the standard MSE gradient,
-                                 applying proportionally stronger pressure to recover.
-
-    Why not divide by mse_baseline (ratio loss)?
-    --------------------------------------------
-    On very quiet trading days mse_baseline ≈ 0, which would cause the ratio
-    to explode.  The additive formulation avoids any division and is numerically
-    stable in all market regimes.
-
-    Parameters
-    ----------
-    baseline_weight : float
-        λ ≥ 0.  Default 1.0 (doubles the gradient pressure when lagging).
-        Set to 0 to recover plain MSE.
-
-    Usage
-    -----
-        criterion = BaselineRegularisedMSE(baseline_weight=1.0)
-        loss, mse_raw, excess = criterion(outputs, y, x)   # x = model input (= baseline pred)
-"""
-
-    def __init__(self, baseline_weight: float = 1.0):
-        super().__init__()
-        if baseline_weight < 0:
-            raise ValueError(f"baseline_weight must be ≥ 0, got {baseline_weight}")
-        self.baseline_weight = baseline_weight
-
-    def forward(
-        self,
-        y_pred: torch.Tensor,   # (B, C, H, W)  model prediction ŷ
-        y_true: torch.Tensor,   # (B, C, H, W)  ground truth y
-        x:      torch.Tensor,   # (B, C, H, W)  model input x (= persistence forecast)
-    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        Returns
-        -------
-        loss     : scalar tensor — total loss to backpropagate.
-        mse_raw  : scalar tensor — plain MSE (no penalty), for logging.
-                   Always use mse_raw for val_mse tracking so metrics stay
-                   comparable across experiments and against the baseline.
-        excess   : scalar tensor — ReLU(mse_model - mse_baseline), for logging.
-                   > 0 when model is worse than persistence baseline.
-        """
-        mse_model    = F.mse_loss(y_pred, y_true)
-        mse_baseline = F.mse_loss(x, y_true).detach()   # detach: constant, no grad
-
-        excess = torch.relu(mse_model - mse_baseline)
-        loss   = mse_model + self.baseline_weight * excess
-
-        return loss, mse_model, excess
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -103,21 +25,17 @@ def _unwrap_state_dict(model):
     """
     Return the state_dict of the underlying module, stripping the
     '_orig_mod.' prefix that torch.compile() adds to all parameter keys.
-
-    Without this, a checkpoint saved from a compiled model cannot be loaded
-    into an uncompiled SmallDataDecoderViT because every key differs:
-        compiled   : '_orig_mod.pos_embed', '_orig_mod.blocks.0.attn.gate_logit', …
-        uncompiled : 'pos_embed',           'blocks.0.attn.gate_logit', …
-
-    torch.compile wraps the module in an OptimizedModule that exposes the
-    original model via the '_orig_mod' attribute.  Falling back to `model`
-    itself handles the case where compile was skipped (older PyTorch build).
     """
     return getattr(model, '_orig_mod', model).state_dict()
 
 
 def _r2_from_scalars(ss_res: float, ss_tot: float) -> float:
-    """Compute R² from running sum-of-squares accumulators."""
+    """Compute R² from running sum-of-squares accumulators.
+
+    For delta-prediction the null model is ΔD=0 (no change), so ss_tot
+    must be sum(y_scaled²) — NOT sum((y - ȳ)²).  Pass it accordingly.
+    R² > 0 ⟺ model beats the zero-change null model.
+    """
     return 1.0 - ss_res / ss_tot if ss_tot > 0.0 else 0.0
 
 
@@ -133,11 +51,6 @@ def _to_float(val) -> float:
 class EarlyStopping:
     """
     Save the best model weights seen so far based on validation loss.
-
-    The checkpoint written to `path` during training is a plain state_dict
-    (weights only) — history is not available mid-training so it is not
-    included here.  The full checkpoint with history is written at the end
-    of train_with_validation() once training completes.
     """
 
     def __init__(self, patience=7, path='best_model.pt'):
@@ -152,8 +65,6 @@ class EarlyStopping:
             self.best_loss  = val_loss
             self.best_epoch = epoch
             self.counter    = 0
-            # Save weights only — used internally to restore best weights
-            # if early stopping fires before the final epoch.
             torch.save(_unwrap_state_dict(model), self.path)
             return False
         else:
@@ -174,12 +85,11 @@ def _build_optimizer(model):
       1. decay_params   — weight matrices        (lr=1e-4, wd=1e-2)
       2. nodecay_params — biases, LN weights     (lr=1e-4, wd=0)
       3. gamma_params   — LayerScale gammas      (lr=1e-3, wd=0)   10× boost
-      4. gate_params    — SectorGPSA gate_logit  (lr=1e-2, wd=0)  100× boost
+      4. gate_params    — SectorGPSA gate_logit  (lr=1e-3, wd=0)   10× boost (reduced from 1e-2)
 
-    gate_logit gets a 100× LR boost because its gradient is doubly suppressed:
-      - sigmoid derivative g*(1-g) ≈ 0.10 at gate_init=2
-      - (v_pos - v_content) ≈ 0 early in training (both branches near-uniform)
-    Without a LR boost the gate is effectively frozen throughout training.
+    gate_logit gets a 10× LR boost (1e-3 vs base 1e-4) to allow steady learning
+    without the aggressive 100× boost that caused gate collapse. The warmup
+    period (first 2 epochs) still sets gate LR to 0 to stabilize early training.
     """
     decay_params   = []
     nodecay_params = []
@@ -187,8 +97,7 @@ def _build_optimizer(model):
     gate_params    = []
 
     for name, param in model.named_parameters():
-        if not param.requires_grad:
-            continue
+        # Include ALL parameters — do not filter by requires_grad
         if "gate_logit" in name:
             gate_params.append(param)
         elif "gamma" in name:
@@ -198,7 +107,7 @@ def _build_optimizer(model):
         else:
             decay_params.append(param)
 
-    n_total   = sum(param.numel() for param in model.parameters() if param.requires_grad)
+    n_total   = sum(param.numel() for param in model.parameters())
     n_grouped = sum(param.numel()
                     for group in [decay_params, nodecay_params, gamma_params, gate_params]
                     for param in group)
@@ -210,13 +119,15 @@ def _build_optimizer(model):
     print(f"    decay    : {sum(param.numel() for param in decay_params):>10,} params  lr=1e-4  wd=1e-2")
     print(f"    no-decay : {sum(param.numel() for param in nodecay_params):>10,} params  lr=1e-4  wd=0")
     print(f"    gamma    : {sum(param.numel() for param in gamma_params):>10,} params  lr=1e-3  wd=0   ← 10× boost")
-    print(f"    gate     : {sum(param.numel() for param in gate_params):>10,} params  lr=1e-2  wd=0   ← 100× boost")
+    print(f"    gate     : {sum(param.numel() for param in gate_params):>10,} params  lr=1e-3  wd=0   ← 10× boost (reduced from 1e-2)")
 
     optimizer = torch.optim.AdamW([
         {"params": decay_params,   "lr": 1e-4, "weight_decay": 1e-2},
         {"params": nodecay_params, "lr": 1e-4, "weight_decay": 0.0},
         {"params": gamma_params,   "lr": 1e-3, "weight_decay": 0.0},
-        {"params": gate_params,    "lr": 1e-2, "weight_decay": 0.0},
+        # Gate group: base_lr=1e-3 (10× boost).  Frozen to 0 during warmup
+        # via the GATE_WARMUP_EPOCHS block in train_with_validation().
+        {"params": gate_params,    "lr": 1e-3, "weight_decay": 0.0},
     ], lr=1e-4)
 
     return optimizer
@@ -225,36 +136,6 @@ def _build_optimizer(model):
 # ─────────────────────────────────────────────────────────────────────────────
 # Gradient diagnostics
 # ─────────────────────────────────────────────────────────────────────────────
-
-def _check_gate_gradients(model):
-    """
-    Print gradient norms for all SectorGPSA gate_logit parameters.
-    Call once after the first backward pass to verify gates are receiving
-    meaningful gradients.
-
-    NOTE: gate_logit grad norms are expected to be extremely small (~0) at
-    epoch 1 batch 1.  With gate_init=+2.0, sigmoid(λ)≈0.88, meaning the
-    positional branch dominates and the gate gradient is:
-        dL/dλ = dL/dg · g·(1-g)  ≈  dL/dg · 0.105
-    This near-zero reading does NOT indicate a dead parameter — the gate
-    will accumulate gradient signal over many batches as the content branch
-    diverges from the positional prior.  Monitor gate values (g=sigmoid(λ))
-    across epochs instead of this single-batch gradient check.
-    """
-    print("\n  ── SectorGPSA gate_logit gradient check (epoch 1, batch 1) ──")
-    print("  (near-zero grads are expected at init; see docstring)")
-    any_printed = False
-    for name, param in model.named_parameters():
-        if "gate_logit" in name:
-            if param.grad is not None:
-                print(f"    {name:50s}  grad norm = {param.grad.norm().item():.6f}")
-            else:
-                print(f"    {name:50s}  grad = None  ← not connected!")
-            any_printed = True
-    if not any_printed:
-        print("    WARNING: no gate_logit parameters found in model!")
-    print("  ── end gate check ──\n")
-
 
 def _check_gamma_gradients(model):
     """Print gradient norms for all LayerScale gamma parameters."""
@@ -273,45 +154,6 @@ def _check_gamma_gradients(model):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Gate entropy regulariser
-# ─────────────────────────────────────────────────────────────────────────────
-
-def _gate_entropy_loss_fn(model) -> torch.Tensor:
-    """
-    Negative mean binary entropy of all gate values.
-
-    Encourages gates to be neither all-0 nor all-1, nudging each head to
-    find a meaningful blend of positional and content attention.
-
-    Returns a scalar tensor on the same device as the model parameters,
-    with gradient connectivity to gate_logit.
-    """
-    eps    = 1e-6
-    device = next(model.parameters()).device
-    terms  = []
-    for name, param in model.named_parameters():
-        if "gate_logit" in name:
-            g = param.sigmoid()
-            h = -(g * (g + eps).log() + (1.0 - g) * (1.0 - g + eps).log())
-            terms.append(h.mean())
-    if not terms:
-        return torch.zeros(1, device=device)
-    # Negative mean entropy (minimising this maximises entropy → pushes gates away from 0/1)
-    return -torch.stack(terms).mean()
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Gate freeze / unfreeze
-# ─────────────────────────────────────────────────────────────────────────────
-
-def _set_gate_grad(model, requires_grad: bool):
-    """Freeze or unfreeze all gate_logit parameters."""
-    for name, param in model.named_parameters():
-        if "gate_logit" in name:
-            param.requires_grad_(requires_grad)
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Training loop (single fold)
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -322,10 +164,21 @@ def train_with_validation(
     fold,
     epochs=100,
     *,
-    scaler_mean: float | None = None,
-    scaler_std: float | None = None,
+    scaler_X_mean: float | None = None,
+    scaler_X_std: float | None = None,
+    scaler_y_mean: float | None = None,
+    scaler_y_std: float | None = None,
+    scaler_mean: float | None = None,   # backward compatibility
+    scaler_std: float | None = None,    # backward compatibility
 ):
+    """
+    Train with validation using Cosine Annealing LR scheduler with warmup.
 
+    Scheduler:
+        - Warmup: first 5 epochs, LR increases linearly from 0 to base LR
+        - Cosine decay: after warmup, LR follows cosine curve to 0
+    The scheduler step() is called after each epoch (not after each batch).
+    """
     device = torch.device("cuda" if p.USE_GPU and torch.cuda.is_available() else "cpu")
     model.to(device)
 
@@ -336,13 +189,19 @@ def train_with_validation(
         print(f"  torch.compile: skipped ({e})")
 
     optimizer = _build_optimizer(model)
-    criterion = BaselineRegularisedMSE(baseline_weight=BASELINE_PENALTY_WEIGHT)
     stopper   = EarlyStopping(patience=10, path=f'best_model_fold_{fold}.pt')
 
-    # Freeze gates during warmup so the content stream has time to learn
-    # meaningful QK representations before the gate is asked to balance them.
-    _set_gate_grad(model, False)
-    print(f"  Gate warmup: gate_logit FROZEN for first {GATE_WARMUP_EPOCHS} epochs")
+    # Store base LRs for each param group before any modifications.
+    # This ensures warmup and cosine annealing use the correct base values.
+    for param_group in optimizer.param_groups:
+        param_group["base_lr"] = param_group["lr"]
+
+    # ── Cosine annealing scheduler with warmup ─────────────────────────────
+    warmup_epochs = 5
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, T_max=epochs - warmup_epochs, eta_min=1e-6
+    )
+    print(f"  LR scheduler: CosineAnnealingLR (warmup={warmup_epochs} epochs, T_max={epochs-warmup_epochs}, eta_min=1e-6)")
 
     fold_history     = {'train_mse': [], 'val_mse': [], 'train_r2': [], 'val_r2': []}
     _grad_check_done = False
@@ -350,18 +209,44 @@ def train_with_validation(
     for epoch in range(1, epochs + 1):
         print(f"----- Epoch {epoch} -----")
 
-        # Unfreeze gates after warmup
-        if epoch == GATE_WARMUP_EPOCHS + 1:
-            _set_gate_grad(model, True)
-            print(f"  Gate warmup complete: gate_logit UNFROZEN at epoch {epoch}")
+        # ── LR scheduling ────────────────────────────────────────────────
+        # Two independent schedules run in parallel:
+        #
+        # 1. Gate warmup (epochs 1–GATE_WARMUP_EPOCHS):
+        #    Gate LR is held at exactly 0 so the sector-positional prior
+        #    is stable while all other parameters initialise.  On epoch
+        #    GATE_WARMUP_EPOCHS+1 the gate LR is restored to its base value.
+        #
+        # 2. Cosine warmup for all other params (epochs 1–warmup_epochs):
+        #    LR rises linearly from 0 to base_lr, then cosine-decays.
+        #
+        # Gate param group is index 3 (last group built by _build_optimizer).
+        GATE_GROUP_IDX = 3
+
+        if epoch <= GATE_WARMUP_EPOCHS:
+            optimizer.param_groups[GATE_GROUP_IDX]["lr"] = 0.0
+        elif epoch == GATE_WARMUP_EPOCHS + 1:
+            # Restore gate LR to its base value (cosine warmup will scale it
+            # further if we are still inside the cosine warmup window).
+            optimizer.param_groups[GATE_GROUP_IDX]["lr"] = (
+                optimizer.param_groups[GATE_GROUP_IDX]["base_lr"]
+            )
+            print(f"  Gate warmup complete: gate_logit LR restored to "
+                  f"{optimizer.param_groups[GATE_GROUP_IDX]['lr']:.0e} at epoch {epoch}")
+
+        if epoch <= warmup_epochs:
+            warmup_factor = epoch / warmup_epochs
+            for i, param_group in enumerate(optimizer.param_groups):
+                if i == GATE_GROUP_IDX and epoch <= GATE_WARMUP_EPOCHS:
+                    continue   # keep gate frozen — don't overwrite the 0
+                param_group["lr"] = param_group["base_lr"] * warmup_factor
+        else:
+            scheduler.step()
 
         # ── TRAINING ──────────────────────────────────────────────────────
         model.train()
-        train_sse   = 0.0
-        train_n     = 0
-        train_sum_y = 0.0
-        train_excess_sum = 0.0
-        train_excess_n   = 0
+        train_sse = 0.0
+        train_n   = 0
         y_batches:    list[torch.Tensor] = []
         pred_batches: list[torch.Tensor] = []
         print("Training begins")
@@ -371,55 +256,46 @@ def train_with_validation(
             optimizer.zero_grad()
             outputs = model(x)
 
-            # Baseline-regularised MSE: applies extra gradient pressure whenever
-            # the model is outperformed by the persistence forecast (ŷ = x).
-            # mse_raw is the plain MSE used for metrics; it stays comparable
-            # to val_mse and to the baseline regardless of λ.
-            total_mse, mse_raw, excess = criterion(outputs, y, x)
-            train_excess_sum += excess.detach().item()
-            train_excess_n   += 1
-
-            # Gate entropy regulariser is only meaningful once gates are
-            # unfrozen; during warmup gate_logit.requires_grad is False so
-            # the regulariser has no effect on gate_logit (its value is still
-            # computed but the backward graph stops at gate_logit).
-            gate_reg   = _gate_entropy_loss_fn(model) * GATE_ENTROPY_WEIGHT
-            total_loss = total_mse + gate_reg
+            # MSE loss vs the scaled ΔD target.
+            # The null-model MSE (predict ΔD=0 raw, i.e. −y_mean/y_std scaled)
+            # equals mean(y_scaled²) ≈ 1.0 on the training set by construction.
+            # The model must push val MSE below 1.0 to beat the null model.
+            total_loss = F.mse_loss(outputs, y)
 
             total_loss.backward()
 
             if not _grad_check_done:
                 _check_gamma_gradients(model)
-                _check_gate_gradients(model)
                 _grad_check_done = True
 
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
 
-            # Track dataset-wide MSE (SSE / N) rather than unweighted
-            # average of per-batch MSEs. This keeps train_mse/val_mse exactly
-            # comparable to a baseline MSE computed over the full split.
-            train_sse   += F.mse_loss(outputs, y, reduction="sum").item()
-            y_cpu        = y.detach().cpu().reshape(-1)
-            out_cpu      = outputs.detach().cpu().reshape(-1)
+            train_sse += F.mse_loss(outputs, y, reduction="sum").item()
+            y_cpu      = y.detach().cpu().reshape(-1)
+            out_cpu    = outputs.detach().cpu().reshape(-1)
             y_batches.append(y_cpu)
             pred_batches.append(out_cpu)
-            train_sum_y += y_cpu.sum().item()
-            train_n     += y_cpu.numel()
+            train_n   += y_cpu.numel()
 
         y_all    = torch.cat(y_batches)
         p_all    = torch.cat(pred_batches)
-        y_mean   = train_sum_y / train_n
-        train_ss_res = ((p_all - y_all) ** 2).sum().item()
-        train_ss_tot = ((y_all - y_mean) ** 2).sum().item()
-        epoch_training_r2_score = _r2_from_scalars(train_ss_res, train_ss_tot)
+
+        # R² vs zero-change null model (null: predict ΔD=0 in raw space).
+        # In scaled space this null predicts −y_mean/y_std ≠ 0, so
+        # SS_null = Σ y_scaled²  (not Σ (y − ȳ)²).
+        # R² > 0  ⟺  model beats the zero-change null model.
+        train_ss_res  = ((p_all - y_all) ** 2).sum().item()
+        train_ss_null = (y_all ** 2).sum().item()
+        epoch_training_r2_score = _r2_from_scalars(train_ss_res, train_ss_null)
+        train_mean_abs_pred = p_all.abs().mean().item()
+        train_mean_abs_y    = y_all.abs().mean().item()
         del y_batches, pred_batches, y_all, p_all
 
         # ── VALIDATION ────────────────────────────────────────────────────
         model.eval()
-        val_sse   = 0.0
-        val_n     = 0
-        val_sum_y = 0.0
+        val_sse  = 0.0
+        val_n    = 0
         vy_batches: list[torch.Tensor] = []
         vp_batches: list[torch.Tensor] = []
         print("Validation begins")
@@ -428,34 +304,36 @@ def train_with_validation(
             for batch_idx, (x, y) in enumerate(val_loader):
                 x, y     = x.to(device), y.to(device)
                 outputs   = model(x)
-                # Validation always uses plain MSE — val_mse must stay on the
-                # same scale as the baseline MSE for the comparison to be valid.
                 val_sse  += F.mse_loss(outputs, y, reduction="sum").item()
                 y_cpu    = y.detach().cpu().reshape(-1)
                 out_cpu  = outputs.detach().cpu().reshape(-1)
                 vy_batches.append(y_cpu)
                 vp_batches.append(out_cpu)
-                val_sum_y += y_cpu.sum().item()
-                val_n     += y_cpu.numel()
+                val_n    += y_cpu.numel()
 
         vy_all  = torch.cat(vy_batches)
         vp_all  = torch.cat(vp_batches)
-        vy_mean = val_sum_y / val_n
-        val_ss_res = ((vp_all - vy_all) ** 2).sum().item()
-        val_ss_tot = ((vy_all - vy_mean) ** 2).sum().item()
-        epoch_validation_r2_score = _r2_from_scalars(val_ss_res, val_ss_tot)
+        # R² vs zero-change null model (same definition as training)
+        val_ss_res  = ((vp_all - vy_all) ** 2).sum().item()
+        val_ss_null = (vy_all ** 2).sum().item()
+        epoch_validation_r2_score = _r2_from_scalars(val_ss_res, val_ss_null)
+        val_mean_abs_pred = vp_all.abs().mean().item()
+        val_mean_abs_y    = vy_all.abs().mean().item()
         del vy_batches, vp_batches, vy_all, vp_all
 
         avg_train = train_sse / train_n if train_n > 0 else 0.0
         avg_val   = val_sse   / val_n   if val_n   > 0 else 0.0
-        mean_excess = train_excess_sum / train_excess_n if train_excess_n > 0 else 0.0
-
+        # Null-model MSE in scaled space ≈ 1.0 (mean(y_scaled²)); exact value
+        # drifts on val because val is scaled by train stats.
+        null_mse_approx = val_ss_null / val_n if val_n > 0 else 1.0
         print(f"----- Train/Validation results -----")
-        print(f"Epoch {epoch}: Train Loss {avg_train:.6f} | Val Loss {avg_val:.6f}")
-        print(f"Epoch {epoch}: Train R^2: {epoch_training_r2_score * 100:.4f}% | "
-              f"Val R^2: {epoch_validation_r2_score * 100:.4f}%")
-        print(f"Epoch {epoch}: baseline excess (mean) = {mean_excess:.6f}  "
-              f"({'penalty active' if mean_excess > 0 else 'model ≥ baseline'})")
+        print(f"Epoch {epoch}: Train MSE {avg_train:.6f} | Val MSE {avg_val:.6f} | "
+              f"Null MSE (val) {null_mse_approx:.6f}")
+        print(f"Epoch {epoch}: Train R²(vs null): {epoch_training_r2_score * 100:.4f}% | "
+              f"Val R²(vs null): {epoch_validation_r2_score * 100:.4f}%  "
+              f"[>0 ⟺ beats ΔD=0 null model]")
+        print(f"Epoch {epoch}: MeanAbs | Train pred={train_mean_abs_pred:.6f} y={train_mean_abs_y:.6f} | "
+              f"Val pred={val_mean_abs_pred:.6f} y={val_mean_abs_y:.6f}")
 
         # ── Gate and gamma monitoring ──────────────────────────────────────
         if epoch % 10 == 0 or epoch == 1 or epoch == GATE_WARMUP_EPOCHS + 1:
@@ -469,9 +347,10 @@ def train_with_validation(
                 min_g  = min(gate_vals.values())
                 max_g  = max(gate_vals.values())
                 frozen = epoch <= GATE_WARMUP_EPOCHS
+                gate_lr = optimizer.param_groups[GATE_GROUP_IDX]["lr"]
                 print(f"  Gate g=sigmoid(λ) — mean: {mean_g:.4f}  "
                       f"min: {min_g:.4f}  max: {max_g:.4f}  "
-                      f"({'FROZEN' if frozen else 'trainable'})")
+                      f"({'FROZEN lr=0' if frozen else f'trainable lr={gate_lr:.2e}'})")
 
             gamma_vals = {
                 name: param.detach().cpu().mean().item()
@@ -500,18 +379,41 @@ def train_with_validation(
             print(f"  Restored weights from best epoch {stopper.best_epoch} (val_loss={stopper.best_loss:.6f})")
             break
 
+    # Print final learning rates for all groups
+    print("\n  Final learning rates:")
+    for i, group in enumerate(optimizer.param_groups):
+        lr = group["lr"]
+        print(f"    Group {i}: lr={lr:.6f}")
+
     model_path = f"model_fold_{fold}.pth"
+    # Determine X and y scalers to save, supporting both new (explicit) and old (implicit) formats
+    if scaler_X_mean is not None and scaler_X_std is not None:
+        final_scaler_X_mean = scaler_X_mean
+        final_scaler_X_std = scaler_X_std
+        final_scaler_y_mean = scaler_y_mean if scaler_y_mean is not None else scaler_mean
+        final_scaler_y_std = scaler_y_std if scaler_y_std is not None else scaler_std
+    else:
+        final_scaler_X_mean = scaler_mean
+        final_scaler_X_std = scaler_std
+        final_scaler_y_mean = scaler_mean
+        final_scaler_y_std = scaler_std
+
     save_dict = {
         "model_state_dict": _unwrap_state_dict(model),
         "train_mse":        fold_history["train_mse"],
         "val_mse":          fold_history["val_mse"],
         "train_r2":         fold_history["train_r2"],
         "val_r2":           fold_history["val_r2"],
-        "scaler_mean":      scaler_mean,
-        "scaler_std":       scaler_std,
+        "best_val_mse":     stopper.best_loss,   # best epoch's val MSE, not last
+        "scaler_X_mean":    final_scaler_X_mean,
+        "scaler_X_std":     final_scaler_X_std,
+        "scaler_y_mean":    final_scaler_y_mean,
+        "scaler_y_std":     final_scaler_y_std,
     }
     if hasattr(stopper, "best_epoch"):
         save_dict["best_epoch"] = stopper.best_epoch
+    # Also record best_val_mse in fold_history so multi-fold selection can use it
+    fold_history["best_val_mse"] = stopper.best_loss
     torch.save(save_dict, model_path)
     best_epoch_msg = f"  best_epoch={stopper.best_epoch}" if hasattr(stopper, "best_epoch") else ""
     print(f"  Checkpoint saved → {model_path}  (weights + history){best_epoch_msg}")
@@ -526,26 +428,29 @@ def train_with_validation(
 def diff_model_multi_fold_cv_train_test(
     distance_matrix: np.ndarray,
     sector_ids: torch.Tensor,
+    model_cfg: dict,
 ):
     """
     Perform multi-fold CV training using SectorGPSA-based SmallDataDecoderViT.
 
+    The model predicts the *change* in distance matrices:
+        y = D_{t+1} - D_t
+
     Parameters
     ----------
-    distance_matrix : np.ndarray  shape (T, 457, 457)
-        GICS-reordered distance matrices (NOT globally standardised).
-        Fold-wise z-scoring is fit on the training split only per fold to
-        avoid time-series leakage, then applied to both train and validation.
-    sector_ids : torch.Tensor  shape (N,) dtype=torch.long
-        Patch-level GICS sector indices, from build_patch_sector_ids().
+    distance_matrix : (T, 457, 457) float32 array — GICS-reordered.
+    sector_ids      : (N,) long tensor — patch→sector mapping.
+    model_cfg       : dict — SmallDataDecoderViT kwargs (excluding sector_ids).
+                      Pass MODEL_CFG from main.py so training and interpretability
+                      always use the identical architecture.
     """
     if p.TORCH_NUM_THREADS is not None:
         torch.set_num_threads(p.TORCH_NUM_THREADS)
     if p.TORCH_NUM_INTEROP_THREADS is not None:
         torch.set_num_interop_threads(p.TORCH_NUM_INTEROP_THREADS)
 
-    X = distance_matrix[:-1][:, np.newaxis, :]
-    y = distance_matrix[1:][:, np.newaxis, :]
+    X = distance_matrix[:-1][:, np.newaxis, :]  # D_t
+    y = (distance_matrix[1:] - distance_matrix[:-1])[:, np.newaxis, :]  # ΔD
 
     X_tensor = torch.from_numpy(X).float()
     y_tensor = torch.from_numpy(y).float()
@@ -562,20 +467,19 @@ def diff_model_multi_fold_cv_train_test(
         X_train_raw, X_val_raw = X_tensor[train_index], X_tensor[val_index]
         y_train_raw, y_val_raw = y_tensor[train_index], y_tensor[val_index]
 
-        # ── Fold-wise standardisation (train-only) ─────────────────────────
-        # Fit mean/std on training period ONLY to avoid leakage.
-        # Use both x_t and y_{t+1} from the training window since they are the
-        # same variable at adjacent times and both are available in training.
-        train_stack = torch.cat([X_train_raw, y_train_raw], dim=0)
-        fold_mean = train_stack.mean().item()
-        fold_std  = train_stack.std(unbiased=False).item()
-        if fold_std == 0.0:
+        # Fold-wise standardisation (train-only)
+        X_mean = X_train_raw.mean().item()
+        X_std  = X_train_raw.std(unbiased=False).item()
+        y_mean = y_train_raw.mean().item()
+        y_std  = y_train_raw.std(unbiased=False).item()
+
+        if X_std == 0.0 or y_std == 0.0:
             raise ValueError(f"Fold {fold}: standard deviation is zero; cannot z-score.")
 
-        X_train = (X_train_raw - fold_mean) / fold_std
-        y_train = (y_train_raw - fold_mean) / fold_std
-        X_val   = (X_val_raw   - fold_mean) / fold_std
-        y_val   = (y_val_raw   - fold_mean) / fold_std
+        X_train = (X_train_raw - X_mean) / X_std
+        y_train = (y_train_raw - y_mean) / y_std
+        X_val   = (X_val_raw   - X_mean) / X_std
+        y_val   = (y_val_raw   - y_mean) / y_std
 
         train_dataset = TensorDataset(X_train, y_train)
         val_dataset   = TensorDataset(X_val,   y_val)
@@ -589,17 +493,8 @@ def diff_model_multi_fold_cv_train_test(
             num_workers=p.NUM_WORKERS, pin_memory=True,
         )
 
-        # Sector-GPSA model: sector_ids drives the positional attention prior.
-        # gate_init=2.0 → sigmoid(2) ≈ 0.88 positional at start of training.
         model = SmallDataDecoderViT(
-            in_channels=1,
-            embed_dim=192,
-            depth=6,
-            num_heads=3,
-            proj_drop=0.1,
-            drop_path_rate=0.05,
-            ls_init_value=1e-2,
-            gate_init=2.0,
+            **model_cfg,
             sector_ids=sector_ids,
         )
 
@@ -609,11 +504,20 @@ def diff_model_multi_fold_cv_train_test(
             val_loader,
             fold,
             epochs=p.num_epochs,
-            scaler_mean=fold_mean,
-            scaler_std=fold_std,
+            scaler_X_mean=X_mean,
+            scaler_X_std=X_std,
+            scaler_y_mean=y_mean,
+            scaler_y_std=y_std,
         )
         fold_models.append(model_path)
         all_fold_history.append(fold_history)
+
+        # Remove the temporary early-stopping checkpoint (raw state_dict, no
+        # scaler info) to avoid confusion with the final model_fold_N.pth file.
+        import os
+        tmp_pt = f'best_model_fold_{fold}.pt'
+        if os.path.exists(tmp_pt):
+            os.remove(tmp_pt)
 
         del model, train_loader, val_loader, train_dataset, val_dataset
         if torch.cuda.is_available():
@@ -621,10 +525,26 @@ def diff_model_multi_fold_cv_train_test(
 
         fold += 1
 
-    # _r2_from_scalars returns a plain Python float, so use _to_float()
-    # rather than .item() to safely handle both tensor scalars and floats.
-    final_val_mse = [fh["val_mse"][-1] for fh in all_fold_history]
-    final_val_r2  = [_to_float(fh["val_r2"][-1]) for fh in all_fold_history]
+    # Use best_val_mse (the val MSE at the checkpoint epoch) for fold selection,
+    # not fh["val_mse"][-1] (the last epoch before stopping, which is always
+    # worse than the best because early stopping waited patience epochs).
+    final_val_mse = [fh["best_val_mse"] for fh in all_fold_history]
+    # For R², use the val_r2 at the best epoch index
+    final_val_r2 = []
+    for fh in all_fold_history:
+        best_ep_idx = int(np.argmin(fh["val_mse"]))   # 0-indexed
+        final_val_r2.append(_to_float(fh["val_r2"][best_ep_idx]))
+
+    print("\n" + "=" * 60)
+    print("FOLD SUMMARY — null model: predict ΔD=0 (no change)")
+    print(f"  Null-model val MSE ≈ 1.0 in scaled space (by construction).")
+    print(f"  Model beats null iff val MSE < null MSE, i.e. R²(vs null) > 0.")
+    print(f"  {'Fold':>5}  {'Val MSE':>12}  {'R²(vs null)':>14}  {'Beats null?':>12}")
+    print("  " + "-" * 50)
+    for i, (mse, r2) in enumerate(zip(final_val_mse, final_val_r2)):
+        beats = "✓" if r2 > 0 else "✗"
+        print(f"  {i+1:>5}  {mse:>12.6f}  {r2*100:>13.4f}%  {beats:>12}")
+    print("=" * 60 + "\n")
 
     model_lowest_val_mse = int(np.argmin(final_val_mse))
     model_highest_val_r2 = int(np.argmax(final_val_r2))

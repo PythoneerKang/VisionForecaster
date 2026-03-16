@@ -1,28 +1,36 @@
 """
-scratch.py — Run all interpretability plots from saved .pth checkpoints.
+test_one_fold.py — Run all interpretability plots from a saved .pth checkpoint.
 
 Usage (from the project root, next to transformer.py etc.):
-    python test/scratch.py
+    python test/test_one_fold.py
 
     # or pick a specific fold checkpoint:
-    python test/scratch.py --pth model_fold_3.pth
+    python test/test_one_fold.py --pth model_fold_3.pth
 
     # pass the distance-matrix pkl explicitly (required if cwd != project root):
-    python test/scratch.py --dm-pkl /path/to/IQDw35.pkl
+    python test/test_one_fold.py --dm-pkl /path/to/IQDw35.pkl
 
     # run on a specific date-index in the distance matrix:
-    python test/scratch.py --sample-idx 100
+    python test/test_one_fold.py --sample-idx 100
 
     # skip data-dependent plots (gate values and LayerScale gammas only):
-    python test/scratch.py --no-data
+    python test/test_one_fold.py --no-data
 
 Prerequisites
 -------------
 - At least one model_fold_N.pth file in the current working directory
   (or pass --pth explicitly).
 - The distance-matrix pkl file accessible via the path in parameters.py
-  (needed to build the input sample).  If you only want gate/gamma plots
-  that don't need data, pass --no-data.
+  (needed to build the input sample).  Pass --no-data if you only want
+  gate/gamma plots and have no pkl available.
+
+Model task
+----------
+The model predicts ΔD_t = D_{t+1} − D_t (the change in the distance matrix),
+not the next level D_{t+1}.  All y tensors are scaled ΔD, using the fold-wise
+y scaler (scaler_y_mean, scaler_y_std) saved in the checkpoint.
+The null model predicts ΔD=0 (no change); in scaled space this is the constant
+−scaler_y_mean / scaler_y_std.
 
 Checkpoint format
 -----------------
@@ -31,28 +39,35 @@ Each .pth file is a dict saved by train_with_validation():
         "model_state_dict" : state_dict,
         "train_mse"        : list[float],
         "val_mse"          : list[float],
-        "train_r2"         : list[float],
+        "train_r2"         : list[float],   # R² vs zero-change null model
         "val_r2"           : list[float],
+        "best_val_mse"     : float,         # val MSE at early-stopping epoch
+        "best_epoch"       : int,
+        "scaler_X_mean"    : float,
+        "scaler_X_std"     : float,
+        "scaler_y_mean"    : float,
+        "scaler_y_std"     : float,
     }
-Both weights and history live in the same file — no separate .pkl needed.
 
 What is produced
 ----------------
 All plots are saved in ./interp_outputs/ (created automatically):
 
-  fold_summary.png                     — CV summary across all available folds
-  attention_maps_block0.png            — effective attention maps, first block
-  attention_maps_last_block.png        — effective attention maps, last block
-  attention_maps_overlay_block0.png    — colour-coded overlay, first block
+  fold_summary.png                      — CV summary (only when multiple folds found)
+  attention_maps_block0.png             — effective attention maps, first block
+  attention_maps_last_block.png         — effective attention maps, last block
+  attention_maps_overlay_block0.png     — colour-coded overlay, first block
   attention_maps_overlay_last_block.png
   ind_attention_maps_overlay_block0.png
   ind_attention_maps_overlay_last_block.png
-  gate_values.png                      — gate heatmap (no data needed)
-  layerscale_gammas.png                — LayerScale γ (no data needed)
-  mean_attention_distance.png          — mean hop distance heatmap
-  bar_mean_attention_distance.png      — per-block bar chart
-  attention_weights.png                — content-stream entropy violin plots
-  prediction_error_map.png             — input / pred / truth / error panels
+  gate_values.png                       — gate heatmap (no data needed)
+  layerscale_gammas.png                 — LayerScale γ (no data needed)
+  mean_attention_distance.png           — mean hop distance heatmap
+  bar_mean_attention_distance.png       — per-block bar chart
+  attention_weights.png                 — content-stream entropy violin plots
+  prediction_error_map.png              — D_t / ΔD̂_t / ΔD_t / signed error / per-pixel skill score
+                                          Panel 4 = ΔD̂−ΔD: red=over-predict, blue=under-predict
+                                          Panel 5 = (ΔD̂−ΔD)²/ΔD²: green<1 beats null, red>1 worse, grey=|ΔD|≈0
 """
 
 import argparse
@@ -89,9 +104,10 @@ from model_interpretability import ModelInterpreter, plot_fold_summary
 MODEL_CFG = dict(
     in_channels=1,
     embed_dim=192,
-    depth=6,
+    depth=4,
     num_heads=3,
-    proj_drop=0.1,
+    proj_drop=0.2,      # must match main.py / training_and_validation_functions.py
+    attn_drop=0.1,      # must match main.py / training_and_validation_functions.py
     drop_path_rate=0.05,
     ls_init_value=1e-2,
     gate_init=2.0,
@@ -111,8 +127,9 @@ def _load_checkpoint(pth_path: str) -> dict:
     """
     Load a .pth file and return its contents as a normalised dict.
 
-    Supports two formats:
+    Supports three formats:
       - New format (dict):  {"model_state_dict": ..., "train_mse": ..., ...}
+      - New format with separate X/y scalers: also has scaler_X_mean, scaler_X_std, scaler_y_mean, scaler_y_std
       - Old format (bare state_dict):  {"pos_embed": ..., ...}
         Wrapped into the new schema with empty history lists so the rest of
         the code has a single interface to work with.
@@ -159,7 +176,7 @@ def _load_fold_history(
         m = re.search(r"model_fold_(\d+)\.pth$", os.path.basename(pth_path))
         fold_num = int(m.group(1)) if m else None
         histories.append(
-            {k: ckpt.get(k) for k in ("train_mse", "val_mse", "train_r2", "val_r2")}
+            {k: ckpt.get(k) for k in ("train_mse", "val_mse", "train_r2", "val_r2", "best_val_mse")}
         )
         fold_numbers.append(fold_num)
 
@@ -174,23 +191,34 @@ def _best_pth_from_history(
     fold_numbers: list[int],
 ) -> str:
     """
-    Pick the checkpoint with the lowest final-epoch val-MSE, print a ranked
-    table of all folds, and return the path to the best checkpoint.
+    Pick the checkpoint with the lowest best_val_mse (the val MSE at the
+    early-stopping checkpoint epoch), print a ranked table of all folds,
+    and return the path to the best checkpoint.
 
-    The search is done in two passes:
-      1. Try to find model_fold_{best_fold_num}.pth in all_pths (reliable).
-      2. Fall back to all_pths[-1] only if the file genuinely cannot be found,
-         printing a clear warning so the user knows something went wrong.
+    Falls back to final-epoch val_mse[-1] for old checkpoints that pre-date
+    the best_val_mse field, with a warning.
     """
-    final_val_mse = [fh["val_mse"][-1] for fh in histories]
+    final_val_mse = []
+    for fh in histories:
+        if fh.get("best_val_mse") is not None:
+            final_val_mse.append(fh["best_val_mse"])
+        else:
+            # Old checkpoint format — best_val_mse not saved; use last epoch
+            # (which is worse than the best, but it's the best we have).
+            final_val_mse.append(fh["val_mse"][-1])
+
     best_idx      = int(np.argmin(final_val_mse))
     best_fold_num = fold_numbers[best_idx]
 
-    print(f"\n── Val-MSE per fold (final epoch):")
+    print(f"\n── Val-MSE per fold (best checkpoint epoch)  [null-MSE ≈ 1.0 → skill = val-MSE / 1.0]:")
+    print(f"  {'label':>8}  {'val-MSE':>10}  {'skill score':>12}  {'beats null?':>12}")
+    print(f"  {'-'*8}  {'-'*10}  {'-'*12}  {'-'*12}")
     for i, (fn, mse) in enumerate(zip(fold_numbers, final_val_mse)):
-        marker = " ← best" if i == best_idx else ""
-        label  = f"fold {fn}" if fn is not None else f"entry {i+1}"
-        print(f"  {label:>8}  val-MSE = {mse:.6f}{marker}")
+        marker      = " ← best" if i == best_idx else ""
+        label       = f"fold {fn}" if fn is not None else f"entry {i+1}"
+        skill       = mse          # null-MSE ≈ 1.0 by construction, so skill ≈ val-MSE
+        beats_null  = "✓" if skill < 1.0 else "✗"
+        print(f"  {label:>8}  {mse:>10.6f}  {skill:>12.6f}  {beats_null:>12}{marker}")
 
     # Pass 1: look for the expected filename in all_pths
     if best_fold_num is not None:
@@ -253,14 +281,25 @@ def _build_sector_ids_and_labels():
 def _build_sample(
     distance_matrix_gics: np.ndarray,
     sample_idx: int,
+    scaler_X_mean: float | None = None,
+    scaler_X_std:  float | None = None,
+    scaler_y_mean: float | None = None,
+    scaler_y_std:  float | None = None,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """
     Return (X_sample, y_sample) tensors of shape (1, 1, 457, 457).
-    sample_idx is clamped to [0, T-2].
 
-    Walks backwards from sample_idx to avoid degenerate consecutive-duplicate
-    samples where x_t == y_{t+1} exactly (e.g. from forward-fill or market
-    holidays), since those make the naive baseline MSE = 0.
+    X_sample : scaled D_t  (input to the model)
+    y_sample : scaled ΔD_t = scaled (D_{t+1} − D_t)  (model target)
+
+    sample_idx is clamped to [0, T-2].  The function walks backwards to
+    avoid degenerate samples where D_t == D_{t+1} (forward-fill / holidays).
+
+    Scalers must be the fold-wise train-set statistics from the checkpoint:
+      X_sample = (D_t − scaler_X_mean) / scaler_X_std
+      y_sample = ((D_{t+1} − D_t) − scaler_y_mean) / scaler_y_std
+    If no scalers are provided the raw (unscaled) values are returned with
+    a warning.
     """
     T   = distance_matrix_gics.shape[0]
     idx = max(0, min(sample_idx, T - 2))
@@ -275,12 +314,33 @@ def _build_sample(
 
     if backtracked > 0:
         print(
-            f"  NOTE: sample_idx had x_t == y_t+1 exactly; backtracked "
+            f"  NOTE: sample_idx had D_t == D_{{t+1}}; backtracked "
             f"{backtracked} step(s) to idx={idx} for a non-degenerate sample."
         )
+    elif idx == 0 and T > 1 and np.array_equal(distance_matrix_gics[0], distance_matrix_gics[1]):
+        print(
+            "  WARNING: all consecutive time steps are identical. "
+            "Using idx=0 despite D_0 == D_1."
+        )
 
-    X = distance_matrix_gics[idx    ][np.newaxis, np.newaxis, :]   # (1,1,457,457)
-    y = distance_matrix_gics[idx + 1][np.newaxis, np.newaxis, :]
+    D_t   = distance_matrix_gics[idx    ].astype(np.float32)
+    D_tp1 = distance_matrix_gics[idx + 1].astype(np.float32)
+    delta = D_tp1 - D_t   # ΔD_t
+
+    if scaler_X_mean is not None and scaler_X_std is not None:
+        D_t_scaled = (D_t - scaler_X_mean) / scaler_X_std
+    else:
+        print("  WARNING: no X scaler — returning unscaled D_t.")
+        D_t_scaled = D_t
+
+    if scaler_y_mean is not None and scaler_y_std is not None:
+        delta_scaled = (delta - scaler_y_mean) / scaler_y_std
+    else:
+        print("  WARNING: no y scaler — returning unscaled ΔD_t.")
+        delta_scaled = delta
+
+    X = D_t_scaled[np.newaxis, np.newaxis, :]     # (1, 1, 457, 457)
+    y = delta_scaled[np.newaxis, np.newaxis, :]   # (1, 1, 457, 457)
     return torch.from_numpy(X).float(), torch.from_numpy(y).float()
 
 
@@ -404,8 +464,22 @@ def main():
     interp     = ModelInterpreter(model, save_dir=args.out_dir)
     last_block = len(list(model.blocks)) - 1
     ckpt = _load_checkpoint(best_pth)
-    scaler_mean = ckpt.get("scaler_mean")
-    scaler_std  = ckpt.get("scaler_std")
+    # Get scalers - first try new separate X/y format, fall back to old single scaler
+    scaler_X_mean = ckpt.get("scaler_X_mean")
+    scaler_X_std  = ckpt.get("scaler_X_std")
+    scaler_y_mean = ckpt.get("scaler_y_mean")
+    scaler_y_std  = ckpt.get("scaler_y_std")
+    scaler_mean   = ckpt.get("scaler_mean")
+    scaler_std    = ckpt.get("scaler_std")
+
+    # Print best-epoch skill score for this checkpoint (null-MSE ≈ 1.0)
+    best_val_mse = ckpt.get("best_val_mse")
+    best_epoch   = ckpt.get("best_epoch")
+    if best_val_mse is not None:
+        beats = "✓ beats null" if best_val_mse < 1.0 else "✗ does NOT beat null"
+        print(f"  Best epoch   : {best_epoch}  |  "
+              f"Best val MSE = {best_val_mse:.6f}  |  "
+              f"Skill score ≈ {best_val_mse:.6f}  [{beats}]")
 
     # ── Step 4: fold summary (needs history) ─────────────────────────────
     if fold_history:
@@ -449,39 +523,62 @@ def main():
     distance_matrix_gics, _, _ = reorder_by_gics(distance_matrix_raw)
     del distance_matrix_raw
 
-    # Apply the same fold-wise scaling used during training, if available.
-    # This is critical for meaningful predictions/MSE when checkpoints were
-    # trained with train-only (per-fold) standardisation.
-    if scaler_mean is not None and scaler_std is not None:
-        distance_matrix_gics = (distance_matrix_gics - scaler_mean) / scaler_std
-    else:
-        print(
-            "  NOTE: checkpoint has no scaler_mean/std (old-format or legacy training). "
-            "Proceeding without fold-wise standardisation."
-        )
-
     T          = distance_matrix_gics.shape[0]
     sample_idx = args.sample_idx if args.sample_idx >= 0 else T - 2
     print(f"  T={T} time steps.  Using sample index {sample_idx}.")
 
-    # Build the full validation fold so baseline/model MSE is computed over the
-    # same scope as training val_mse (single-sample MSE is intentionally avoided).
-    X_all = distance_matrix_gics[:-1][:, np.newaxis, :]   # (T-1, 1, 457, 457)
-    y_all = distance_matrix_gics[1:][:,  np.newaxis, :]
-    X_t   = torch.from_numpy(X_all).float()
-    y_t   = torch.from_numpy(y_all).float()
+    # ── Build X (scaled D_t) and y (scaled ΔD_t) tensors ─────────────────
+    # X and y use separate fold-wise scalers from the checkpoint.
+    # Applying X scaler to D_t and y scaler to ΔD matches exactly what
+    # diff_model_multi_fold_cv_train_test does during training.
+    D      = distance_matrix_gics.astype(np.float32)   # (T, 457, 457)
+    D_t    = D[:-1]                                     # (T-1, 457, 457)
+    delta  = D[1:] - D[:-1]                             # ΔD_t, (T-1, 457, 457)
+
+    if scaler_X_mean is not None and scaler_X_std is not None:
+        print("  Applying fold-wise X scaler (D_t standardisation).")
+        X_scaled = (D_t   - scaler_X_mean) / scaler_X_std
+    elif scaler_mean is not None and scaler_std is not None:
+        print("  Applying legacy single scaler (level prediction).")
+        X_scaled = (D_t   - scaler_mean)   / scaler_std
+    else:
+        print("  NOTE: no X scaler in checkpoint — using raw D_t.")
+        X_scaled = D_t
+
+    if scaler_y_mean is not None and scaler_y_std is not None:
+        print("  Applying fold-wise y scaler (ΔD standardisation).")
+        y_scaled = (delta - scaler_y_mean) / scaler_y_std
+    elif scaler_mean is not None and scaler_std is not None:
+        # Legacy: single scaler was used for both X and next-level y
+        print("  Applying legacy single scaler to ΔD (approximate).")
+        y_scaled = (delta - scaler_mean)   / scaler_std
+    else:
+        print("  NOTE: no y scaler in checkpoint — using raw ΔD.")
+        y_scaled = delta
+
+    X_t = torch.from_numpy(X_scaled[:, np.newaxis, :]).float()  # (T-1, 1, 457, 457)
+    y_t = torch.from_numpy(y_scaled[:, np.newaxis, :]).float()  # (T-1, 1, 457, 457)
 
     tscv = TimeSeriesSplit(n_splits=9, max_train_size=504, test_size=126)
     *_, (_, last_val_idx) = tscv.split(X_t)
-    X_val = X_t[last_val_idx]
-    y_val = y_t[last_val_idx]
+    X_val = X_t[last_val_idx]   # (N_val, 1, 457, 457)
+    y_val = y_t[last_val_idx]   # (N_val, 1, 457, 457)
 
-    # Baseline vs model MSE is computed and printed once in
-    # plot_prediction_error_map(..., X_val=X_val, y_val=y_val) (naive baseline check).
+    # ── Null-model baseline (predict ΔD=0 in raw space) ──────────────────
+    # In scaled space, ΔD=0 raw corresponds to −y_mean/y_std.
+    if scaler_y_mean is not None and scaler_y_std is not None and float(scaler_y_std) != 0.0:
+        null_value = float(-scaler_y_mean) / float(scaler_y_std)
+    else:
+        null_value = 0.0
 
-    # Single displayed sample (still used for the heatmaps), but MSE comparison
-    # is computed over X_val/y_val.
-    sample_x, sample_y = _build_sample(distance_matrix_gics, sample_idx)
+    # Single-sample tensors
+    sample_x, sample_y = _build_sample(
+        distance_matrix_gics, sample_idx,
+        scaler_X_mean=scaler_X_mean, scaler_X_std=scaler_X_std,
+        scaler_y_mean=scaler_y_mean, scaler_y_std=scaler_y_std,
+    )
+    baseline_pred     = torch.full_like(sample_y, null_value)   # (1, 1, 457, 457)
+    baseline_val_full = torch.full_like(y_val,    null_value)   # (N_val, 1, 457, 457)
     print(f"  sample_x shape: {tuple(sample_x.shape)}")
 
     # ── Step 7: data-dependent plots ─────────────────────────────────────
@@ -525,6 +622,9 @@ def main():
         sector_boundaries=sector_boundaries,
         X_val=X_val,
         y_val=y_val,
+        baseline_pred=baseline_pred,
+        baseline_val_full=baseline_val_full,
+        baseline_name="zero (ΔD=0)",
     )
 
     print(f"\n{'='*60}")
