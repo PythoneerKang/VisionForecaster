@@ -5,6 +5,41 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>VisionForecaster — Architecture</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
+<script defer>
+  function toggleRoller(id) {
+    const roller = document.getElementById(id);
+    const isOpen = roller.classList.contains('open');
+    roller.classList.toggle('open', !isOpen);
+    roller.querySelector('.roller-toggle').setAttribute('aria-expanded', String(!isOpen));
+  }
+
+  function copyCode(btn, text) {
+    const decoded = text.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+    navigator.clipboard.writeText(decoded).then(() => {
+      btn.classList.add('copied');
+      btn.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+      }, 2000);
+    });
+  }
+
+  function openLightbox(src) {
+    const img = document.getElementById('lightbox-img');
+    img.src = '';
+    document.getElementById('lightbox').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    img.src = src;
+  }
+
+  function closeLightbox(event, force) {
+    if (force || (event && event.target === document.getElementById('lightbox'))) {
+      document.getElementById('lightbox').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  }
+</script>
 <style>
   :root {
     --bg:        #f5f7fa;
@@ -518,15 +553,15 @@
   <header>
     <div class="tag">// Small High-Resolution Vision Transformer</div>
     <h1>Vision<span>Forecaster</span></h1>
-    <div class="subtitle">Decoder-only ViT with Standard Patch Embed · Sector-GPSA · LayerScale · DropPath — tuned for ~2 000 samples</div>
+    <div class="subtitle">Decoder-only ViT with Conv Patch Embed · Sector-GPSA · LayerScale · DropPath — tuned for ~500 samples</div>
     <div class="header-links">
       <a class="header-link header-link-gh" href="https://github.com/PythoneerKang/VisionForecaster" target="_blank" rel="noopener">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
         View on GitHub
       </a>
-      <a class="header-link header-link-email-school" href="mailto:S230047@e.ntu.edu.sg">
+      <a class="header-link header-link-email-school" href="mailto:s230047@e.ntu.edu.sg">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-        S230047@e.ntu.edu.sg
+        s230047@e.ntu.edu.sg
       </a>
       <a class="header-link header-link-email-personal" href="mailto:zt.kang@gmail.com">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
@@ -547,7 +582,7 @@
       <div class="roller-icon">🏗</div>
       <div class="roller-title-wrap">
         <span class="roller-title">Architecture Diagram</span>
-        <span class="roller-subtitle">Full forward-pass flow — input → Standard Patch Embed → positional embed → 6× DecoderBlock (Sector-GPSA) → head → output</span>
+        <span class="roller-subtitle">Full forward-pass flow — input → Conv Patch Embed → positional embed → 1× DecoderBlock (Sector-GPSA) → head → output</span>
       </div>
       <span class="roller-badge">forward pass</span>
       <div class="roller-chevron">
@@ -572,7 +607,7 @@
               <div class="sub-row">
                 <div class="sub-block sb-blue">B × 1 × 457 × 457</div>
                 <div class="sub-arrow">→</div>
-                <div class="formula">float32 &nbsp;z-scored GICS-reordered distance matrix</div>
+                <div class="formula">float32 &nbsp;fold-standardised GICS-reordered distance matrix D_t</div>
               </div>
             </div>
           </div>
@@ -581,24 +616,24 @@
             <span class="arrow-label">reflect pad 457 → 464</span>
           </div>
 
-          <!-- STANDARD PATCH EMBED -->
+          <!-- CONV PATCH EMBED -->
           <div class="block brd-grn">
             <div class="block-header bh-grn">
               <div class="block-icon bi-grn">🔲</div>
-              <div class="block-title">Standard Patch Embedding</div>
-              <div class="block-badge bb-grn">flatten + project</div>
+              <div class="block-title">Convolutional Patch Embedding</div>
+              <div class="block-badge bb-grn">conv + norm</div>
             </div>
             <div class="block-body">
               <div class="sub-row">
-                <div class="formula">patchify (B, 1, 464, 464) → (B, 841, 1×16×16) = (B, 841, 256)</div>
+                <div class="formula">Conv2d(1, 64, kernel=16, stride=16) → (B, 64, 29, 29) → flatten → (B, 841, 64)</div>
               </div>
               <div class="sub-row">
-                <div class="sub-block">LayerNorm</div>
+                <div class="sub-block">LayerNorm(64)</div>
                 <div class="sub-arrow">→</div>
-                <div class="sub-block">Linear 256→192</div>
+                <div class="formula">16,576 params total</div>
               </div>
               <div class="sub-row">
-                <div class="formula">output: (B, 841, 192)</div>
+                <div class="formula">output: (B, 841, 64)</div>
               </div>
             </div>
           </div>
@@ -616,22 +651,22 @@
             </div>
             <div class="block-body">
               <div class="sub-row">
-                <div class="sub-block sb-pur">nn.Parameter (1, 841, 192)</div>
+                <div class="sub-block sb-pur">nn.Parameter (1, 841, 64)</div>
                 <div class="sub-arrow">→</div>
                 <div class="formula">init: trunc_normal(std=0.02)</div>
               </div>
               <div class="sub-row">
-                <div class="formula">tokens = tokens + pos_embed &nbsp;→&nbsp; (B, 841, 192)</div>
+                <div class="formula">tokens = tokens + pos_embed &nbsp;→&nbsp; (B, 841, 64)</div>
               </div>
             </div>
           </div>
 
           <div class="arrow"></div>
 
-          <!-- ×6 DECODER BLOCKS -->
+          <!-- ×1 DECODER BLOCK -->
           <div class="repeat-wrapper">
             <div class="repeat-bracket">
-              <div class="repeat-label">× 6 blocks</div>
+              <div class="repeat-label">× 1 block</div>
             </div>
             <div class="repeat-content">
               <div class="block brd-org" style="max-width:100%">
@@ -639,7 +674,7 @@
                   <div class="block-icon bi-org">🔷</div>
                   <div class="block-title">
                     DecoderBlock
-                    <span style="color:#9e4a00;font-size:10px;font-weight:400"> &nbsp;(stoch-depth linearly spaced 0 → 0.05)</span>
+                    <span style="color:#9e4a00;font-size:10px;font-weight:400"> &nbsp;(drop_path=0.05)</span>
                   </div>
                   <div class="block-badge bb-org">Sector-GPSA + FFN</div>
                 </div>
@@ -653,7 +688,7 @@
                       </div>
                       <div class="inner-col-body">
                         <div class="mini-block">
-                          LayerNorm <span style="color:var(--dim)">(192)</span>
+                          LayerNorm <span style="color:var(--dim)">(64)</span>
                         </div>
                         <div class="mini-arrow">↓</div>
 
@@ -661,30 +696,31 @@
                         <div class="mini-block" style="border-color:#4db6ac;background:#e0f2f1;">
                           <span style="color:#004d40;font-weight:700;">Sector-Gated Positional Self-Attention</span>
                           <div style="margin-top:6px;color:#555;font-size:8.5px;line-height:1.9;text-align:justify;">
-                            <b style="color:#004d40;">QKV proj:</b> 192 → 3×192 (no bias) · heads=3 · head_dim=64<br>
+                            <b style="color:#004d40;">QKV proj:</b> 64 → 3×64 (bias=True) · heads=2 · head_dim=32<br>
 
-                            <b style="color:#004d40;">A_content</b> = softmax(Q·Kᵀ / √64) &nbsp; (B, H, N, N)<br>
+                            <b style="color:#004d40;">A_content</b> = softmax(Q·Kᵀ / √32) &nbsp; (B, H, N, N)<br>
 
-                            <b style="color:#004d40;">A_pos</b> = sector-membership matrix &nbsp; (N, N)<br>
-                            &nbsp;&nbsp;A_pos[i,j] = 1/|sector(i)| if same GICS sector, else 0<br>
-                            &nbsp;&nbsp;Each row sums to 1 — uniform within-sector prior<br>
+                            <b style="color:#004d40;">A_pos</b> = sector-pair membership matrix &nbsp; (N, N)<br>
+                            &nbsp;&nbsp;group = frozenset({row_sector, col_sector}) per patch<br>
+                            &nbsp;&nbsp;A_pos[i,j] = 1/|group(i)| if same group, else 0<br>
+                            &nbsp;&nbsp;Each row sums to 1 — uniform within-group prior<br>
 
-                            <b style="color:#004d40;">g_h</b> = sigmoid(λ_h) per head · shape (H,) · init λ=+2 → g≈0.88<br>
+                            <b style="color:#004d40;">g_h</b> = sigmoid(λ_h) per head · shape (H,) · init λ=0 → g=0.5<br>
 
                             <b style="color:#004d40;">output_h</b> = g_h·(A_pos @ V) + (1−g_h)·(A_content @ V)<br>
 
-                            out proj: 192 → 192
+                            out proj: 64 → 64
                           </div>
                         </div>
 
                         <div class="mini-arrow">↓</div>
                         <div class="mini-block" style="border-color:#c49de8;background:#f9f2ff;">
                           <span style="color:#5b1a8a;font-weight:700;">LayerScale γ₁</span>
-                          <span style="color:var(--dim);font-size:8px;"> (init 1e-2, shape 192)</span>
+                          <span style="color:var(--dim);font-size:8px;"> (init 1e-2, shape 64)</span>
                         </div>
                         <div class="mini-arrow">↓</div>
                         <div class="mini-block" style="border-color:#90b8f8;background:#f0f5ff;">
-                          DropPath <span style="color:var(--dim)">(stoch depth)</span>
+                          DropPath <span style="color:var(--dim)">(p=0.05)</span>
                         </div>
                         <div class="mini-arrow">↓</div>
                         <div class="residual-note">⤷ residual add to input x</div>
@@ -698,27 +734,27 @@
                       </div>
                       <div class="inner-col-body">
                         <div class="mini-block">
-                          LayerNorm <span style="color:var(--dim)">(192)</span>
+                          LayerNorm <span style="color:var(--dim)">(64)</span>
                         </div>
                         <div class="mini-arrow">↓</div>
                         <div class="mini-block" style="border-color:#93d19b;background:#f4fbf5;">
                           <span style="color:#1b5e20;font-weight:700;">FeedForward MLP</span>
                           <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;text-align:justify;">
-                            Linear 192 → 768 (mlp_ratio=4×)<br>
+                            Linear 64 → 256 (mlp_ratio=4×)<br>
                             GELU<br>
                             Dropout (0.1)<br>
-                            Linear 768 → 192<br>
+                            Linear 256 → 64<br>
                             Dropout (0.1)
                           </div>
                         </div>
                         <div class="mini-arrow">↓</div>
                         <div class="mini-block" style="border-color:#c49de8;background:#f9f2ff;">
                           <span style="color:#5b1a8a;font-weight:700;">LayerScale γ₂</span>
-                          <span style="color:var(--dim);font-size:8px;"> (init 1e-2, shape 192)</span>
+                          <span style="color:var(--dim);font-size:8px;"> (init 1e-2, shape 64)</span>
                         </div>
                         <div class="mini-arrow">↓</div>
                         <div class="mini-block" style="border-color:#90b8f8;background:#f0f5ff;">
-                          DropPath <span style="color:var(--dim)">(stoch depth)</span>
+                          DropPath <span style="color:var(--dim)">(p=0.05)</span>
                         </div>
                         <div class="mini-arrow">↓</div>
                         <div class="residual-note">⤷ residual add to post-attn x</div>
@@ -727,7 +763,7 @@
 
                   </div>
                   <div class="sub-row" style="margin-top:9px">
-                    <div class="formula">output shape unchanged: (B, 841, 192)</div>
+                    <div class="formula">output shape unchanged: (B, 841, 64)</div>
                   </div>
                 </div>
               </div>
@@ -745,9 +781,9 @@
             </div>
             <div class="block-body">
               <div class="sub-row">
-                <div class="sub-block sb-pur">LayerNorm (192)</div>
+                <div class="sub-block sb-pur">LayerNorm (64)</div>
                 <div class="sub-arrow">→</div>
-                <div class="formula">(B, 841, 192)</div>
+                <div class="formula">(B, 841, 64)</div>
               </div>
             </div>
           </div>
@@ -759,15 +795,13 @@
             <div class="block-header bh-tel">
               <div class="block-icon bi-tel">🖼</div>
               <div class="block-title">Pixel Reconstruction Head</div>
-              <div class="block-badge bb-tel">linear + unpatchify</div>
+              <div class="block-badge bb-tel">single linear</div>
             </div>
             <div class="block-body">
               <div class="sub-row">
-                <div class="sub-block">Linear 192→192</div>
+                <div class="sub-block">Linear 64→256</div>
                 <div class="sub-arrow">→</div>
-                <div class="sub-block">GELU</div>
-                <div class="sub-arrow">→</div>
-                <div class="sub-block">Linear 192→256</div>
+                <div class="formula">single linear — direct gradient path from loss to transformer</div>
               </div>
               <div class="sub-row">
                 <div class="formula">patch_dim = 1×16×16 = 256 &nbsp;→&nbsp; (B, 841, 256)</div>
@@ -793,7 +827,7 @@
               <div class="sub-row">
                 <div class="sub-block sb-blue">B × 1 × 457 × 457</div>
                 <div class="sub-arrow">→</div>
-                <div class="formula">predicted distance matrix at t+1 &nbsp;·&nbsp; MSE loss vs ground truth</div>
+                <div class="formula">predicted change ΔD̂_t = D_{t+1} − D_t &nbsp;·&nbsp; MSE loss vs ground-truth ΔD_t</div>
               </div>
             </div>
           </div>
@@ -803,28 +837,28 @@
         <!-- Legend -->
         <div class="legend">
           <div class="legend-item" style="border-top:3px solid #2e7d32;">
-            <b style="color:#1b5e20;">Standard Patch Embedding</b>
-            <p>Each (1×16×16) patch is flattened to 256 values, layer-normalised, and projected to 192 dimensions with a single linear layer.</p>
+            <b style="color:#1b5e20;">Convolutional Patch Embedding</b>
+            <p>Conv2d(1, 64, kernel=16, stride=16) extracts and projects each patch in one step, followed by LayerNorm(64). The norm operates in embed_dim space (128 params fixed) rather than patch space, making it cheaper than a flat linear embedding. Total: 16,576 params.</p>
           </div>
           <div class="legend-item" style="border-top:3px solid #00695c;">
             <b style="color:#004d40;">Sector-GPSA Gate</b>
-            <p>g_h = sigmoid(λ_h) per head. g→1: head relies on the GICS sector prior (uniform within-sector attention). g→0: head is fully content-driven. Initialised at λ=+2 (g≈0.88) for stable early training on the small dataset.</p>
+            <p>g_h = sigmoid(λ_h) per head. g→1: head relies on the GICS sector prior. g→0: head is fully content-driven. Initialised at λ=0 (g=0.5) so both streams contribute equally from the first epoch.</p>
           </div>
           <div class="legend-item" style="border-top:3px solid #00695c;">
             <b style="color:#004d40;">Sector Positional Prior A_pos</b>
-            <p>Row-normalised sector-membership matrix: each query patch attends uniformly over all patches in the same GICS sector. Directly encodes the block-diagonal structure of the GICS-reordered distance matrix — more principled than a Euclidean Gaussian prior (LSA) for categorical sector data.</p>
+            <p>Row-normalised sector-pair membership matrix. Each patch at grid (r,c) is assigned group frozenset({row_sector, col_sector}), so (r,c) and (c,r) share the same group, preserving distance matrix symmetry. Directly encodes the block-diagonal structure of the GICS-reordered distance matrix.</p>
           </div>
           <div class="legend-item" style="border-top:3px solid #6a1b9a;">
             <b style="color:#4a148c;">LayerScale</b>
-            <p>Per-channel scalar γ on each residual branch, initialised at 1e-2. Stabilises early training on small datasets; 10× higher LR applied to γ parameters via a separate AdamW group.</p>
+            <p>Per-channel scalar γ on each residual branch, initialised at 1e-2. Provides meaningful gradient signal through the residual branches from the first epoch while stabilising early training on small datasets.</p>
           </div>
           <div class="legend-item" style="border-top:3px solid #0288d1;">
             <b style="color:#01579b;">DropPath (Stoch. Depth)</b>
-            <p>Rate increases linearly across blocks (0 → 0.05). Acts as an ensemble of shallower networks at training time.</p>
+            <p>Fixed rate of 0.05 (no linear schedule with only 1 block). Light regularisation — drops the entire block at training time.</p>
           </div>
           <div class="legend-item" style="border-top:3px solid #546e7a;">
             <b style="color:#37474f;">Padding &amp; Crop</b>
-            <p>457 is not divisible by 16. Reflect-pad to 464 before tokenisation, then crop back to 457×457 after reconstruction.</p>
+            <p>457 is not divisible by 16. Reflect-pad to 464 = 29 × 16 before tokenisation, then crop back to 457×457 after reconstruction.</p>
           </div>
         </div>
 
@@ -861,16 +895,18 @@
             <div class="pill">patch_size <b>16</b></div>
             <div class="pill">grid <b>29 × 29</b></div>
             <div class="pill">N patches <b>841</b></div>
-            <div class="pill">embed_dim <b>192</b></div>
-            <div class="pill">depth <b>6</b></div>
-            <div class="pill">num_heads <b>3</b></div>
-            <div class="pill">head_dim <b>64</b></div>
+            <div class="pill">embed_dim <b>64</b></div>
+            <div class="pill">depth <b>1</b></div>
+            <div class="pill">num_heads <b>2</b></div>
+            <div class="pill">head_dim <b>32</b></div>
             <div class="pill">mlp_ratio <b>4×</b></div>
+            <div class="pill">attn_drop <b>0.1</b></div>
             <div class="pill">proj_drop <b>0.1</b></div>
             <div class="pill">drop_path_rate <b>0.05</b></div>
             <div class="pill">ls_init <b>1e-2</b></div>
-            <div class="pill">gate_init λ <b>+2.0</b></div>
-            <div class="pill">gate_init g <b>≈0.88</b></div>
+            <div class="pill">gate_init λ <b>0.0</b></div>
+            <div class="pill">gate_init g <b>0.50</b></div>
+            <div class="pill">total params <b>137,282</b></div>
           </div>
         </div>
 
@@ -1123,52 +1159,5 @@
   <img id="lightbox-img" src="" alt="Gallery image">
 </div>
 
-<script>
-  function toggleRoller(id) {
-    const roller = document.getElementById(id);
-    const isOpen = roller.classList.contains('open');
-    roller.classList.toggle('open', !isOpen);
-    roller.querySelector('.roller-toggle').setAttribute('aria-expanded', String(!isOpen));
-  }
-
-  function copyCode(btn, text) {
-    const decoded = text.replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-    navigator.clipboard.writeText(decoded).then(() => {
-      btn.classList.add('copied');
-      btn.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-      setTimeout(() => {
-        btn.classList.remove('copied');
-        btn.innerHTML = `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
-      }, 2000);
-    });
-  }
-
-  function openLightbox(src) {
-    const img = document.getElementById('lightbox-img');
-    img.src = '';
-    document.getElementById('lightbox').classList.add('active');
-    document.body.style.overflow = 'hidden';
-    img.src = src;
-  }
-
-  function closeLightbox(event, force) {
-    if (force || (event && event.target === document.getElementById('lightbox'))) {
-      document.getElementById('lightbox').classList.remove('active');
-      document.body.style.overflow = '';
-    }
-  }
-
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeLightbox(null, true);
-  });
-
-  (function() {
-    const grid = document.getElementById('gallery-grid');
-    const empty = document.querySelector('.gallery-empty');
-    if (grid && grid.children.length > 0 && empty) {
-      empty.style.display = 'none';
-    }
-  })();
-</script>
 </body>
 </html>

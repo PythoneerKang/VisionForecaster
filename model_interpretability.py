@@ -59,7 +59,7 @@ Usage
     from model_interpretability import ModelInterpreter, plot_fold_summary
 
     model = SmallDataDecoderViT(..., sector_ids=sector_ids)
-    model.load_state_dict(torch.load("model_fold_9.pth", map_location="cpu"))
+    model.load_state_dict(torch.load("best_model_fold_3.pt", map_location="cpu"))
 
     interp = ModelInterpreter(model)
     sample_x = ...   # (1, 1, 457, 457) — from the validation set
@@ -257,7 +257,7 @@ class ModelInterpreter:
         ncols = min(H, 4)
         nrows = math.ceil(H / ncols)
         fig, axes = plt.subplots(nrows, ncols, figsize=(4 * ncols, 3.5 * nrows))
-        axes = np.array(axes).flatten()
+        axes = np.array(axes).reshape(-1)
         fig.suptitle(
             f"Effective Attention Maps — Block {layer+1}  |  "
             f"Query patch {query_patch}  ({gh}×{gw} grid)\n"
@@ -382,7 +382,7 @@ class ModelInterpreter:
         ncols = min(H, 4)
         nrows = math.ceil(H / ncols)
         fig2, axes = plt.subplots(nrows, ncols, figsize=(4 * ncols, 3.5 * nrows))
-        axes = np.array(axes).flatten()
+        axes = np.array(axes).reshape(-1)
         fig2.suptitle(
             f"Per-Head Effective Attention Colour Masks — Block {layer+1}  |  "
             f"Query patch {query_patch}",
@@ -705,6 +705,9 @@ class ModelInterpreter:
             probs = counts * bin_w
             probs = probs[probs > 0]
             entropy = float(-np.sum(probs * np.log(probs + 1e-10)))
+            # Force axis limits to update before reading ylim for annotation position
+            ax.relim()
+            ax.autoscale_view()
             ax.text(0, ax.get_ylim()[1] * 0.95,
                     f"med={median_val:.4f}\nH={entropy:.2f}",
                     ha="center", va="top", fontsize=7,
@@ -744,12 +747,12 @@ class ModelInterpreter:
                white (= 0) : exact prediction
              Symmetric RdBu_r colourmap centred at 0.  Shows the *direction*
              of mistakes, which is invisible in any absolute/squared error map.
-          5. Per-pixel Skill Score  (ΔD̂_t − ΔD_t)² / ΔD_t²
-               = per-pixel contribution to the Skill Score training loss.
+          5. Per-pixel Skill Score  (ΔD̂_t − ΔD_t)² / (ΔD_null_t − ΔD_t)²
+               = per-pixel model error / null-model error.
                < 1 (green) : model error < null error — beats null at this cell
                = 1 (white) : model ties the null (dashed line on colourbar)
                > 1 (red)   : model error > null error — worse than null here
-               grey        : |ΔD_t| < 5th percentile — masked, carries no loss weight
+               grey        : null error < 5th percentile — masked, near-zero denominator
 
         The model predicts the *change* ΔD_t = D_{t+1} − D_t, not the next
         level D_{t+1}.  All y tensors passed here must therefore be scaled ΔD,
@@ -912,22 +915,23 @@ class ModelInterpreter:
         max_abs_serr   = float(np.abs(signed_err_np).max()) or 1.0
 
         # ── Panel 5: per-pixel skill score ────────────────────────────────
-        # The training loss is Skill Score = MSE_model / MSE_null, where
-        # MSE_null = mean(y²).  The per-pixel contribution to this ratio is:
+        # skill_pixel[i,j] = (ΔD̂[i,j] − ΔD[i,j])² / (ΔD_null[i,j] − ΔD[i,j])²
         #
-        #   skill_pixel[i,j] = (ΔD̂[i,j] − ΔD[i,j])² / ΔD[i,j]²
+        # The denominator is the null-model error squared — NOT y_np² — because
+        # in scaled space the null prediction is −y_mean/y_std (not 0).
+        # Using y_np² as denominator is only correct when y_mean≈0.
         #
         # Interpretation:
         #   skill_pixel < 1  →  model error < null error at this cell (green)
-        #   skill_pixel = 1  →  model ties the null (white) — null-parity line
+        #   skill_pixel = 1  →  model ties the null (white)
         #   skill_pixel > 1  →  model error > null error at this cell (red)
         #
-        # Cells where ΔD ≈ 0 (nearly constant pairs) are masked (grey):
-        # the null error is also ≈ 0 there, the ratio diverges, and they
-        # carry negligible weight in the actual loss.
-        # Mask threshold = 5th percentile of |ΔD| values.
-        eps_mask      = np.percentile(np.abs(y_np), 5)
-        denom_safe    = np.where(np.abs(y_np) > eps_mask, y_np ** 2, np.nan)
+        # Cells where the null error ≈ 0 are masked (grey) — the ratio
+        # diverges and they carry negligible weight in the actual loss.
+        # Mask threshold = 5th percentile of |null error| values.
+        null_err_np   = baseline_pred_np - y_np
+        eps_mask      = np.percentile(np.abs(null_err_np), 5)
+        denom_safe    = np.where(np.abs(null_err_np) > eps_mask, null_err_np ** 2, np.nan)
         skill_pix_np  = (y_pred_np - y_np) ** 2 / denom_safe   # NaN where masked
         skill_vmin, skill_vmax = 0.0, 2.0
 
@@ -938,13 +942,18 @@ class ModelInterpreter:
             "Ground Truth  ΔD_{t→t+1}",
             "Signed Error  ΔD̂ − ΔD\n"
             "red = over-predict  blue = under-predict  white = exact",
-            "Per-pixel Skill Score  (ΔD̂−ΔD)²/ΔD²\n"
-            "<1 = beats null (green)  >1 = worse (red)  grey = |ΔD|≈0",
+            "Per-pixel Skill Score  (ΔD̂−ΔD)²/(ΔD_null−ΔD)²\n"
+            "<1 = beats null (green)  >1 = worse (red)  grey = null err≈0",
         ]
         arrays = [x_np, y_pred_np, y_np, signed_err_np, skill_pix_np]
-        cmaps  = ["RdYlBu_r", "RdYlBu_r", "RdYlBu_r", "RdBu_r", "RdYlGn_r"]
-        vmins  = [None, None, None, -max_abs_serr, skill_vmin]
-        vmaxs  = [None, None, None,  max_abs_serr, skill_vmax]
+        cmaps  = ["RdYlBu_r", "RdBu_r", "RdBu_r", "RdBu_r", "RdYlGn_r"]
+
+        # Panel 1 (input D_t): autoscale — distances are always ≥ 0
+        # Panels 2 & 3 (ΔD̂ and ΔD): symmetric around zero so the diverging
+        #   colourmap is correctly centred and negative values show as blue
+        max_abs_delta = float(max(np.abs(y_pred_np).max(), np.abs(y_np).max())) or 1.0
+        vmins  = [None, -max_abs_delta, -max_abs_delta, -max_abs_serr, skill_vmin]
+        vmaxs  = [None,  max_abs_delta,  max_abs_delta,  max_abs_serr, skill_vmax]
 
         fig, axes = plt.subplots(1, 5, figsize=(30, 6))
 
@@ -1024,12 +1033,12 @@ def plot_fold_summary(
     gs  = gridspec.GridSpec(3, n_folds, figure=fig, hspace=0.45, wspace=0.3)
 
     for i, fh in enumerate(all_fold_history):
-        epochs = np.arange(1, len(fh["train_mse"]) + 1)
+        epochs = np.arange(1, len(fh["train_loss"]) + 1)
 
         ax_mse = fig.add_subplot(gs[0, i])
-        ax_mse.plot(epochs, fh["train_mse"], alpha=0.55, color=cmap(i),
+        ax_mse.plot(epochs, fh["train_loss"], alpha=0.55, color=cmap(i),
                     linewidth=1.2, label="Train")
-        ax_mse.plot(epochs, fh["val_mse"], color=cmap(i), linewidth=1.8,
+        ax_mse.plot(epochs, fh["val_loss"], color=cmap(i), linewidth=1.8,
                     linestyle="--", label="Val")
         ax_mse.set_title(f"Fold {i+1}", fontsize=9, fontweight="bold")
         if i == 0:
@@ -1054,8 +1063,11 @@ def plot_fold_summary(
     ax_bar_r2  = fig.add_subplot(gs[2, mid:])
 
     fold_labels   = [f"F{i+1}" for i in range(n_folds)]
-    final_val_mse = [fh["val_mse"][-1] for fh in all_fold_history]
-    final_val_r2  = [_to_float(fh["val_r2"][-1]) for fh in all_fold_history]
+    # Use best epoch per fold (min val loss, max val R²) — the checkpoint
+    # is saved at the best epoch, not the last, so final-epoch values
+    # can be worse due to overfitting after the peak.
+    final_val_mse = [min(fh["val_loss"]) for fh in all_fold_history]
+    final_val_r2  = [_to_float(max(fh["val_r2"])) for fh in all_fold_history]
 
     best_mse_idx = int(np.argmin(final_val_mse))
     best_r2_idx  = int(np.argmax(final_val_r2))

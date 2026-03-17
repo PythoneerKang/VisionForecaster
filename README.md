@@ -1,8 +1,8 @@
 # SmallDataDecoderViT
 
-> Decoder-only Vision Transformer with Standard Patch Embed · Sector-GPSA · LayerScale · DropPath — tuned for ~2,000 samples
+> Decoder-only Vision Transformer with Conv Patch Embed · Sector-GPSA · LayerScale · DropPath — tuned for ~500 samples
 
-A compact ViT architecture designed for predicting distance matrices on small datasets. Given a z-scored distance matrix at time *t*, the model outputs a predicted distance matrix at *t+1*.
+A compact ViT architecture designed for predicting changes in distance matrices on small datasets. Given a fold-standardised distance matrix at time *t*, the model outputs the **predicted change** ΔD̂_t = D_{t+1} − D_t (not the next level D_{t+1}).
 
 ---
 
@@ -13,15 +13,15 @@ Input (B × 1 × 457 × 457)
         │
         │  reflect-pad 457 → 464
         ▼
-Standard Patch Embedding
+Convolutional Patch Embedding
         │
         │  element-wise add
         ▼
-Positional Embedding  (1, 841, 192)
+Positional Embedding  (1, 841, 64)
         │
         ▼
 ┌────────────────────────────────────┐
-│       DecoderBlock  × 6            │
+│       DecoderBlock  × 1            │
 │  ┌──────────────┐ ┌─────────────┐  │
 │  │  SectorGPSA  │ │     FFN     │  │
 │  │ +LayerScale  │ │ +LayerScale │  │
@@ -54,30 +54,33 @@ For the full interactive diagram, open [`docs/index.html`](https://pythoneerkang
 | `patch_size`       | 16           |
 | `grid`             | 29 × 29      |
 | `N patches`        | 841          |
-| `embed_dim`        | 192          |
-| `depth`            | 6            |
-| `num_heads`        | 3            |
-| `head_dim`         | 64           |
+| `embed_dim`        | 64           |
+| `depth`            | 1            |
+| `num_heads`        | 2            |
+| `head_dim`         | 32           |
 | `mlp_ratio`        | 4×           |
+| `attn_drop`        | 0.1          |
 | `proj_drop`        | 0.1          |
 | `drop_path_rate`   | 0.05         |
 | `ls_init`          | 1e-2         |
-| `gate_init`        | 2.0          |
+| `gate_init`        | 0.0          |
 
 ---
 
 ## Key Components
 
-### Standard Patch Embedding
-Each patch is flattened, layer-normalised, and projected to `embed_dim` with a single linear layer:
+### Convolutional Patch Embedding
+
+Uses a `Conv2d(1, embed_dim, kernel_size=patch_size, stride=patch_size)` followed by a post-projection `LayerNorm(embed_dim)`. The norm operates in `embed_dim` space (cheap, fixed cost of `2 × embed_dim` parameters) rather than raw patch space, making it far cheaper than a flat linear embedding for any patch size.
 
 ```
-(B, 841, 1 × 16 × 16) = (B, 841, 256)
-    → LayerNorm
-    → Linear 256 → 192
+Conv2d(1, 64, kernel_size=16, stride=16)   →   64 × 256 + 64 = 16,448 weights
+LayerNorm(64)                               →   128 weights
+Total patch embedding:                          16,576 params
 ```
 
 ### Sector-Gated Positional Self-Attention (Sector-GPSA)
+
 Each head interpolates between a **sectoral positional prior** and standard **content attention** via a learned gate:
 
 ```
@@ -85,42 +88,56 @@ output_h = g_h · (A_pos @ V)  +  (1 − g_h) · (A_content @ V)
 ```
 
 where:
-- **A_pos** — row-normalised sector-membership matrix. Each query patch attends uniformly over all patches in the same GICS sector. This is the positional prior: a direct encoding of the block-diagonal structure of the distance matrix.
+- **A_pos** — row-normalised sector-pair membership matrix. Each patch at grid position (r, c) is assigned a group based on `frozenset({majority_sector(row_stocks), majority_sector(col_stocks)})`, so patch (r,c) and patch (c,r) always share the same group, preserving distance matrix symmetry.
 - **A_content** — standard scaled-dot-product attention: softmax(Q·Kᵀ / √d).
-- **g_h = sigmoid(λ_h)** — a learnable gate scalar per head. Initialised at λ=+2 so g≈0.88 (nearly fully positional at the start of training), providing stable low-variance gradients on the small dataset. Heads can learn g→0 (pure content) or remain near g→1 (pure positional/sector prior) depending on what the data supports.
-
-#### Why sector membership rather than Euclidean distance (LSA)
-Locality Self-Attention and vanilla ConViT-GPSA both use a Gaussian over grid distance as their positional prior. For a GICS-reordered distance matrix the "distance" between two patches is the number of stocks separating them in an alphabetical-within-sector ordering — a noisy Euclidean proxy for the true structure, which is *categorical*: same-sector pairs are strongly correlated, cross-sector pairs much less so, with hard discontinuities at every sector boundary (not a smooth gradient). Sector-GPSA directly encodes this domain knowledge.
-
-No causal mask is applied. The 841 tokens represent spatial patch positions within a single distance matrix snapshot (one trading day), not a temporal sequence — every patch attends freely to every other patch.
+- **g_h = sigmoid(λ_h)** — a learnable gate scalar per head. Initialised at λ=0 so g=0.5 (equal positional/content blend at the start of training).
 
 ```
-QKV proj:  192 → 3 × 192  (no bias)
-heads = 3,  head_dim = 64
-out proj:  192 → 192
-gate:      sigmoid(λ_h)  per head, shape (H,), init λ=+2
+QKV proj:  64 → 3 × 64  (bias=True)
+heads = 2,  head_dim = 32
+out proj:  64 → 64
+gate:      sigmoid(λ_h)  per head, shape (H,), init λ=0 → g=0.5
 ```
 
 ### LayerScale
-A per-channel learnable scalar γ (shape 192, init `1e-2`) is applied to each residual branch output before the residual add. This stabilises gradient flow during early training on small datasets.
 
-> **Note on init value:** The original paper uses `1e-4`, which is conservative for very deep networks (12+ blocks). With only 6 blocks, `1e-2` is safe and gives the optimizer a much stronger gradient signal, preventing gammas from staying frozen during training. A dedicated 10× higher learning rate is also applied to the gamma parameters via a separate AdamW parameter group.
+A per-channel learnable scalar γ (shape 64, init `1e-2`) applied to each residual branch output before the residual add.
 
 ### DropPath (Stochastic Depth)
-Drop probability increases linearly across the 6 blocks from 0 → 0.05. At training time the network behaves as an ensemble of shallower subnetworks, reducing over-fitting.
+
+Fixed rate of 0.05. Drops the entire block at training time with probability 0.05.
 
 ### Feed-Forward Network (FFN)
+
 Standard MLP with expansion ratio 4×:
 ```
-Linear 192 → 768 → GELU → Dropout(0.1) → Linear 768 → 192 → Dropout(0.1)
+Linear 64 → 256 → GELU → Dropout(0.1) → Linear 256 → 64 → Dropout(0.1)
 ```
 
 ### Pixel Reconstruction Head
-Projects each of the 841 tokens back to its 16×16 patch of pixels:
+
+A single linear projection directly from `embed_dim` to raw patch pixel space:
 ```
-Linear 192 → 192 → GELU → Linear 192 → 256  (256 = 1 × 16 × 16)
+Linear(64 → 256)   (256 = 1 × 16 × 16)
 unpatchify → (B, 1, 464, 464) → crop → (B, 1, 457, 457)
 ```
+
+A two-layer head (`Linear→GELU→Linear`) was previously used but caused gradient death: the 8× expansion from `embed_dim=64` to `patch_dim=256` in the final layer diluted gradients across 256 output dimensions from only 64 inputs, producing near-zero gradients throughout the transformer. A single linear gives a direct gradient path from the loss to all earlier layers.
+
+---
+
+## Parameter Budget
+
+| Component              | Parameters |
+|------------------------|------------|
+| Conv Patch Embedding   | 16,576     |
+| Positional Embedding   | 53,824     |
+| Transformer Block ×1   | 50,114     |
+| Final LayerNorm        | 128        |
+| Decoder Head           | 16,640     |
+| **Total**              | **137,282** |
+
+Training samples per fold: ~504 → **samples/parameter ratio: 0.0037**
 
 ---
 
@@ -130,14 +147,14 @@ unpatchify → (B, 1, 464, 464) → crop → (B, 1, 457, 457)
 |---|---|
 | Raw input | `(B, 1, 457, 457)` |
 | After reflect-pad | `(B, 1, 464, 464)` |
-| After patch embed | `(B, 841, 192)` |
-| After pos. embed | `(B, 841, 192)` |
-| After 6 DecoderBlocks | `(B, 841, 192)` |
-| After final LayerNorm | `(B, 841, 192)` |
+| After conv patch embed | `(B, 841, 64)` |
+| After pos. embed | `(B, 841, 64)` |
+| After 1 DecoderBlock | `(B, 841, 64)` |
+| After final LayerNorm | `(B, 841, 64)` |
 | After pixel head | `(B, 841, 256)` |
 | After unpatchify + crop | `(B, 1, 457, 457)` |
 
-**Training objective:** MSE loss between the predicted distance matrix and the ground-truth matrix at *t+1*.
+**Training objective:** MSE loss between the predicted change ΔD̂_t and the ground-truth change ΔD_t = D_{t+1} − D_t. The null model predicts ΔD = 0 (no change); performance is reported as R² relative to this null.
 
 ---
 
@@ -153,16 +170,17 @@ The following plots are generated by `model_interpretability.py` after training:
 
 | Plot | Description |
 |---|---|
-| `fold_summary.png` | Train/val MSE and R² curves across all 9 folds |
-| `attention_maps.png` | Per-head effective attention maps (first block) |
-| `attention_maps_last_block.png` | Per-head effective attention maps (last block) |
-| `attention_maps_overlay.png` | Colour-blended multi-head overlay (first block) |
-| `attention_maps_overlay_last_block.png` | Colour-blended multi-head overlay (last block) |
+| `fold_summary_improved.png` | Train/val loss and R² curves across all 9 folds |
+| `attention_maps.png` | Per-head effective attention maps (block 1) |
+| `attention_maps_overlay.png` | Colour-blended multi-head overlay (block 1) |
 | `gate_values.png` | Learned gate g=sigmoid(λ) heatmap per (block, head) |
 | `mean_attention_distance.png` | Mean spatial distance of effective attention vs baselines |
+| `bar_mean_attention_distance.png` | Bar chart of mean attention distance per block vs baselines |
 | `layerscale_gammas.png` | LayerScale γ per block — residual branch health |
 | `attention_weights.png` | Content attention weight distributions per block |
-| `prediction_error_map.png` | Input / prediction / ground truth / error with GICS annotations |
+| `prediction_error_map.png` | Input D_t / predicted ΔD̂ / ground truth ΔD / signed error / per-pixel skill score with GICS annotations |
+
+> Note: `attention_maps_last_block.png` and `attention_maps_overlay_last_block.png` are only generated when `depth > 1`.
 
 ---
 
