@@ -1,0 +1,463 @@
+Using 20 CPU cores on this node.
+/home/s230047/Downloads/VisionForecaster
+Using virtualenv: /home/s230047/.cache/pypoetry/virtualenvs/transformer-D-LRPITk-py3.13
+
+==================================================================
+COMBO  w=35, epsilon=0.1  |  stride=5  [5-DAY (WEEKLY)]
+==================================================================
+  Loading: ../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file/IQDw35.pkl
+  Full daily shape  : (1575, 457, 457)   (T=1575 trading days)
+  Strided shape     : (315, 457, 457)  (T_w=315 snapshots, stride=5)
+  Pairs (upper tri) : 104,196
+
+  EDGE DENSITY  (fraction of upper-tri pairs with active edge)
+    Mean   : 0.02442  (2545 edges / snapshot)
+    Std    : 0.04175
+    Min    : 0.00092  (snapshot 38)
+    Max    : 0.31739  (snapshot 158)
+
+  FLIP RATE  (fraction of pairs that change between consecutive snapshots)
+    Mean   : 0.00832  (867 pair-flips / transition)
+    Std    : 0.01215
+    Median : 0.00432
+    Min    : 0.00000  (0 flips, snapshot 0)
+    Max    : 0.09326  (9717 flips, snapshot 155)
+
+  FLIP BREAKDOWN  (averaged over all transitions and pairs)
+    Stable (no change) : 99.1678%
+    Appear (0 → 1)     : 0.4209%
+    Vanish (1 → 0)     : 0.4113%
+    Total flips        : 0.8322%
+
+  PERSISTENCE BASELINE MSE  : 0.00832226
+  (= mean flip rate; predicting no-change costs exactly this under binary MSE)
+
+  EDGE DENSITY LAG-1 AUTOCORRELATION : 0.9619
+  (closer to 1.0 → density is regime-like and predictable)
+
+  PER-PAIR FLIP FREQUENCY DISTRIBUTION
+    Never flip (0 flips)        : 54.10% of pairs
+    Rarely flip (≤5% of time)   : 98.83% of pairs
+    Frequently flip (≥20% time) : 0.00% of pairs
+    Mean flips per pair         : 2.61 / 314
+
+  CLASS IMBALANCE (flip=1 is the minority class)
+    Total cells              : 32,717,544
+    Cells with flip (1)      : 272,284  (0.8322%)
+    Cells without flip (0)   : 32,445,260  (99.1678%)
+    Imbalance ratio (0:1)    : 120:1
+    ⚠  SEVERE imbalance — use weighted or focal loss for binary prediction
+
+  ──────────────────────────────────────────────────────────
+  ✗  LEARNABILITY: VERY LOW  (0.5–2%) — near-unlearnable with plain MSE; use weighted/focal loss
+  ──────────────────────────────────────────────────────────
+
+==================================================================
+COMBO  w=70, epsilon=0.2  |  stride=5  [5-DAY (WEEKLY)]
+==================================================================
+  Loading: ../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file/IQDw70.pkl
+  Full daily shape  : (1575, 457, 457)   (T=1575 trading days)
+  Strided shape     : (315, 457, 457)  (T_w=315 snapshots, stride=5)
+  Pairs (upper tri) : 104,196
+
+  EDGE DENSITY  (fraction of upper-tri pairs with active edge)
+    Mean   : 0.01556  (1621 edges / snapshot)
+    Std    : 0.03753
+    Min    : 0.00019  (snapshot 64)
+    Max    : 0.26409  (snapshot 158)
+
+  FLIP RATE  (fraction of pairs that change between consecutive snapshots)
+    Mean   : 0.00298  (311 pair-flips / transition)
+    Std    : 0.00749
+    Median : 0.00071
+    Min    : 0.00000  (0 flips, snapshot 0)
+    Max    : 0.06658  (6937 flips, snapshot 155)
+
+  FLIP BREAKDOWN  (averaged over all transitions and pairs)
+    Stable (no change) : 99.7018%
+    Appear (0 → 1)     : 0.1507%
+    Vanish (1 → 0)     : 0.1475%
+    Total flips        : 0.2982%
+
+  PERSISTENCE BASELINE MSE  : 0.00298186
+  (= mean flip rate; predicting no-change costs exactly this under binary MSE)
+
+  EDGE DENSITY LAG-1 AUTOCORRELATION : 0.9825
+  (closer to 1.0 → density is regime-like and predictable)
+
+  PER-PAIR FLIP FREQUENCY DISTRIBUTION
+    Never flip (0 flips)        : 68.72% of pairs
+    Rarely flip (≤5% of time)   : 100.00% of pairs
+    Frequently flip (≥20% time) : 0.00% of pairs
+    Mean flips per pair         : 0.94 / 314
+
+  CLASS IMBALANCE (flip=1 is the minority class)
+    Total cells              : 32,717,544
+    Cells with flip (1)      : 97,559  (0.2982%)
+    Cells without flip (0)   : 32,619,985  (99.7018%)
+    Imbalance ratio (0:1)    : 335:1
+    ⚠  SEVERE imbalance — use weighted or focal loss for binary prediction
+
+  ──────────────────────────────────────────────────────────
+  ✗✗  LEARNABILITY: ESSENTIALLY ZERO  (<0.5%) — model will collapse to all-zeros; unlearnable
+  ──────────────────────────────────────────────────────────
+
+==================================================================
+COMBO  w=120, epsilon=0.4  |  stride=5  [5-DAY (WEEKLY)]
+==================================================================
+  Loading: ../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file/IQDw120.pkl
+  Full daily shape  : (1575, 457, 457)   (T=1575 trading days)
+  Strided shape     : (315, 457, 457)  (T_w=315 snapshots, stride=5)
+  Pairs (upper tri) : 104,196
+
+  EDGE DENSITY  (fraction of upper-tri pairs with active edge)
+    Mean   : 0.01817  (1893 edges / snapshot)
+    Std    : 0.03986
+    Min    : 0.00045  (snapshot 64)
+    Max    : 0.25558  (snapshot 158)
+
+  FLIP RATE  (fraction of pairs that change between consecutive snapshots)
+    Mean   : 0.00209  (218 pair-flips / transition)
+    Std    : 0.00554
+    Median : 0.00030
+    Min    : 0.00000  (0 flips, snapshot 0)
+    Max    : 0.04167  (4342 flips, snapshot 154)
+
+  FLIP BREAKDOWN  (averaged over all transitions and pairs)
+    Stable (no change) : 99.7911%
+    Appear (0 → 1)     : 0.1091%
+    Vanish (1 → 0)     : 0.0998%
+    Total flips        : 0.2089%
+
+  PERSISTENCE BASELINE MSE  : 0.00208940
+  (= mean flip rate; predicting no-change costs exactly this under binary MSE)
+
+  EDGE DENSITY LAG-1 AUTOCORRELATION : 0.9924
+  (closer to 1.0 → density is regime-like and predictable)
+
+  PER-PAIR FLIP FREQUENCY DISTRIBUTION
+    Never flip (0 flips)        : 71.92% of pairs
+    Rarely flip (≤5% of time)   : 100.00% of pairs
+    Frequently flip (≥20% time) : 0.00% of pairs
+    Mean flips per pair         : 0.66 / 314
+
+  CLASS IMBALANCE (flip=1 is the minority class)
+    Total cells              : 32,717,544
+    Cells with flip (1)      : 68,360  (0.2089%)
+    Cells without flip (0)   : 32,649,184  (99.7911%)
+    Imbalance ratio (0:1)    : 478:1
+    ⚠  SEVERE imbalance — use weighted or focal loss for binary prediction
+
+  ──────────────────────────────────────────────────────────
+  ✗✗  LEARNABILITY: ESSENTIALLY ZERO  (<0.5%) — model will collapse to all-zeros; unlearnable
+  ──────────────────────────────────────────────────────────
+
+==================================================================
+COMBO  w=180, epsilon=0.6  |  stride=5  [5-DAY (WEEKLY)]
+==================================================================
+  Loading: ../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file/IQDw180.pkl
+  Full daily shape  : (1575, 457, 457)   (T=1575 trading days)
+  Strided shape     : (315, 457, 457)  (T_w=315 snapshots, stride=5)
+  Pairs (upper tri) : 104,196
+
+  EDGE DENSITY  (fraction of upper-tri pairs with active edge)
+    Mean   : 0.03608  (3759 edges / snapshot)
+    Std    : 0.06248
+    Min    : 0.00200  (snapshot 0)
+    Max    : 0.32977  (snapshot 158)
+
+  FLIP RATE  (fraction of pairs that change between consecutive snapshots)
+    Mean   : 0.00248  (259 pair-flips / transition)
+    Std    : 0.00508
+    Median : 0.00053
+    Min    : 0.00000  (0 flips, snapshot 0)
+    Max    : 0.02927  (3050 flips, snapshot 154)
+
+  FLIP BREAKDOWN  (averaged over all transitions and pairs)
+    Stable (no change) : 99.7517%
+    Appear (0 → 1)     : 0.1318%
+    Vanish (1 → 0)     : 0.1166%
+    Total flips        : 0.2483%
+
+  PERSISTENCE BASELINE MSE  : 0.00248338
+  (= mean flip rate; predicting no-change costs exactly this under binary MSE)
+
+  EDGE DENSITY LAG-1 AUTOCORRELATION : 0.9987
+  (closer to 1.0 → density is regime-like and predictable)
+
+  PER-PAIR FLIP FREQUENCY DISTRIBUTION
+    Never flip (0 flips)        : 64.66% of pairs
+    Rarely flip (≤5% of time)   : 100.00% of pairs
+    Frequently flip (≥20% time) : 0.00% of pairs
+    Mean flips per pair         : 0.78 / 314
+
+  CLASS IMBALANCE (flip=1 is the minority class)
+    Total cells              : 32,717,544
+    Cells with flip (1)      : 81,250  (0.2483%)
+    Cells without flip (0)   : 32,636,294  (99.7517%)
+    Imbalance ratio (0:1)    : 402:1
+    ⚠  SEVERE imbalance — use weighted or focal loss for binary prediction
+
+  ──────────────────────────────────────────────────────────
+  ✗✗  LEARNABILITY: ESSENTIALLY ZERO  (<0.5%) — model will collapse to all-zeros; unlearnable
+  ──────────────────────────────────────────────────────────
+
+
+================================================================================
+CROSS-COMBO SUMMARY  [WEEKLY]
+================================================================================
+      w    eps    T_w   density%    flip%   flips/snap   lag1_AC    imbal
+  ────────────────────────────────────────────────────────────────────────────
+     35  0.1     315     2.442%   0.832%          867    0.9619    120:1
+     70  0.2     315     1.556%   0.298%          311    0.9825    335:1
+    120  0.4     315     1.817%   0.209%          218    0.9924    478:1
+    180  0.6     315     3.608%   0.248%          259    0.9987    402:1
+
+  LEARNABILITY GUIDE (WEEKLY):
+    flip% < 0.5%    ✗✗  essentially unlearnable (all-zero collapse)
+    flip% 0.5–2%   ✗   very hard — needs weighted/focal loss
+    flip% 2–5%     △   hard but feasible with weighted loss
+    flip% 5–15%    ✓   learnable with standard training
+    flip% > 15%    ✓✓  easy — persistence is a weak baseline
+
+  LAG-1 AUTOCORRELATION NOTE:
+    AC > 0.9 → density is highly regime-like → temporal context useful
+    AC < 0.5 → density is noisy → harder to exploit temporal patterns
+
+  IMBALANCE NOTE:
+    >50:1 → focal loss or heavy class-weighting strongly recommended
+    10–50:1 → weighted BCE or weighted MSE recommended
+    <10:1 → standard loss likely fine
+
+================================================================================
+
+
+==================================================================
+DAILY vs WEEKLY FLIP RATE COMPARISON
+==================================================================
+      w    eps   daily_flip%   weekly_flip%    ratio
+  ──────────────────────────────────────────────────
+
+==================================================================
+COMBO  w=35, epsilon=0.1  |  stride=1  [DAILY]
+==================================================================
+  Loading: ../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file/IQDw35.pkl
+  Full daily shape  : (1575, 457, 457)   (T=1575 trading days)
+  Strided shape     : (1575, 457, 457)  (T_w=1575 snapshots, stride=1)
+  Pairs (upper tri) : 104,196
+
+  EDGE DENSITY  (fraction of upper-tri pairs with active edge)
+    Mean   : 0.02445  (2548 edges / snapshot)
+    Std    : 0.04176
+    Min    : 0.00083  (snapshot 722)
+    Max    : 0.31752  (snapshot 791)
+
+  FLIP RATE  (fraction of pairs that change between consecutive snapshots)
+    Mean   : 0.00170  (177 pair-flips / transition)
+    Std    : 0.00251
+    Median : 0.00089
+    Min    : 0.00000  (0 flips, snapshot 0)
+    Max    : 0.02478  (2582 flips, snapshot 775)
+
+  FLIP BREAKDOWN  (averaged over all transitions and pairs)
+    Stable (no change) : 99.8299%
+    Appear (0 → 1)     : 0.0860%
+    Vanish (1 → 0)     : 0.0841%
+    Total flips        : 0.1701%
+
+  PERSISTENCE BASELINE MSE  : 0.00170103
+  (= mean flip rate; predicting no-change costs exactly this under binary MSE)
+
+  EDGE DENSITY LAG-1 AUTOCORRELATION : 0.9988
+  (closer to 1.0 → density is regime-like and predictable)
+
+  PER-PAIR FLIP FREQUENCY DISTRIBUTION
+    Never flip (0 flips)        : 53.70% of pairs
+    Rarely flip (≤5% of time)   : 100.00% of pairs
+    Frequently flip (≥20% time) : 0.00% of pairs
+    Mean flips per pair         : 2.68 / 1574
+
+  CLASS IMBALANCE (flip=1 is the minority class)
+    Total cells              : 164,004,504
+    Cells with flip (1)      : 278,976  (0.1701%)
+    Cells without flip (0)   : 163,725,528  (99.8299%)
+    Imbalance ratio (0:1)    : 587:1
+    ⚠  SEVERE imbalance — use weighted or focal loss for binary prediction
+
+  ──────────────────────────────────────────────────────────
+  ✗✗  LEARNABILITY: ESSENTIALLY ZERO  (<0.5%) — model will collapse to all-zeros; unlearnable
+  ──────────────────────────────────────────────────────────
+     35  0.1        0.1701%        0.8322%   4.892x
+
+==================================================================
+COMBO  w=70, epsilon=0.2  |  stride=1  [DAILY]
+==================================================================
+  Loading: ../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file/IQDw70.pkl
+  Full daily shape  : (1575, 457, 457)   (T=1575 trading days)
+  Strided shape     : (1575, 457, 457)  (T_w=1575 snapshots, stride=1)
+  Pairs (upper tri) : 104,196
+
+  EDGE DENSITY  (fraction of upper-tri pairs with active edge)
+    Mean   : 0.01557  (1622 edges / snapshot)
+    Std    : 0.03752
+    Min    : 0.00019  (snapshot 318)
+    Max    : 0.26426  (snapshot 789)
+
+  FLIP RATE  (fraction of pairs that change between consecutive snapshots)
+    Mean   : 0.00060  (62 pair-flips / transition)
+    Std    : 0.00152
+    Median : 0.00013
+    Min    : 0.00000  (0 flips, snapshot 0)
+    Max    : 0.01580  (1646 flips, snapshot 775)
+
+  FLIP BREAKDOWN  (averaged over all transitions and pairs)
+    Stable (no change) : 99.9401%
+    Appear (0 → 1)     : 0.0303%
+    Vanish (1 → 0)     : 0.0296%
+    Total flips        : 0.0599%
+
+  PERSISTENCE BASELINE MSE  : 0.00059916
+  (= mean flip rate; predicting no-change costs exactly this under binary MSE)
+
+  EDGE DENSITY LAG-1 AUTOCORRELATION : 0.9997
+  (closer to 1.0 → density is regime-like and predictable)
+
+  PER-PAIR FLIP FREQUENCY DISTRIBUTION
+    Never flip (0 flips)        : 68.58% of pairs
+    Rarely flip (≤5% of time)   : 100.00% of pairs
+    Frequently flip (≥20% time) : 0.00% of pairs
+    Mean flips per pair         : 0.94 / 1574
+
+  CLASS IMBALANCE (flip=1 is the minority class)
+    Total cells              : 164,004,504
+    Cells with flip (1)      : 98,265  (0.0599%)
+    Cells without flip (0)   : 163,906,239  (99.9401%)
+    Imbalance ratio (0:1)    : 1669:1
+    ⚠  SEVERE imbalance — use weighted or focal loss for binary prediction
+
+  ──────────────────────────────────────────────────────────
+  ✗✗  LEARNABILITY: ESSENTIALLY ZERO  (<0.5%) — model will collapse to all-zeros; unlearnable
+  ──────────────────────────────────────────────────────────
+     70  0.2        0.0599%        0.2982%   4.977x
+
+==================================================================
+COMBO  w=120, epsilon=0.4  |  stride=1  [DAILY]
+==================================================================
+  Loading: ../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file/IQDw120.pkl
+  Full daily shape  : (1575, 457, 457)   (T=1575 trading days)
+  Strided shape     : (1575, 457, 457)  (T_w=1575 snapshots, stride=1)
+  Pairs (upper tri) : 104,196
+
+  EDGE DENSITY  (fraction of upper-tri pairs with active edge)
+    Mean   : 0.01821  (1897 edges / snapshot)
+    Std    : 0.03988
+    Min    : 0.00044  (snapshot 323)
+    Max    : 0.25558  (snapshot 790)
+
+  FLIP RATE  (fraction of pairs that change between consecutive snapshots)
+    Mean   : 0.00042  (44 pair-flips / transition)
+    Std    : 0.00112
+    Median : 0.00007
+    Min    : 0.00000  (0 flips, snapshot 0)
+    Max    : 0.00894  (932 flips, snapshot 774)
+
+  FLIP BREAKDOWN  (averaged over all transitions and pairs)
+    Stable (no change) : 99.9582%
+    Appear (0 → 1)     : 0.0218%
+    Vanish (1 → 0)     : 0.0200%
+    Total flips        : 0.0418%
+
+  PERSISTENCE BASELINE MSE  : 0.00041834
+  (= mean flip rate; predicting no-change costs exactly this under binary MSE)
+
+  EDGE DENSITY LAG-1 AUTOCORRELATION : 1.0001
+  (closer to 1.0 → density is regime-like and predictable)
+
+  PER-PAIR FLIP FREQUENCY DISTRIBUTION
+    Never flip (0 flips)        : 71.84% of pairs
+    Rarely flip (≤5% of time)   : 100.00% of pairs
+    Frequently flip (≥20% time) : 0.00% of pairs
+    Mean flips per pair         : 0.66 / 1574
+
+  CLASS IMBALANCE (flip=1 is the minority class)
+    Total cells              : 164,004,504
+    Cells with flip (1)      : 68,610  (0.0418%)
+    Cells without flip (0)   : 163,935,894  (99.9582%)
+    Imbalance ratio (0:1)    : 2390:1
+    ⚠  SEVERE imbalance — use weighted or focal loss for binary prediction
+
+  ──────────────────────────────────────────────────────────
+  ✗✗  LEARNABILITY: ESSENTIALLY ZERO  (<0.5%) — model will collapse to all-zeros; unlearnable
+  ──────────────────────────────────────────────────────────
+    120  0.4        0.0418%        0.2089%   4.994x
+
+==================================================================
+COMBO  w=180, epsilon=0.6  |  stride=1  [DAILY]
+==================================================================
+  Loading: ../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file/IQDw180.pkl
+  Full daily shape  : (1575, 457, 457)   (T=1575 trading days)
+  Strided shape     : (1575, 457, 457)  (T_w=1575 snapshots, stride=1)
+  Pairs (upper tri) : 104,196
+
+  EDGE DENSITY  (fraction of upper-tri pairs with active edge)
+    Mean   : 0.03613  (3765 edges / snapshot)
+    Std    : 0.06246
+    Min    : 0.00200  (snapshot 0)
+    Max    : 0.32979  (snapshot 791)
+
+  FLIP RATE  (fraction of pairs that change between consecutive snapshots)
+    Mean   : 0.00050  (52 pair-flips / transition)
+    Std    : 0.00102
+    Median : 0.00011
+    Min    : 0.00000  (0 flips, snapshot 0)
+    Max    : 0.00597  (622 flips, snapshot 772)
+
+  FLIP BREAKDOWN  (averaged over all transitions and pairs)
+    Stable (no change) : 99.9503%
+    Appear (0 → 1)     : 0.0263%
+    Vanish (1 → 0)     : 0.0233%
+    Total flips        : 0.0497%
+
+  PERSISTENCE BASELINE MSE  : 0.00049651
+  (= mean flip rate; predicting no-change costs exactly this under binary MSE)
+
+  EDGE DENSITY LAG-1 AUTOCORRELATION : 1.0004
+  (closer to 1.0 → density is regime-like and predictable)
+
+  PER-PAIR FLIP FREQUENCY DISTRIBUTION
+    Never flip (0 flips)        : 64.60% of pairs
+    Rarely flip (≤5% of time)   : 100.00% of pairs
+    Frequently flip (≥20% time) : 0.00% of pairs
+    Mean flips per pair         : 0.78 / 1574
+
+  CLASS IMBALANCE (flip=1 is the minority class)
+    Total cells              : 164,004,504
+    Cells with flip (1)      : 81,430  (0.0497%)
+    Cells without flip (0)   : 163,923,074  (99.9503%)
+    Imbalance ratio (0:1)    : 2014:1
+    ⚠  SEVERE imbalance — use weighted or focal loss for binary prediction
+
+  ──────────────────────────────────────────────────────────
+  ✗✗  LEARNABILITY: ESSENTIALLY ZERO  (<0.5%) — model will collapse to all-zeros; unlearnable
+  ──────────────────────────────────────────────────────────
+    180  0.6        0.0497%        0.2483%   5.002x
+
+  ratio < 5× indicates many within-week flips cancel out
+  (0→1→0 within a week = 0 net change = 0 weekly flip)
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			Resource Usage on 2026-04-13 20:56:09.129420:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	JobId: 3252418.hpc-pbs-sched1
+	Project: as_spms_cheongsa
+	Exit Status: 0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	NCPUs: Requested(6), Used(6)
+	CPU Time Used: 00:02:21
+	Memory: Requested(500gb), Used(1880524kb)
+	Vmem Used: 3479888kb
+	Walltime: Requested(48:00:00), Used(00:03:17)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Execution Nodes Used: (hpc-wfly-i012:ncpus=6:mem=524288000kb)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	No GPU-related information available for this job.
