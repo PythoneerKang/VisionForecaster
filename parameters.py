@@ -6,6 +6,9 @@
 # Confirmed with supervisor (Dr. Cheong): use w=35 days only.
 w = 35
 
+# TDA Filtration threshold
+epsilon = 0.1
+
 # Git/GitHub Repo name
 repo_name = "VisionForecaster"
 
@@ -51,21 +54,6 @@ USE_GPU = False
 # means these are 31 diverse steps — consecutive batches are not from the
 # same market-regime window.
 BATCH_SIZE = 16
-
-# -----------------------------------------------------------------------------
-# Legacy hyperparameters — NOT used by SmallDataDecoderViT
-# These were used by the previous VisionForecaster model and are kept here
-# only for reference. Do not use these to configure the current model.
-# The active model config lives in MODEL_CFG in main.py.
-# -----------------------------------------------------------------------------
-# IMG_SIZE  = 457
-# PATCH_SIZE = 16
-# CHANNELS  = 1
-# EMBED_DIM = 96   (current; was 192, reduced for better param/sample ratio)
-# HEADS     = 3
-# DEPTH     = 2    (current; was 4, reduced to cut overfitting)
-# MLP_DIM   = 4 * EMBED_DIM
-# BATCH_SIZE (legacy) = 128
 
 # -----------------------------------------------------------------------------
 # GPU notes (for future reference)

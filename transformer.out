@@ -1,0 +1,408 @@
+Using 19 CPU cores on this node.
+/home/s230047/Downloads/VisionForecaster
+Using virtualenv: /home/s230047/.cache/pypoetry/virtualenvs/transformer-D-LRPITk-py3.13
+Random seeds set to 42
+CPU threads: 8 intra-op, 2 inter-op
+
+======================================================================
+CONFIGURATION SUMMARY
+======================================================================
+  patch_size:        16  (ConvPatchEmbed — cheap embedding)
+  embed_dim:         64
+  depth:             1
+  num_heads:         2  (head_dim=32)
+  ls_init_value:     0.01
+  gate_init:         0.0  (sigmoid→0.50)
+  proj_drop:         0.1
+  attn_drop:         0.1
+  drop_path_rate:    0.05
+  lr:                0.0001
+  weight_decay:      0.01
+  early_stopping:    patience=20
+  max_epochs:        100
+======================================================================
+
+Model architecture:
+  Patches:                     841 (29×29 grid)
+  Embed dim:                   64  |  head_dim: 32
+  Depth:                       1 layer(s)
+  Patch embedding (Conv):      16,576 params
+  Positional embedding:        53,824 params
+  Transformer block ×1:       50,114 params
+  Decoder head:                16,640 params
+  ── Total:                    137,282 params
+  Training samples/fold:       ~504
+  Samples/parameter ratio:     0.0037
+
+Distance matrix loaded:
+  Shape: (1575, 457, 457)
+  NaN check: False
+
+GICS sectors:
+  Communication Services          [  0,  18)  n=18
+  Consumer Discretionary          [ 18,  81)  n=63
+  Consumer Staples                [ 81, 117)  n=36
+  Energy                          [117, 141)  n=24
+  Financials                      [141, 206)  n=65
+  Health Care                     [206, 257)  n=51
+  Industrials                     [257, 321)  n=64
+  Information Technology          [321, 377)  n=56
+  Materials                       [377, 401)  n=24
+  Real Estate                     [401, 430)  n=29
+  Utilities                       [430, 457)  n=27
+
+  build_patch_sector_ids: 841 patches → 66 groups (11 same-sector, 55 cross-sector pairs)
+  WARNING: group 0 (frozenset({0})) has only 1 patch(es) — positional prior may be high-variance.
+  WARNING: group 60 (frozenset({8})) has only 1 patch(es) — positional prior may be high-variance.
+  WARNING: group 8 (frozenset({0, 8})) has only 2 patch(es) — positional prior may be high-variance.
+  WARNING: group 2 (frozenset({0, 2})) has only 4 patch(es) — positional prior may be high-variance.
+  WARNING: group 3 (frozenset({0, 3})) has only 4 patch(es) — positional prior may be high-variance.
+  WARNING: group 9 (frozenset({0, 9})) has only 4 patch(es) — positional prior may be high-variance.
+  WARNING: group 10 (frozenset({0, 10})) has only 4 patch(es) — positional prior may be high-variance.
+  WARNING: group 21 (frozenset({2})) has only 4 patch(es) — positional prior may be high-variance.
+  WARNING: group 27 (frozenset({8, 2})) has only 4 patch(es) — positional prior may be high-variance.
+  WARNING: group 30 (frozenset({3})) has only 4 patch(es) — positional prior may be high-variance.
+  WARNING: group 35 (frozenset({8, 3})) has only 4 patch(es) — positional prior may be high-variance.
+  WARNING: group 61 (frozenset({8, 9})) has only 4 patch(es) — positional prior may be high-variance.
+  WARNING: group 62 (frozenset({8, 10})) has only 4 patch(es) — positional prior may be high-variance.
+  WARNING: group 63 (frozenset({9})) has only 4 patch(es) — positional prior may be high-variance.
+  WARNING: group 65 (frozenset({10})) has only 4 patch(es) — positional prior may be high-variance.
+  WARNING: group 5 (frozenset({0, 5})) has only 6 patch(es) — positional prior may be high-variance.
+  WARNING: group 48 (frozenset({8, 5})) has only 6 patch(es) — positional prior may be high-variance.
+  WARNING: group 1 (frozenset({0, 1})) has only 8 patch(es) — positional prior may be high-variance.
+  WARNING: group 4 (frozenset({0, 4})) has only 8 patch(es) — positional prior may be high-variance.
+  WARNING: group 6 (frozenset({0, 6})) has only 8 patch(es) — positional prior may be high-variance.
+  WARNING: group 7 (frozenset({0, 7})) has only 8 patch(es) — positional prior may be high-variance.
+  WARNING: group 18 (frozenset({8, 1})) has only 8 patch(es) — positional prior may be high-variance.
+  WARNING: group 22 (frozenset({2, 3})) has only 8 patch(es) — positional prior may be high-variance.
+  WARNING: group 28 (frozenset({9, 2})) has only 8 patch(es) — positional prior may be high-variance.
+  WARNING: group 29 (frozenset({2, 10})) has only 8 patch(es) — positional prior may be high-variance.
+  WARNING: group 36 (frozenset({9, 3})) has only 8 patch(es) — positional prior may be high-variance.
+  WARNING: group 37 (frozenset({10, 3})) has only 8 patch(es) — positional prior may be high-variance.
+  WARNING: group 42 (frozenset({8, 4})) has only 8 patch(es) — positional prior may be high-variance.
+  WARNING: group 53 (frozenset({8, 6})) has only 8 patch(es) — positional prior may be high-variance.
+  WARNING: group 57 (frozenset({8, 7})) has only 8 patch(es) — positional prior may be high-variance.
+  WARNING: group 64 (frozenset({9, 10})) has only 8 patch(es) — positional prior may be high-variance.
+Patch sector IDs: torch.Size([841]), 66 groups
+
+======================================================================
+STARTING TRAINING WITH IMPROVED CONFIGURATION
+======================================================================
+
+
+======================================================================
+Fold 1/9
+======================================================================
+
+======================================================================
+MEMORY-OPTIMIZED TRAINING - Fold 1
+  Gradient accumulation steps: 4
+  Effective batch size: 64
+  Mixed precision: False
+  Gradient checkpointing: True
+======================================================================
+
+  Block 0: γ₁.grad=3.15e-06, γ₂.grad=4.95e-06
+Epoch   1/100 | Train R²=-0.0236 MAE=0.1439 | Val R²=-0.0057 MAE=0.2168 | LR=2.00e-05
+Epoch  10/100 | Train R²=-0.0064 MAE=0.0666 | Val R²=-0.0027 MAE=0.1726 | LR=9.93e-05
+Epoch  20/100 | Train R²=-0.0034 MAE=0.0594 | Val R²=-0.0010 MAE=0.1633 | LR=9.40e-05
+Epoch  30/100 | Train R²=-0.0013 MAE=0.0563 | Val R²=+0.0002 MAE=0.1577 | LR=8.40e-05
+Epoch  40/100 | Train R²=+0.0002 MAE=0.0544 | Val R²=+0.0011 MAE=0.1543 | LR=7.04e-05
+Epoch  50/100 | Train R²=+0.0012 MAE=0.0534 | Val R²=+0.0018 MAE=0.1523 | LR=5.46e-05
+Epoch  60/100 | Train R²=+0.0019 MAE=0.0527 | Val R²=+0.0022 MAE=0.1512 | LR=3.83e-05
+Epoch  70/100 | Train R²=+0.0023 MAE=0.0524 | Val R²=+0.0024 MAE=0.1507 | LR=2.34e-05
+Epoch  80/100 | Train R²=+0.0025 MAE=0.0523 | Val R²=+0.0026 MAE=0.1505 | LR=1.14e-05
+Epoch  90/100 | Train R²=+0.0026 MAE=0.0522 | Val R²=+0.0026 MAE=0.1504 | LR=3.68e-06
+Epoch 100/100 | Train R²=+0.0026 MAE=0.0522 | Val R²=+0.0026 MAE=0.1504 | LR=1.00e-06
+
+Best Val R²: +0.0026
+
+======================================================================
+Fold 2/9
+======================================================================
+
+======================================================================
+MEMORY-OPTIMIZED TRAINING - Fold 2
+  Gradient accumulation steps: 4
+  Effective batch size: 64
+  Mixed precision: False
+  Gradient checkpointing: True
+======================================================================
+
+  Block 0: γ₁.grad=3.17e-06, γ₂.grad=4.30e-06
+Epoch   1/100 | Train R²=-0.0245 MAE=0.1557 | Val R²=-0.0201 MAE=0.1614 | LR=2.00e-05
+Epoch  10/100 | Train R²=-0.0073 MAE=0.0821 | Val R²=-0.0090 MAE=0.1104 | LR=9.93e-05
+Epoch  20/100 | Train R²=-0.0031 MAE=0.0741 | Val R²=-0.0044 MAE=0.1000 | LR=9.40e-05
+Epoch  30/100 | Train R²=-0.0003 MAE=0.0699 | Val R²=-0.0015 MAE=0.0940 | LR=8.40e-05
+Epoch  40/100 | Train R²=+0.0014 MAE=0.0673 | Val R²=+0.0003 MAE=0.0906 | LR=7.04e-05
+Epoch  50/100 | Train R²=+0.0025 MAE=0.0661 | Val R²=+0.0015 MAE=0.0889 | LR=5.46e-05
+Epoch  60/100 | Train R²=+0.0032 MAE=0.0656 | Val R²=+0.0021 MAE=0.0882 | LR=3.83e-05
+Epoch  70/100 | Train R²=+0.0035 MAE=0.0655 | Val R²=+0.0025 MAE=0.0880 | LR=2.34e-05
+Epoch  80/100 | Train R²=+0.0038 MAE=0.0654 | Val R²=+0.0027 MAE=0.0878 | LR=1.14e-05
+Epoch  90/100 | Train R²=+0.0038 MAE=0.0654 | Val R²=+0.0028 MAE=0.0878 | LR=3.68e-06
+Epoch 100/100 | Train R²=+0.0039 MAE=0.0654 | Val R²=+0.0028 MAE=0.0878 | LR=1.00e-06
+
+Best Val R²: +0.0028
+
+======================================================================
+Fold 3/9
+======================================================================
+
+======================================================================
+MEMORY-OPTIMIZED TRAINING - Fold 3
+  Gradient accumulation steps: 4
+  Effective batch size: 64
+  Mixed precision: False
+  Gradient checkpointing: True
+======================================================================
+
+  Block 0: γ₁.grad=1.98e-06, γ₂.grad=2.75e-06
+Epoch   1/100 | Train R²=-0.0240 MAE=0.1587 | Val R²=-0.0054 MAE=0.2687 | LR=2.00e-05
+Epoch  10/100 | Train R²=-0.0081 MAE=0.0938 | Val R²=-0.0017 MAE=0.2135 | LR=9.93e-05
+Epoch  20/100 | Train R²=-0.0030 MAE=0.0835 | Val R²=-0.0002 MAE=0.2014 | LR=9.40e-05
+Epoch  30/100 | Train R²=+0.0001 MAE=0.0777 | Val R²=+0.0007 MAE=0.1946 | LR=8.40e-05
+Epoch  40/100 | Train R²=+0.0019 MAE=0.0750 | Val R²=+0.0013 MAE=0.1914 | LR=7.04e-05
+Epoch  50/100 | Train R²=+0.0030 MAE=0.0736 | Val R²=+0.0016 MAE=0.1897 | LR=5.46e-05
+Epoch  60/100 | Train R²=+0.0036 MAE=0.0733 | Val R²=+0.0019 MAE=0.1894 | LR=3.83e-05
+Epoch  70/100 | Train R²=+0.0040 MAE=0.0732 | Val R²=+0.0020 MAE=0.1893 | LR=2.34e-05
+Epoch  80/100 | Train R²=+0.0042 MAE=0.0732 | Val R²=+0.0021 MAE=0.1894 | LR=1.14e-05
+Epoch  90/100 | Train R²=+0.0043 MAE=0.0732 | Val R²=+0.0021 MAE=0.1894 | LR=3.68e-06
+Epoch 100/100 | Train R²=+0.0043 MAE=0.0732 | Val R²=+0.0021 MAE=0.1894 | LR=1.00e-06
+
+Best Val R²: +0.0021
+
+======================================================================
+Fold 4/9
+======================================================================
+
+======================================================================
+MEMORY-OPTIMIZED TRAINING - Fold 4
+  Gradient accumulation steps: 4
+  Effective batch size: 64
+  Mixed precision: False
+  Gradient checkpointing: True
+======================================================================
+
+  Block 0: γ₁.grad=2.74e-06, γ₂.grad=2.85e-06
+Epoch   1/100 | Train R²=-0.0230 MAE=0.1675 | Val R²=-0.0185 MAE=0.1826 | LR=2.00e-05
+Epoch  10/100 | Train R²=-0.0076 MAE=0.1051 | Val R²=-0.0082 MAE=0.1397 | LR=9.93e-05
+Epoch  20/100 | Train R²=-0.0028 MAE=0.0900 | Val R²=-0.0031 MAE=0.1209 | LR=9.40e-05
+Epoch  30/100 | Train R²=-0.0004 MAE=0.0831 | Val R²=-0.0004 MAE=0.1097 | LR=8.40e-05
+Epoch  40/100 | Train R²=+0.0007 MAE=0.0799 | Val R²=+0.0010 MAE=0.1041 | LR=7.04e-05
+Epoch  50/100 | Train R²=+0.0014 MAE=0.0791 | Val R²=+0.0017 MAE=0.1024 | LR=5.46e-05
+Epoch  60/100 | Train R²=+0.0018 MAE=0.0791 | Val R²=+0.0022 MAE=0.1024 | LR=3.83e-05
+Epoch  70/100 | Train R²=+0.0021 MAE=0.0794 | Val R²=+0.0025 MAE=0.1030 | LR=2.34e-05
+Epoch  80/100 | Train R²=+0.0022 MAE=0.0796 | Val R²=+0.0027 MAE=0.1034 | LR=1.14e-05
+Epoch  90/100 | Train R²=+0.0023 MAE=0.0798 | Val R²=+0.0027 MAE=0.1035 | LR=3.68e-06
+Epoch 100/100 | Train R²=+0.0023 MAE=0.0798 | Val R²=+0.0028 MAE=0.1036 | LR=1.00e-06
+
+Best Val R²: +0.0028
+
+======================================================================
+Fold 5/9
+======================================================================
+
+======================================================================
+MEMORY-OPTIMIZED TRAINING - Fold 5
+  Gradient accumulation steps: 4
+  Effective batch size: 64
+  Mixed precision: False
+  Gradient checkpointing: True
+======================================================================
+
+  Block 0: γ₁.grad=1.70e-06, γ₂.grad=2.78e-06
+Epoch   1/100 | Train R²=-0.0247 MAE=0.1775 | Val R²=-0.0594 MAE=0.1426 | LR=2.00e-05
+Epoch  10/100 | Train R²=-0.0080 MAE=0.1172 | Val R²=-0.0158 MAE=0.0744 | LR=9.93e-05
+Epoch  20/100 | Train R²=-0.0025 MAE=0.0993 | Val R²=-0.0051 MAE=0.0586 | LR=9.40e-05
+Epoch  30/100 | Train R²=+0.0000 MAE=0.0912 | Val R²=-0.0005 MAE=0.0500 | LR=8.40e-05
+Epoch  40/100 | Train R²=+0.0012 MAE=0.0882 | Val R²=+0.0016 MAE=0.0471 | LR=7.04e-05
+Epoch  50/100 | Train R²=+0.0020 MAE=0.0879 | Val R²=+0.0027 MAE=0.0463 | LR=5.46e-05
+Epoch  60/100 | Train R²=+0.0024 MAE=0.0884 | Val R²=+0.0034 MAE=0.0465 | LR=3.83e-05
+Epoch  70/100 | Train R²=+0.0028 MAE=0.0889 | Val R²=+0.0038 MAE=0.0470 | LR=2.34e-05
+Epoch  80/100 | Train R²=+0.0029 MAE=0.0893 | Val R²=+0.0041 MAE=0.0475 | LR=1.14e-05
+Epoch  90/100 | Train R²=+0.0030 MAE=0.0894 | Val R²=+0.0042 MAE=0.0476 | LR=3.68e-06
+Epoch 100/100 | Train R²=+0.0030 MAE=0.0895 | Val R²=+0.0042 MAE=0.0477 | LR=1.00e-06
+
+Best Val R²: +0.0042
+
+======================================================================
+Fold 6/9
+======================================================================
+
+======================================================================
+MEMORY-OPTIMIZED TRAINING - Fold 6
+  Gradient accumulation steps: 4
+  Effective batch size: 64
+  Mixed precision: False
+  Gradient checkpointing: True
+======================================================================
+
+  Block 0: γ₁.grad=2.54e-06, γ₂.grad=3.20e-06
+Epoch   1/100 | Train R²=-0.0262 MAE=0.1776 | Val R²=-0.0858 MAE=0.1393 | LR=2.00e-05
+Epoch  10/100 | Train R²=-0.0082 MAE=0.1151 | Val R²=-0.0211 MAE=0.0650 | LR=9.93e-05
+Epoch  20/100 | Train R²=-0.0027 MAE=0.0969 | Val R²=-0.0084 MAE=0.0499 | LR=9.40e-05
+Epoch  30/100 | Train R²=-0.0002 MAE=0.0884 | Val R²=-0.0029 MAE=0.0417 | LR=8.40e-05
+Epoch  40/100 | Train R²=+0.0010 MAE=0.0849 | Val R²=-0.0005 MAE=0.0377 | LR=7.04e-05
+Epoch  50/100 | Train R²=+0.0016 MAE=0.0841 | Val R²=+0.0006 MAE=0.0371 | LR=5.46e-05
+Epoch  60/100 | Train R²=+0.0021 MAE=0.0843 | Val R²=+0.0011 MAE=0.0370 | LR=3.83e-05
+Epoch  70/100 | Train R²=+0.0024 MAE=0.0847 | Val R²=+0.0014 MAE=0.0376 | LR=2.34e-05
+Epoch  80/100 | Train R²=+0.0025 MAE=0.0850 | Val R²=+0.0016 MAE=0.0376 | LR=1.14e-05
+Epoch  90/100 | Train R²=+0.0026 MAE=0.0851 | Val R²=+0.0016 MAE=0.0377 | LR=3.68e-06
+Epoch 100/100 | Train R²=+0.0026 MAE=0.0852 | Val R²=+0.0017 MAE=0.0378 | LR=1.00e-06
+
+Best Val R²: +0.0017
+
+======================================================================
+Fold 7/9
+======================================================================
+
+======================================================================
+MEMORY-OPTIMIZED TRAINING - Fold 7
+  Gradient accumulation steps: 4
+  Effective batch size: 64
+  Mixed precision: False
+  Gradient checkpointing: True
+======================================================================
+
+  Block 0: γ₁.grad=2.11e-06, γ₂.grad=3.35e-06
+Epoch   1/100 | Train R²=-0.0248 MAE=0.1748 | Val R²=-0.0403 MAE=0.1546 | LR=2.00e-05
+Epoch  10/100 | Train R²=-0.0074 MAE=0.1097 | Val R²=-0.0170 MAE=0.1062 | LR=9.93e-05
+Epoch  20/100 | Train R²=-0.0024 MAE=0.0927 | Val R²=-0.0077 MAE=0.0874 | LR=9.40e-05
+Epoch  30/100 | Train R²=-0.0002 MAE=0.0852 | Val R²=-0.0032 MAE=0.0764 | LR=8.40e-05
+Epoch  40/100 | Train R²=+0.0009 MAE=0.0824 | Val R²=-0.0010 MAE=0.0711 | LR=7.04e-05
+Epoch  50/100 | Train R²=+0.0015 MAE=0.0819 | Val R²=+0.0001 MAE=0.0702 | LR=5.46e-05
+Epoch  60/100 | Train R²=+0.0020 MAE=0.0821 | Val R²=+0.0006 MAE=0.0702 | LR=3.83e-05
+Epoch  70/100 | Train R²=+0.0022 MAE=0.0825 | Val R²=+0.0009 MAE=0.0708 | LR=2.34e-05
+Epoch  80/100 | Train R²=+0.0024 MAE=0.0828 | Val R²=+0.0011 MAE=0.0713 | LR=1.14e-05
+Epoch  90/100 | Train R²=+0.0025 MAE=0.0829 | Val R²=+0.0011 MAE=0.0714 | LR=3.68e-06
+Epoch 100/100 | Train R²=+0.0025 MAE=0.0830 | Val R²=+0.0012 MAE=0.0715 | LR=1.00e-06
+
+Best Val R²: +0.0012
+
+======================================================================
+Fold 8/9
+======================================================================
+
+======================================================================
+MEMORY-OPTIMIZED TRAINING - Fold 8
+  Gradient accumulation steps: 4
+  Effective batch size: 64
+  Mixed precision: False
+  Gradient checkpointing: True
+======================================================================
+
+  Block 0: γ₁.grad=1.48e-06, γ₂.grad=2.70e-06
+Epoch   1/100 | Train R²=-0.0253 MAE=0.1648 | Val R²=-0.0117 MAE=0.2128 | LR=2.00e-05
+Epoch  10/100 | Train R²=-0.0096 MAE=0.1122 | Val R²=-0.0059 MAE=0.1830 | LR=9.93e-05
+Epoch  20/100 | Train R²=-0.0030 MAE=0.0962 | Val R²=-0.0018 MAE=0.1624 | LR=9.40e-05
+Epoch  30/100 | Train R²=+0.0005 MAE=0.0866 | Val R²=+0.0002 MAE=0.1506 | LR=8.40e-05
+Epoch  40/100 | Train R²=+0.0022 MAE=0.0815 | Val R²=+0.0013 MAE=0.1448 | LR=7.04e-05
+Epoch  50/100 | Train R²=+0.0031 MAE=0.0806 | Val R²=+0.0018 MAE=0.1443 | LR=5.46e-05
+Epoch  60/100 | Train R²=+0.0036 MAE=0.0808 | Val R²=+0.0022 MAE=0.1452 | LR=3.83e-05
+Epoch  70/100 | Train R²=+0.0039 MAE=0.0814 | Val R²=+0.0024 MAE=0.1462 | LR=2.34e-05
+Epoch  80/100 | Train R²=+0.0041 MAE=0.0817 | Val R²=+0.0025 MAE=0.1467 | LR=1.14e-05
+Epoch  90/100 | Train R²=+0.0041 MAE=0.0818 | Val R²=+0.0025 MAE=0.1470 | LR=3.68e-06
+Epoch 100/100 | Train R²=+0.0042 MAE=0.0819 | Val R²=+0.0025 MAE=0.1471 | LR=1.00e-06
+
+Best Val R²: +0.0025
+
+======================================================================
+Fold 9/9
+======================================================================
+
+======================================================================
+MEMORY-OPTIMIZED TRAINING - Fold 9
+  Gradient accumulation steps: 4
+  Effective batch size: 64
+  Mixed precision: False
+  Gradient checkpointing: True
+======================================================================
+
+  Block 0: γ₁.grad=1.35e-06, γ₂.grad=2.83e-06
+Epoch   1/100 | Train R²=-0.0255 MAE=0.1679 | Val R²=-0.0311 MAE=0.1590 | LR=2.00e-05
+Epoch  10/100 | Train R²=-0.0096 MAE=0.1147 | Val R²=-0.0144 MAE=0.1178 | LR=9.93e-05
+Epoch  20/100 | Train R²=-0.0030 MAE=0.0955 | Val R²=-0.0059 MAE=0.0971 | LR=9.40e-05
+Epoch  30/100 | Train R²=+0.0002 MAE=0.0853 | Val R²=-0.0017 MAE=0.0848 | LR=8.40e-05
+Epoch  40/100 | Train R²=+0.0016 MAE=0.0809 | Val R²=+0.0002 MAE=0.0788 | LR=7.04e-05
+Epoch  50/100 | Train R²=+0.0024 MAE=0.0801 | Val R²=+0.0010 MAE=0.0778 | LR=5.46e-05
+Epoch  60/100 | Train R²=+0.0029 MAE=0.0805 | Val R²=+0.0014 MAE=0.0784 | LR=3.83e-05
+Epoch  70/100 | Train R²=+0.0032 MAE=0.0810 | Val R²=+0.0016 MAE=0.0791 | LR=2.34e-05
+Epoch  80/100 | Train R²=+0.0033 MAE=0.0813 | Val R²=+0.0017 MAE=0.0796 | LR=1.14e-05
+Epoch  90/100 | Train R²=+0.0034 MAE=0.0815 | Val R²=+0.0018 MAE=0.0798 | LR=3.68e-06
+Epoch 100/100 | Train R²=+0.0034 MAE=0.0815 | Val R²=+0.0018 MAE=0.0798 | LR=1.00e-06
+
+Best Val R²: +0.0018
+
+======================================================================
+Best fold: 5
+======================================================================
+
+
+======================================================================
+GENERATING INTERPRETABILITY PLOTS
+======================================================================
+
+Saved → fold_summary_improved.png
+Generating visualizations...
+Saved → ./attention_maps.png
+Saved → ./attention_maps_overlay.png
+Saved → ./ind_attention_maps_overlay.png
+
+── Gate Values g = sigmoid(λ) ──────────────────────────────────
+  Block  Head 1  Head 2
+  -------------------------
+      1   0.499   0.499
+
+  g≈1 = positional (sector prior)  |  g≈0 = content-driven
+
+Saved → ./gate_values.png
+
+── Mean Attention Distance Baselines (grid=29×29, N=841) ──
+  Uniform attention baseline   : 15.1119
+  Pure positional (g=1) baseline: 7.6444  (mean intra-sector distance)
+  → Effective distance < positional baseline  ⟹ content head is also local
+  → Effective distance between baselines  ⟹ gate is blending meaningfully
+
+Saved → ./mean_attention_distance.png
+Saved → ./bar_mean_attention_distance.png
+Saved → ./layerscale_gammas.png
+Saved → ./attention_weights.png
+
+── Null-model baseline check (full val set (N=126 samples)) ──────────────
+  Baseline: zero (ΔD=0)  (predict ΔD=0, i.e. no change)
+  MSE scope : full val set (N=126 samples)
+  NOTE: MSEs are in scaled ΔD space (y_std-normalised).
+        Null-model MSE ≈ 1.0 on training set by construction;
+        it may differ slightly on val due to fold-specific scaling.
+  Null-model MSE : 4.849187e-01
+  Model MSE      : 4.850768e-01
+  NOTE: D is symmetric and the diagonal is constant across
+        time steps, so effective independent pairs = 457×456/2
+        = 104,196 (not 457² = 208,849 as the mean suggests).
+        The model vs null comparison remains unbiased.
+  Relative improvement vs null model : -0.03%
+  ✗ WARNING: model does NOT beat the null model — investigate.
+
+Saved → ./prediction_error_map.png
+
+======================================================================
+TRAINING COMPLETE
+======================================================================
+Best model: best_model_fold_5.pt
+Plots saved in current directory
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+			Resource Usage on 2026-03-18 01:13:30.584177:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	JobId: 3176648.hpc-pbs-sched1
+	Project: as_spms_cheongsa
+	Exit Status: 0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	NCPUs: Requested(19), Used(19)
+	CPU Time Used: 30:11:45
+	Memory: Requested(100gb), Used(21118320kb)
+	Vmem Used: 41307444kb
+	Walltime: Requested(48:00:00), Used(07:10:34)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	Execution Nodes Used: (hpc-wfly-a001:ncpus=19:mem=104857600kb)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	No GPU-related information available for this job.

@@ -1,3 +1,4 @@
+from turtle import distance
 import parameters as p
 
 import pickle
@@ -47,6 +48,12 @@ def extract_distance_matrix(
 
     # Convert correlation → distance:  d = sqrt(2 * (1 − corr))
     distance_matrix = (2 * (1 - data1)) ** np.float32(0.5)
+
+    # Convert distance to TDA-filtered adjacency matrices
+    distance_matrix[distance_matrix <= p.epsilon] = 1
+    distance_matrix[distance_matrix != 1] = 0
+    distance_matrix[:, np.arange(463), np.arange(463)] = 0
+    #np.fill_diagonal(distance_matrix, 0)
 
     del data1
 
