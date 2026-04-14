@@ -61,3 +61,50 @@ BATCH_SIZE = 16
 # V100 -- cuda 12.7
 # A40  -- cuda 12.7
 # H100 -- unknown
+
+
+# =============================================================================
+# GNN cross-scale prediction hyperparameters
+# (used by gnn_cross_scale.py and train_cross_scale.py)
+# =============================================================================
+
+# Node embedding dimension shared by GraphSAGE encoder and GRU hidden state.
+# 64 gives a good capacity / overfitting trade-off at ~220 weekly training steps.
+# Reduce to 32 for a quick smoke test; increase to 128 only with GPU.
+GNN_EMBED_DIM = 64
+
+# Number of weekly history snapshots fed to the GRU.
+# 4 steps = 20 trading days of short-scale memory.
+# Increasing beyond 8 rarely helps given the regime stability of A_w120/A_w180.
+GNN_HISTORY_LAGS = 4
+
+# Negative:positive pair sampling ratio during training.
+# 10:1 keeps the training distribution balanced while covering diverse negatives.
+# Reduce to 5 if training is slow on CPU; increase to 20 if precision is low.
+GNN_NEG_RATIO = 10
+
+# Focal loss gamma per target scale.
+# Higher gamma → stronger down-weighting of easy negatives.
+#   A_w120 target (imbalance ~478:1) → γ=3
+#   A_w180 target (imbalance ~402:1) → γ=3
+# These are stored in TARGET_CONFIGS inside train_cross_scale.py and
+# check_cross_scale_learnability.py; kept here for reference / override.
+GNN_FOCAL_GAMMA_W120 = 3
+GNN_FOCAL_GAMMA_W180 = 3
+
+# Dropout rate applied inside GraphSAGE layers and after GRU output.
+GNN_DROPOUT = 0.1
+
+# Training epochs per fold.
+# 100 is the default; early stopping (patience=15) will typically fire
+# at 30–60 epochs once the model has converged.
+GNN_EPOCHS = 100
+
+# AdamW hyperparameters for the GNN optimizer.
+GNN_LR           = 3e-4
+GNN_WEIGHT_DECAY = 1e-3
+
+# Number of time-series CV folds.
+# 5 folds with 315 weekly snapshots gives ~50 val steps per fold —
+# enough for reliable AP/AUC estimation without wasting training data.
+GNN_N_SPLITS = 5
