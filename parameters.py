@@ -85,8 +85,11 @@ GNN_NEG_RATIO = 5
 
 # Focal loss gamma per target scale.
 # Higher gamma → stronger down-weighting of easy negatives.
-#   A_w120 target (imbalance ~478:1) → γ=3
-#   A_w180 target (imbalance ~402:1) → γ=3
+#   A_w120 target (imbalance ~478:1) → γ=1
+#   A_w180 target (imbalance ~402:1) → γ=2
+# This will shift the precision-recall balance rightward — recall will drop from ~75% 
+# to perhaps ~50%, but precision will improve from ~10% to ~30–40%, and AP should 
+# increase substantially.
 # These are stored in TARGET_CONFIGS inside train_cross_scale.py and
 # check_cross_scale_learnability.py; kept here for reference / override.
 GNN_FOCAL_GAMMA_W120 = 1

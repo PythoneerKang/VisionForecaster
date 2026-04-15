@@ -76,7 +76,7 @@ from sklearn.metrics import (
 
 import parameters as p
 from gnn_cross_scale import (
-    CrossScaleGNN, FocalLoss, FocalLoss,
+    CrossScaleGNN, FocalLoss,
     build_node_features, adj_to_edge_index,
     sample_pairs, count_parameters,
 )
@@ -572,6 +572,14 @@ def run_cross_validation(
 
     # ── Single expanding-window split (deployment-style holdout) ──────────
     # Split on target indices (1 … T_w-1); index 0 has no predecessor.
+    # Use a single expanding-window split instead of TimeSeriesSplit. 
+    # Rather than 5 folds where early folds have only 54 training steps, 
+    # train one model on the full available history 
+    # (all 262 steps up to the last fold's start) and evaluate on the final 52 steps. 
+
+    # This matches how the model would actually be deployed and avoids the catastrophic 
+    # data starvation in folds 1–2. Fold 3's results at T=158 are the best evidence you 
+    # have of what the model can do — a single run at T=262 would be better still.
     target_indices = np.arange(1, T_w)
     if n_splits < 1:
         raise ValueError("n_splits must be >= 1")
