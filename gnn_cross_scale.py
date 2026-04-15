@@ -81,6 +81,13 @@ def build_node_features(
     --------
         Columns 0–10  : GICS sector one-hot  (11 dims)
         Column  11    : normalised degree in the current short-scale snapshot
+
+        #Add the AND-rule as a hard input feature. 
+        Build a 13th node feature: for each pair (i,j), compute A_w35[t](i,j) AND A_wlong[t-1](i,j) 
+        and inject it as a graph-level edge attribute or an augmented node feature. 
+        This gives the model the exact signal the AND-rule exploits analytically, 
+        so the GNN can learn to refine it rather than discover it from scratch.
+
         Column  12    : normalised degree in the AND-rule snapshot
                         (A_w35[t] AND A_wlong[t-1])
 

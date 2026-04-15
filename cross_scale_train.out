@@ -4,7 +4,7 @@ Using virtualenv: /home/s230047/.cache/pypoetry/virtualenvs/transformer-D-LRPITk
 
 ####################################################################
   CROSS-SCALE GNN  A_w35 → A_w120 (ε=0.4)
-  Device: cpu  |  Folds: 5  |  Epochs: 100
+  Device: cpu  |  Epochs: 100
 ####################################################################
 
 Loading adjacency matrices …
@@ -21,44 +21,48 @@ Loading adjacency matrices …
   Fold 1  |  train T=262  val T=52
 ────────────────────────────────────────────────────────────────
   Model parameters: 39,361
-  Epoch   1/100  loss=0.33245  val_AP=0.2933  lr=3.00e-04
-  Epoch  10/100  loss=0.20574  val_AP=0.4058  lr=2.98e-04
-  Epoch  20/100  loss=0.18483  val_AP=0.4239  lr=2.82e-04
-  Epoch  30/100  loss=0.17355  val_AP=0.4208  lr=2.52e-04
-  Epoch  40/100  loss=0.16552  val_AP=0.4348  lr=2.11e-04
-  Epoch  50/100  loss=0.15965  val_AP=0.4286  lr=1.63e-04
+  Epoch   1/100  loss=0.35802  val_AP=0.3034  lr=3.00e-04
+  Epoch  10/100  loss=0.20850  val_AP=0.4012  lr=2.98e-04
+  Epoch  20/100  loss=0.18594  val_AP=0.4189  lr=2.82e-04
+  Epoch  30/100  loss=0.17447  val_AP=0.4245  lr=2.52e-04
+  Epoch  40/100  loss=0.16635  val_AP=0.4371  lr=2.11e-04
+  Epoch  50/100  loss=0.16065  val_AP=0.4332  lr=1.63e-04
 
-  Early stopping at epoch 50  (best val_AP=0.4358)
+  Early stopping at epoch 50  (best val_AP=0.4404)
 
-  Best val AP: 0.4358  →  best_gnn_w120_fold1.pt
+  Best val AP: 0.4404  →  best_gnn_w120_fold1.pt
 
   Evaluation on validation set (fold 1):
-      GNN (CrossScaleGNN)           AUC=0.9219  AP=0.4358  F1=0.2527  Prec=0.1488  Rec=0.8398  Brier=0.102189
-      Persistence A_wlong[t]        AUC=0.9851  AP=0.9538  F1=0.9762  Prec=0.9816  Rec=0.9708  Brier=0.001347
-      AND-rule (A_w35 & A_wlong)    AUC=0.7588  AP=0.5226  F1=0.6783  Prec=0.9827  Rec=0.5179  Brier=0.013961
+  ────────────────────────────────────────────────────────────────────────────────
+  Positive rate in eval set: 0.028417  (153,969 edges / 5,418,192 pairs)
+  ────────────────────────────────────────────────────────────────────────────────
+      GNN (CrossScaleGNN)                 AUC=0.9220  AP=0.4404  F1=0.2693  Prec=0.1608  Rec=0.8270  Brier=0.094064
+      Marginal prior (const score)        AUC=0.5000  AP=0.0284  F1=0.0000  Prec=0.0000  Rec=0.0000  Brier=0.027754
+      Short-scale oracle (A_w35[t])       AUC=0.7521  AP=0.2016  F1=0.4251  Prec=0.3537  Rec=0.5326  Brier=0.040943
 
-  Δ AP  vs persistence : -0.5179
-  ✗  GNN does not beat persistence — check loss/imbalance settings
+  Δ AP vs marginal prior      : +0.4120
+  Δ AP vs short-scale oracle  : +0.2387
+  ✓  GNN beats BOTH null models
 
 ════════════════════════════════════════════════════════════════════
-CROSS-FOLD SUMMARY  A_w35 → A_w120
+HOLDOUT SUMMARY  A_w35 → A_w120
 ════════════════════════════════════════════════════════════════════
-  Fold    AP(GNN)   AP(persist)    AP(AND)      ΔAP      AUC
-  ──────────────────────────────────────────────────────────────
-     1     0.4358        0.9538     0.5226  -0.5179   0.9219
-  ──────────────────────────────────────────────────────────────
-  mean     0.4358        0.9538             -0.5179
-
-  Mean GNN AP : 0.4358
-  ✗  GNN does NOT beat persistence (mean ΔAP=-0.5179)
-     → Consider increasing focal γ, neg_ratio, or epochs.
+  Model                                    AP      AUC       F1     Prec      Rec
+  ──────────────────────────────────────────────────────────────────
+  GNN (CrossScaleGNN)                  0.4404   0.9220   0.2693   0.1608   0.8270
+  Marginal prior                       0.0284   0.5000   0.0000   0.0000   0.0000
+  Short-scale oracle (A_w35[t])        0.2016   0.7521   0.4251   0.3537   0.5326
+  ──────────────────────────────────────────────────────────────────
+  Δ AP vs marginal prior      : +0.4120
+  Δ AP vs short-scale oracle  : +0.2387
+  ✓✓  GNN beats BOTH null models
 ════════════════════════════════════════════════════════════════════
 
 Results appended → ./gnn_cross_scale_results.csv
 
 ####################################################################
   CROSS-SCALE GNN  A_w35 → A_w180 (ε=0.6)
-  Device: cpu  |  Folds: 5  |  Epochs: 100
+  Device: cpu  |  Epochs: 100
 ####################################################################
 
 Loading adjacency matrices …
@@ -75,55 +79,59 @@ Loading adjacency matrices …
   Fold 1  |  train T=262  val T=52
 ────────────────────────────────────────────────────────────────
   Model parameters: 39,361
-  Epoch   1/100  loss=0.19550  val_AP=0.2957  lr=3.00e-04
-  Epoch  10/100  loss=0.13345  val_AP=0.4136  lr=2.98e-04
-  Epoch  20/100  loss=0.12311  val_AP=0.4280  lr=2.82e-04
-  Epoch  30/100  loss=0.11730  val_AP=0.4383  lr=2.52e-04
-  Epoch  40/100  loss=0.11454  val_AP=0.4481  lr=2.11e-04
-  Epoch  50/100  loss=0.11167  val_AP=0.4475  lr=1.63e-04
-  Epoch  60/100  loss=0.10961  val_AP=0.4474  lr=1.14e-04
+  Epoch   1/100  loss=0.19991  val_AP=0.2877  lr=3.00e-04
+  Epoch  10/100  loss=0.13480  val_AP=0.4165  lr=2.98e-04
+  Epoch  20/100  loss=0.12414  val_AP=0.4380  lr=2.82e-04
+  Epoch  30/100  loss=0.11845  val_AP=0.4492  lr=2.52e-04
+  Epoch  40/100  loss=0.11568  val_AP=0.4547  lr=2.11e-04
+  Epoch  50/100  loss=0.11269  val_AP=0.4522  lr=1.63e-04
+  Epoch  60/100  loss=0.11054  val_AP=0.4550  lr=1.14e-04
 
-  Early stopping at epoch 63  (best val_AP=0.4520)
+  Early stopping at epoch 63  (best val_AP=0.4601)
 
-  Best val AP: 0.4520  →  best_gnn_w180_fold1.pt
+  Best val AP: 0.4601  →  best_gnn_w180_fold1.pt
 
   Evaluation on validation set (fold 1):
-      GNN (CrossScaleGNN)           AUC=0.8982  AP=0.4520  F1=0.3313  Prec=0.2106  Rec=0.7769  Brier=0.128955
-      Persistence A_wlong[t]        AUC=0.9939  AP=0.9853  F1=0.9923  Prec=0.9967  Rec=0.9879  Brier=0.000715
-      AND-rule (A_w35 & A_wlong)    AUC=0.6834  AP=0.3952  F1=0.5363  Prec=0.9968  Rec=0.3668  Brier=0.029610
+  ────────────────────────────────────────────────────────────────────────────────
+  Positive rate in eval set: 0.046679  (252,914 edges / 5,418,192 pairs)
+  ────────────────────────────────────────────────────────────────────────────────
+      GNN (CrossScaleGNN)                 AUC=0.8966  AP=0.4601  F1=0.3308  Prec=0.2101  Rec=0.7766  Brier=0.130936
+      Marginal prior (const score)        AUC=0.5000  AP=0.0467  F1=0.0000  Prec=0.0000  Rec=0.0000  Brier=0.044649
+      Short-scale oracle (A_w35[t])       AUC=0.6720  AP=0.1792  F1=0.3867  Prec=0.4043  Rec=0.3707  Brier=0.054872
 
-  Δ AP  vs persistence : -0.5333
-  ✗  GNN does not beat persistence — check loss/imbalance settings
+  Δ AP vs marginal prior      : +0.4135
+  Δ AP vs short-scale oracle  : +0.2809
+  ✓  GNN beats BOTH null models
 
 ════════════════════════════════════════════════════════════════════
-CROSS-FOLD SUMMARY  A_w35 → A_w180
+HOLDOUT SUMMARY  A_w35 → A_w180
 ════════════════════════════════════════════════════════════════════
-  Fold    AP(GNN)   AP(persist)    AP(AND)      ΔAP      AUC
-  ──────────────────────────────────────────────────────────────
-     1     0.4520        0.9853     0.3952  -0.5333   0.8982
-  ──────────────────────────────────────────────────────────────
-  mean     0.4520        0.9853             -0.5333
-
-  Mean GNN AP : 0.4520
-  ✗  GNN does NOT beat persistence (mean ΔAP=-0.5333)
-     → Consider increasing focal γ, neg_ratio, or epochs.
+  Model                                    AP      AUC       F1     Prec      Rec
+  ──────────────────────────────────────────────────────────────────
+  GNN (CrossScaleGNN)                  0.4601   0.8966   0.3308   0.2101   0.7766
+  Marginal prior                       0.0467   0.5000   0.0000   0.0000   0.0000
+  Short-scale oracle (A_w35[t])        0.1792   0.6720   0.3867   0.4043   0.3707
+  ──────────────────────────────────────────────────────────────────
+  Δ AP vs marginal prior      : +0.4135
+  Δ AP vs short-scale oracle  : +0.2809
+  ✓✓  GNN beats BOTH null models
 ════════════════════════════════════════════════════════════════════
 
 Results appended → ./gnn_cross_scale_results.csv
 
 All runs complete.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-			Resource Usage on 2026-04-14 23:31:42.515918:
+			Resource Usage on 2026-04-15 13:03:05.257789:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	JobId: 3256355.hpc-pbs-sched1
+	JobId: 3257257.hpc-pbs-sched1
 	Project: as_spms_cheongsa
 	Exit Status: 0
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	NCPUs: Requested(6), Used(6)
-	CPU Time Used: 11:09:35
-	Memory: Requested(500gb), Used(2388368kb)
-	Vmem Used: 9250272kb
-	Walltime: Requested(48:00:00), Used(02:45:35)
+	CPU Time Used: 12:12:29
+	Memory: Requested(500gb), Used(3424544kb)
+	Vmem Used: 8411244kb
+	Walltime: Requested(48:00:00), Used(02:45:23)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	Execution Nodes Used: (hpc-wfly-i011:ncpus=6:mem=524288000kb)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

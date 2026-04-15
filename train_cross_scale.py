@@ -26,15 +26,19 @@ Pair sampling — positive-pair subgraph sampling at neg_ratio:1
     Preserves full graph topology for neighbourhood aggregation while
     keeping loss computation balanced.
 
-Cross-validation — TimeSeriesSplit (no shuffle, temporal ordering preserved)
-    Identical to the ViT training pipeline in training_and_validation_functions.py.
+Cross-validation — single expanding-window split (deployment-style holdout)
+    Train on the full available history (all 262 steps up to the holdout
+    start) and evaluate on the final 52 steps.  This matches how the
+    model would actually be deployed and avoids catastrophic data
+    starvation that arises with multiple early folds.
 
-Evaluation metrics (reported per fold)
+Evaluation metrics (reported on holdout)
     AUC-ROC, Average Precision (AP), F1 at threshold=0.5,
     Precision, Recall, Brier score.
-    Also reports: improvement over persistence baseline and
-    improvement over the multi-scale AND rule (predict 1 iff
-    A_w35[t]=1 AND A_wlong[t]=1).
+    Baselines:
+      • Marginal prior  — always predict the training-set positive rate
+      • Short-scale oracle — predict A_wlong[t+1] = A_w35[t] directly
+    The key question: does the GNN beat both null models?
 
 Usage
 -----
@@ -53,9 +57,9 @@ Usage
 
 Output
 ------
-    best_gnn_w{target}_fold{k}.pt   — best checkpoint per fold
-    gnn_cross_scale_results.csv     — per-fold metrics for all runs
-    Console report with fold summaries and final cross-fold statistics.
+    best_gnn_w{target}_fold1.pt     — best checkpoint from the holdout run
+    gnn_cross_scale_results.csv     — per-run metrics
+    Console report with fold summary and final statistics.
 """
 
 import argparse
@@ -163,36 +167,71 @@ def _load_adj_weekly(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Persistence & AND-rule baselines
+# Null model baselines
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _persistence_baseline(
-    adj_long: np.ndarray,   # (T_w, N, N)
-    test_idx: np.ndarray,
-) -> Tuple[np.ndarray, np.ndarray]:
-    """Predict A_wlong[t+1] = A_wlong[t]."""
-    triu = np.triu_indices(N_STOCKS, k=1)
-    y_true = adj_long[test_idx][:, triu[0], triu[1]]            # (T_test, n_pairs)
-    y_pred = adj_long[test_idx - 1][:, triu[0], triu[1]]        # (T_test, n_pairs)
-    return y_true.ravel(), y_pred.ravel()
-
-
-def _and_rule_baseline(
-    adj_short: np.ndarray,  # (T_w, N, N)  A_w35
-    adj_long:  np.ndarray,  # (T_w, N, N)  A_wlong
-    test_idx:  np.ndarray,
+def _marginal_prior_baseline(
+    adj_long:  np.ndarray,   # (T_w, N, N)
+    train_idx: np.ndarray,   # training time indices — used to estimate prior
+    eval_idx:  np.ndarray,   # evaluation time indices (t+1 targets)
 ) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Predict A_wlong[t+1] = 1  iff  A_w35[t]=1  AND  A_wlong[t]=1.
-    (Multi-scale confidence-score rule from the design discussion.)
+    Marginal prior baseline: always predict the training-set positive rate.
+
+    This is the simplest non-trivial null model.  A model that cannot beat
+    a constant score equal to the base rate has learned nothing about
+    graph structure.
+
+    Parameters
+    ----------
+    adj_long  : full adjacency tensor (T_w, N, N)
+    train_idx : indices used for training (to estimate the marginal)
+    eval_idx  : indices of target time steps to evaluate on
+
+    Returns
+    -------
+    y_true  : (n_samples,) ground-truth labels
+    y_score : (n_samples,) constant score equal to training positive rate
     """
-    triu = np.triu_indices(N_STOCKS, k=1)
-    y_true = adj_long[test_idx][:, triu[0], triu[1]]
-    y_pred = (
-        adj_short[test_idx - 1][:, triu[0], triu[1]] *
-        adj_long[ test_idx - 1][:, triu[0], triu[1]]
+    triu_i, triu_j = np.triu_indices(N_STOCKS, k=1)
+
+    # Estimate positive rate from the training targets
+    train_pos_rate = float(
+        adj_long[train_idx][:, triu_i, triu_j].mean()
     )
-    return y_true.ravel(), y_pred.ravel()
+
+    y_true  = adj_long[eval_idx][:, triu_i, triu_j].ravel()
+    y_score = np.full(len(y_true), train_pos_rate, dtype=np.float32)
+    return y_true, y_score
+
+
+def _short_scale_oracle_baseline(
+    adj_short: np.ndarray,   # (T_w, N, N)  A_w35
+    adj_long:  np.ndarray,   # (T_w, N, N)  A_wlong
+    eval_idx:  np.ndarray,   # evaluation time indices (t+1 targets); must be >= 1
+) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Short-scale oracle baseline: predict A_wlong[t+1] = A_w35[t].
+
+    This directly uses the short-scale edge state at the previous step as
+    the predicted probability for the long-scale edge at the next step.
+    It encodes the cross-scale learnability hypothesis in its simplest
+    form: edges active in A_w35 are more likely to be active in A_wlong.
+
+    eval_idx must satisfy eval_idx >= 1 so that t = eval_idx - 1 is valid.
+
+    Returns
+    -------
+    y_true  : (n_samples,) ground-truth A_wlong[t+1] labels
+    y_score : (n_samples,) A_w35[t] edge states used as scores ∈ {0, 1}
+    """
+    assert (eval_idx >= 1).all(), "eval_idx must be >= 1 for short-scale oracle"
+    triu_i, triu_j = np.triu_indices(N_STOCKS, k=1)
+
+    y_true  = adj_long[eval_idx][:, triu_i, triu_j].ravel()
+    # Input to the oracle is A_w35 at the previous step (t = eval_idx - 1)
+    y_score = adj_short[eval_idx - 1][:, triu_i, triu_j].ravel()
+    return y_true, y_score
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -220,7 +259,7 @@ def _compute_metrics(
     brier = brier_score_loss(y_true, y_score)
 
     print(
-        f"      {name:<28s}  AUC={auc:.4f}  AP={ap:.4f}  "
+        f"      {name:<34s}  AUC={auc:.4f}  AP={ap:.4f}  "
         f"F1={f1:.4f}  Prec={prec:.4f}  Rec={rec:.4f}  Brier={brier:.6f}"
     )
     return dict(
@@ -258,6 +297,10 @@ def train_one_fold(
     train_idx / val_idx refer to the TARGET time step t+1.
     For each target time step t+1 in train_idx, the model sees
     A_w35[t-L+1 : t] as input.
+
+    The evaluation set is restricted to safe_val = val_idx[val_idx >= 1]
+    so that baseline comparisons (which require t = val_idx - 1 >= 0)
+    are computed over exactly the same set of samples as the GNN scores.
     """
     print(f"\n{'─'*64}")
     print(f"  Fold {fold}  |  train T={len(train_idx)}  val T={len(val_idx)}")
@@ -268,8 +311,18 @@ def train_one_fold(
     train_idx = train_idx[train_idx >= L]
     val_idx   = val_idx[val_idx >= L]
 
+    # safe_val: indices that also have a valid predecessor (t >= 1),
+    # required by the short-scale oracle which looks at A_w35[t-1].
+    # In practice val_idx always satisfies this after the >= L clamp
+    # (L >= 1), but we guard explicitly to avoid subtle misalignment bugs.
+    safe_val = val_idx[val_idx >= 1]
+
     if len(train_idx) < 5:
         print("  ⚠  Too few training steps after lag clamp — skipping fold.")
+        return {}
+
+    if len(safe_val) == 0:
+        print("  ⚠  No valid validation indices after safety clamp — skipping fold.")
         return {}
 
     # Model
@@ -350,7 +403,7 @@ def train_one_fold(
         avg_loss = epoch_loss / max(n_steps, 1)
         history["train_loss"].append(avg_loss)
 
-        # ── Validation ────────────────────────────────────────────────────
+        # ── Validation (scored on safe_val to match baseline alignment) ──
         model.eval()
         val_scores = []
         val_labels = []
@@ -359,7 +412,7 @@ def train_one_fold(
         pair_all = np.stack([triu_i, triu_j], axis=1)
 
         with torch.no_grad():
-            for t in val_idx:
+            for t in safe_val:
                 feat_seq = []
                 edge_seq = []
                 for lag in range(L - 1, -1, -1):
@@ -434,15 +487,18 @@ def train_one_fold(
 
     print(f"\n  Best val AP: {best_val_ap:.4f}  →  {best_path}")
 
-    # ── Final evaluation on val set ───────────────────────────────────────
+    # ── Final evaluation on safe_val with best checkpoint ─────────────────
+    # All three models (GNN, marginal prior, short-scale oracle) are scored
+    # on the SAME set of indices (safe_val) and the SAME set of pairs
+    # (upper triangle), so AP/AUC/ΔAP comparisons are directly meaningful.
     ckpt = torch.load(best_path, map_location=device, weights_only=False)
     model.load_state_dict(ckpt["model_state_dict"])
     model.eval()
 
-    # Re-score full val set with best checkpoint
+    # Re-score GNN on safe_val with best checkpoint
     val_scores2, val_labels2 = [], []
     with torch.no_grad():
-        for t in val_idx:
+        for t in safe_val:
             feat_seq, edge_seq = [], []
             for lag in range(L - 1, -1, -1):
                 step = max(int(t) - 1 - lag, 0)
@@ -474,29 +530,57 @@ def train_one_fold(
             val_labels2.append(adj_long[int(t)][triu_i, triu_j])
             del feat_seq, edge_seq
 
-    ys = np.concatenate(val_scores2)
-    yt = np.concatenate(val_labels2)
+    # GNN scores and labels — ground truth for all baselines
+    ys = np.concatenate(val_scores2)   # (|safe_val| * n_pairs,)
+    yt = np.concatenate(val_labels2)   # same shape — this is the shared ground truth
+
+    # ── Null model baselines (evaluated on identical yt) ──────────────────
+
+    # 1. Marginal prior: constant score = training positive rate
+    yt_mp, yp_mp = _marginal_prior_baseline(adj_long, train_idx, safe_val)
+    # yt_mp must equal yt (same indices, same pair order) — assert to be safe
+    assert len(yt_mp) == len(yt), (
+        f"Marginal prior label length mismatch: {len(yt_mp)} vs {len(yt)}"
+    )
+
+    # 2. Short-scale oracle: A_w35[t] as score for A_wlong[t+1]
+    yt_ss, yp_ss = _short_scale_oracle_baseline(adj_short, adj_long, safe_val)
+    assert len(yt_ss) == len(yt), (
+        f"Short-scale oracle label length mismatch: {len(yt_ss)} vs {len(yt)}"
+    )
 
     print(f"\n  Evaluation on validation set (fold {fold}):")
-    gnn_metrics  = _compute_metrics(yt, ys,  name="GNN (CrossScaleGNN)")
+    print(f"  {'─'*80}")
+    print(f"  Positive rate in eval set: {yt.mean():.6f}  "
+          f"({int(yt.sum()):,} edges / {len(yt):,} pairs)")
+    print(f"  {'─'*80}")
 
-    # Persistence baseline
-    yt_p, yp_p  = _persistence_baseline(adj_long, val_idx[val_idx >= 1])
-    yt_p = yt_p[:len(yt_p)]
-    pers_metrics = _compute_metrics(yt_p, yp_p, name="Persistence A_wlong[t]")
+    gnn_metrics  = _compute_metrics(yt,    ys,    name="GNN (CrossScaleGNN)")
+    prior_metrics = _compute_metrics(yt_mp, yp_mp, name="Marginal prior (const score)")
+    oracle_metrics = _compute_metrics(yt_ss, yp_ss, name="Short-scale oracle (A_w35[t])")
 
-    # AND-rule baseline
-    yt_a, yp_a  = _and_rule_baseline(adj_short, adj_long, val_idx[val_idx >= 1])
-    and_metrics  = _compute_metrics(yt_a, yp_a, name="AND-rule (A_w35 & A_wlong)")
+    # Delta AP relative to each null model
+    def _delta(gnn_ap: float, base_ap: float) -> str:
+        if np.isnan(gnn_ap) or np.isnan(base_ap):
+            return "nan"
+        return f"{gnn_ap - base_ap:+.4f}"
 
-    # Improvement over persistence
-    if not np.isnan(gnn_metrics["ap"]) and not np.isnan(pers_metrics["ap"]):
-        delta_ap = gnn_metrics["ap"] - pers_metrics["ap"]
-        print(f"\n  Δ AP  vs persistence : {delta_ap:+.4f}")
-        if delta_ap > 0:
-            print("  ✓  GNN beats persistence on Average Precision")
-        else:
-            print("  ✗  GNN does not beat persistence — check loss/imbalance settings")
+    gnn_ap = gnn_metrics["ap"]
+    print(f"\n  Δ AP vs marginal prior      : {_delta(gnn_ap, prior_metrics['ap'])}")
+    print(f"  Δ AP vs short-scale oracle  : {_delta(gnn_ap, oracle_metrics['ap'])}")
+
+    beats_prior  = (not np.isnan(gnn_ap)) and gnn_ap > prior_metrics["ap"]
+    beats_oracle = (not np.isnan(gnn_ap)) and gnn_ap > oracle_metrics["ap"]
+
+    if beats_prior and beats_oracle:
+        print("  ✓  GNN beats BOTH null models")
+    elif beats_prior:
+        print("  △  GNN beats marginal prior but NOT short-scale oracle")
+    elif beats_oracle:
+        print("  △  GNN beats short-scale oracle but NOT marginal prior")
+    else:
+        print("  ✗  GNN does NOT beat either null model — "
+              "check focal γ / neg_ratio / epochs")
 
     gc.collect()
     if device.type == "cuda":
@@ -506,18 +590,18 @@ def train_one_fold(
         "fold": fold,
         "best_val_ap": best_val_ap,
         "gnn": gnn_metrics,
-        "persistence": pers_metrics,
-        "and_rule": and_metrics,
+        "marginal_prior": prior_metrics,
+        "short_scale_oracle": oracle_metrics,
         "history": history,
         "best_path": str(best_path),
     }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Multi-fold cross-validation
+# Training entry point (single expanding-window split)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def run_cross_validation(
+def run_training(
     target_w:     int,
     pkldir:       str,
     model_cfg:    Dict,
@@ -527,12 +611,15 @@ def run_cross_validation(
     epochs:       int,
     lr:           float,
     weight_decay: float,
-    n_splits:     int,
+    holdout_frac: float,
     save_dir:     str,
     seed:         int,
-) -> List[Dict]:
+) -> Dict:
     """
-    Full multi-fold time-series cross-validation for one target scale.
+    Single expanding-window train/holdout run for one target scale.
+
+    holdout_frac : fraction of target indices reserved for evaluation
+                   (default 1/6, matching the old n_splits=5 last fold).
     """
     target_eps, _ = TARGET_CONFIGS[target_w]
     rng    = np.random.default_rng(seed)
@@ -541,7 +628,7 @@ def run_cross_validation(
     )
     print(f"\n{'#'*68}")
     print(f"  CROSS-SCALE GNN  A_w{SOURCE_W} → A_w{target_w} (ε={target_eps})")
-    print(f"  Device: {device}  |  Folds: {n_splits}  |  Epochs: {epochs}")
+    print(f"  Device: {device}  |  Epochs: {epochs}")
     print(f"{'#'*68}")
 
     # ── Load data ──────────────────────────────────────────────────────────
@@ -570,26 +657,21 @@ def run_cross_validation(
     print(f"  Stocks: {N_STOCKS}  |  History lags: {history_lags}")
     print(f"  Model: {count_parameters(CrossScaleGNN(**model_cfg)):,} parameters\n")
 
-    # ── Single expanding-window split (deployment-style holdout) ──────────
-    # Split on target indices (1 … T_w-1); index 0 has no predecessor.
-    # Use a single expanding-window split instead of TimeSeriesSplit. 
-    # Rather than 5 folds where early folds have only 54 training steps, 
-    # train one model on the full available history 
-    # (all 262 steps up to the last fold's start) and evaluate on the final 52 steps. 
-
-    # This matches how the model would actually be deployed and avoids the catastrophic 
-    # data starvation in folds 1–2. Fold 3's results at T=158 are the best evidence you 
-    # have of what the model can do — a single run at T=262 would be better still.
+    # ── Single expanding-window split ──────────────────────────────────────
+    # Target indices start at 1 (index 0 has no predecessor for baselines).
     target_indices = np.arange(1, T_w)
-    if n_splits < 1:
-        raise ValueError("n_splits must be >= 1")
-    holdout_steps = max(1, len(target_indices) // (n_splits + 1))
-    split_at = len(target_indices) - holdout_steps
+    holdout_steps  = max(1, int(len(target_indices) * holdout_frac))
+    split_at       = len(target_indices) - holdout_steps
+
     if split_at <= 0:
-        raise ValueError("Not enough weekly snapshots for holdout split.")
+        raise ValueError(
+            f"Not enough weekly snapshots for holdout split "
+            f"(T_w={T_w}, holdout_frac={holdout_frac})."
+        )
 
     train_idx = target_indices[:split_at]
-    val_idx = target_indices[split_at:]
+    val_idx   = target_indices[split_at:]
+
     print(
         f"  Expanding-window split: train={len(train_idx)} steps, "
         f"holdout={len(val_idx)} steps"
@@ -614,76 +696,80 @@ def run_cross_validation(
         rng=rng,
         device=device,
     )
-    return [result] if result else []
+    return result
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Summary and CSV output
 # ─────────────────────────────────────────────────────────────────────────────
 
-def _print_summary(target_w: int, fold_results: List[Dict]):
-    if not fold_results:
-        print("No fold results to summarise.")
+def _print_summary(target_w: int, result: Dict):
+    if not result:
+        print("No results to summarise.")
         return
 
     print(f"\n{'═'*68}")
-    print(f"CROSS-FOLD SUMMARY  A_w{SOURCE_W} → A_w{target_w}")
+    print(f"HOLDOUT SUMMARY  A_w{SOURCE_W} → A_w{target_w}")
     print(f"{'═'*68}")
 
-    header = f"  {'Fold':>4}  {'AP(GNN)':>9}  {'AP(persist)':>12}  "
-    header += f"{'AP(AND)':>9}  {'ΔAP':>7}  {'AUC':>7}"
-    print(header)
-    print("  " + "─" * 62)
+    gnn_ap    = result["gnn"].get("ap",  float("nan"))
+    prior_ap  = result["marginal_prior"].get("ap", float("nan"))
+    oracle_ap = result["short_scale_oracle"].get("ap", float("nan"))
+    gnn_auc   = result["gnn"].get("auc", float("nan"))
 
-    ap_gnns, ap_pers, deltas = [], [], []
-    for r in fold_results:
-        gnn_ap  = r["gnn"].get("ap",  float("nan"))
-        pers_ap = r["persistence"].get("ap", float("nan"))
-        and_ap  = r["and_rule"].get("ap", float("nan"))
-        gnn_auc = r["gnn"].get("auc", float("nan"))
-        delta   = gnn_ap - pers_ap if not (
-            np.isnan(gnn_ap) or np.isnan(pers_ap)
-        ) else float("nan")
-        ap_gnns.append(gnn_ap)
-        ap_pers.append(pers_ap)
-        deltas.append(delta)
+    header = (
+        f"  {'Model':<34}  {'AP':>7}  {'AUC':>7}  {'F1':>7}  "
+        f"{'Prec':>7}  {'Rec':>7}"
+    )
+    print(header)
+    print("  " + "─" * 66)
+
+    for key, label in [
+        ("gnn",                "GNN (CrossScaleGNN)"),
+        ("marginal_prior",     "Marginal prior"),
+        ("short_scale_oracle", "Short-scale oracle (A_w35[t])"),
+    ]:
+        m = result.get(key, {})
         print(
-            f"  {r['fold']:>4}  {gnn_ap:>9.4f}  {pers_ap:>12.4f}  "
-            f"{and_ap:>9.4f}  {delta:>+7.4f}  {gnn_auc:>7.4f}"
+            f"  {label:<34}  "
+            f"{m.get('ap',  float('nan')):>7.4f}  "
+            f"{m.get('auc', float('nan')):>7.4f}  "
+            f"{m.get('f1',  float('nan')):>7.4f}  "
+            f"{m.get('prec',float('nan')):>7.4f}  "
+            f"{m.get('rec', float('nan')):>7.4f}"
         )
 
-    mean_ap  = float(np.nanmean(ap_gnns))
-    mean_del = float(np.nanmean(deltas))
-    print("  " + "─" * 62)
-    print(
-        f"  {'mean':>4}  {mean_ap:>9.4f}  {float(np.nanmean(ap_pers)):>12.4f}  "
-        f"{'':>9}  {mean_del:>+7.4f}"
-    )
-    print(f"\n  Mean GNN AP : {mean_ap:.4f}")
-    if mean_del > 0:
-        print(f"  ✓  GNN beats persistence by mean ΔAP={mean_del:+.4f}")
+    print("  " + "─" * 66)
+    delta_prior  = gnn_ap - prior_ap  if not np.isnan(gnn_ap + prior_ap)  else float("nan")
+    delta_oracle = gnn_ap - oracle_ap if not np.isnan(gnn_ap + oracle_ap) else float("nan")
+    print(f"  Δ AP vs marginal prior      : {delta_prior:+.4f}")
+    print(f"  Δ AP vs short-scale oracle  : {delta_oracle:+.4f}")
+
+    if delta_prior > 0 and delta_oracle > 0:
+        print("  ✓✓  GNN beats BOTH null models")
+    elif delta_prior > 0 or delta_oracle > 0:
+        print("  ✓   GNN beats one null model — marginal improvement")
     else:
-        print(f"  ✗  GNN does NOT beat persistence (mean ΔAP={mean_del:+.4f})")
-        print("     → Consider increasing focal γ, neg_ratio, or epochs.")
+        print("  ✗   GNN does NOT beat either null model")
+        print("      → Consider increasing focal γ, neg_ratio, or epochs.")
     print(f"{'═'*68}\n")
 
 
-def _save_csv(all_results: List[Dict], target_w: int, path: str):
+def _save_csv(result: Dict, target_w: int, path: str):
     rows = []
-    for r in all_results:
-        for model_key in ["gnn", "persistence", "and_rule"]:
-            m = r.get(model_key, {})
-            rows.append({
-                "target_w": target_w,
-                "fold":     r.get("fold", ""),
-                "model":    model_key,
-                "ap":       m.get("ap",    ""),
-                "auc":      m.get("auc",   ""),
-                "f1":       m.get("f1",    ""),
-                "prec":     m.get("prec",  ""),
-                "rec":      m.get("rec",   ""),
-                "brier":    m.get("brier", ""),
-            })
+    for model_key in ["gnn", "marginal_prior", "short_scale_oracle"]:
+        m = result.get(model_key, {})
+        rows.append({
+            "target_w": target_w,
+            "fold":     result.get("fold", ""),
+            "model":    model_key,
+            "ap":       m.get("ap",    ""),
+            "auc":      m.get("auc",   ""),
+            "f1":       m.get("f1",    ""),
+            "prec":     m.get("prec",  ""),
+            "rec":      m.get("rec",   ""),
+            "brier":    m.get("brier", ""),
+        })
 
     write_header = not os.path.isfile(path)
     with open(path, "a", newline="") as f:
@@ -703,6 +789,9 @@ if __name__ == "__main__":
         description=(
             "Train temporal GNN for cross-scale adjacency prediction.\n"
             "Source: A_w35 (w=35, ε=0.1)  →  Target: A_w120 or A_w180\n"
+            "\n"
+            "Uses a single expanding-window holdout split.\n"
+            "Baselines: marginal prior and short-scale oracle (A_w35[t]).\n"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -714,7 +803,7 @@ if __name__ == "__main__":
                         help="Directory containing IQDw{w}.pkl files.")
     parser.add_argument("--epochs", type=int,
                         default=p.GNN_EPOCHS,
-                        help=f"Training epochs per fold (default: {p.GNN_EPOCHS}).")
+                        help=f"Training epochs (default: {p.GNN_EPOCHS}).")
     parser.add_argument("--embed-dim", type=int,
                         default=p.GNN_EMBED_DIM,
                         help=f"Node embedding / GRU dimension (default: {p.GNN_EMBED_DIM}).")
@@ -727,9 +816,10 @@ if __name__ == "__main__":
     parser.add_argument("--lr", type=float,
                         default=p.GNN_LR,
                         help=f"Learning rate (default: {p.GNN_LR}).")
-    parser.add_argument("--n-splits", type=int,
-                        default=p.GNN_N_SPLITS,
-                        help=f"Number of CV folds (default: {p.GNN_N_SPLITS}).")
+    parser.add_argument("--holdout-frac", type=float, default=1.0 / 6.0,
+                        help="Fraction of target indices used for holdout evaluation "
+                             "(default: 1/6 ≈ 0.167, giving ~52 holdout steps "
+                             "with 315 weekly snapshots).")
     parser.add_argument("--save-dir", type=str, default=".",
                         help="Directory for model checkpoints.")
     parser.add_argument("--seed", type=int, default=p.RANDOM_SEED)
@@ -768,7 +858,7 @@ if __name__ == "__main__":
             dropout        = p.GNN_DROPOUT,
         )
 
-        fold_results = run_cross_validation(
+        result = run_training(
             target_w     = tw,
             pkldir       = pkldir,
             model_cfg    = model_cfg,
@@ -778,13 +868,13 @@ if __name__ == "__main__":
             epochs       = args.epochs,
             lr           = args.lr,
             weight_decay = p.GNN_WEIGHT_DECAY,
-            n_splits     = args.n_splits,
+            holdout_frac = args.holdout_frac,
             save_dir     = args.save_dir,
             seed         = args.seed,
         )
 
-        _print_summary(tw, fold_results)
-        if fold_results:
-            _save_csv(fold_results, tw, csv_path)
+        _print_summary(tw, result)
+        if result:
+            _save_csv(result, tw, csv_path)
 
     print("\nAll runs complete.")
