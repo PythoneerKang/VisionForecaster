@@ -69,7 +69,6 @@ from typing import List, Dict, Optional, Tuple
 import numpy as np
 import torch
 import torch.nn as nn
-from sklearn.model_selection import TimeSeriesSplit
 from sklearn.metrics import (
     roc_auc_score, average_precision_score,
     f1_score, precision_score, recall_score, brier_score_loss,
@@ -95,8 +94,8 @@ from extract_distance_matrices import (
 SOURCE_W    = 35
 SOURCE_EPS  = 0.1
 TARGET_CONFIGS = {
-    120: (0.4, 3),   # (epsilon, focal_gamma)
-    180: (0.6, 3),
+    120: (0.4, p.GNN_FOCAL_GAMMA_W120),   # (epsilon, focal_gamma)
+    180: (0.6, p.GNN_FOCAL_GAMMA_W180),
 }
 
 BAD_INDICES   = [6, 111, 128, 169, 170, 225]
@@ -309,7 +308,15 @@ def train_one_fold(
                 step = int(t) - 1 - lag
                 step = max(step, 0)
                 snap_short = adj_short[step]       # (N, N)
-                x  = build_node_features(sector_labels, snap_short).to(device)
+                snap_long_prev = adj_long[max(step - 1, 0)]
+                and_snapshot = np.logical_and(
+                    snap_short > 0.5, snap_long_prev > 0.5
+                ).astype(np.float32)
+                x  = build_node_features(
+                    sector_labels,
+                    adj_snapshot=snap_short,
+                    and_snapshot=and_snapshot,
+                ).to(device)
                 ei = adj_to_edge_index(snap_short).to(device)
                 feat_seq.append(x)
                 edge_seq.append(ei)
@@ -359,7 +366,15 @@ def train_one_fold(
                     step = int(t) - 1 - lag
                     step = max(step, 0)
                     snap_short = adj_short[step]
-                    x  = build_node_features(sector_labels, snap_short).to(device)
+                    snap_long_prev = adj_long[max(step - 1, 0)]
+                    and_snapshot = np.logical_and(
+                        snap_short > 0.5, snap_long_prev > 0.5
+                    ).astype(np.float32)
+                    x  = build_node_features(
+                        sector_labels,
+                        adj_snapshot=snap_short,
+                        and_snapshot=and_snapshot,
+                    ).to(device)
                     ei = adj_to_edge_index(snap_short).to(device)
                     feat_seq.append(x)
                     edge_seq.append(ei)
@@ -432,7 +447,15 @@ def train_one_fold(
             for lag in range(L - 1, -1, -1):
                 step = max(int(t) - 1 - lag, 0)
                 snap_short = adj_short[step]
-                x  = build_node_features(sector_labels, snap_short).to(device)
+                snap_long_prev = adj_long[max(step - 1, 0)]
+                and_snapshot = np.logical_and(
+                    snap_short > 0.5, snap_long_prev > 0.5
+                ).astype(np.float32)
+                x  = build_node_features(
+                    sector_labels,
+                    adj_snapshot=snap_short,
+                    and_snapshot=and_snapshot,
+                ).to(device)
                 ei = adj_to_edge_index(snap_short).to(device)
                 feat_seq.append(x)
                 edge_seq.append(ei)
@@ -547,39 +570,43 @@ def run_cross_validation(
     print(f"  Stocks: {N_STOCKS}  |  History lags: {history_lags}")
     print(f"  Model: {count_parameters(CrossScaleGNN(**model_cfg)):,} parameters\n")
 
-    # ── Time-series split ──────────────────────────────────────────────────
+    # ── Single expanding-window split (deployment-style holdout) ──────────
     # Split on target indices (1 … T_w-1); index 0 has no predecessor.
     target_indices = np.arange(1, T_w)
-    tscv = TimeSeriesSplit(n_splits=n_splits)
+    if n_splits < 1:
+        raise ValueError("n_splits must be >= 1")
+    holdout_steps = max(1, len(target_indices) // (n_splits + 1))
+    split_at = len(target_indices) - holdout_steps
+    if split_at <= 0:
+        raise ValueError("Not enough weekly snapshots for holdout split.")
 
-    fold_results = []
-    for fold, (train_rel, val_rel) in enumerate(tscv.split(target_indices), 1):
-        train_idx = target_indices[train_rel]
-        val_idx   = target_indices[val_rel]
+    train_idx = target_indices[:split_at]
+    val_idx = target_indices[split_at:]
+    print(
+        f"  Expanding-window split: train={len(train_idx)} steps, "
+        f"holdout={len(val_idx)} steps"
+    )
 
-        result = train_one_fold(
-            fold=fold,
-            train_idx=train_idx,
-            val_idx=val_idx,
-            adj_short=adj_short,
-            adj_long=adj_long,
-            sector_labels=sector_labels,
-            model_cfg=model_cfg,
-            focal_gamma=focal_gamma,
-            neg_ratio=neg_ratio,
-            history_lags=history_lags,
-            epochs=epochs,
-            lr=lr,
-            weight_decay=weight_decay,
-            save_dir=save_dir,
-            target_w=target_w,
-            rng=rng,
-            device=device,
-        )
-        if result:
-            fold_results.append(result)
-
-    return fold_results
+    result = train_one_fold(
+        fold=1,
+        train_idx=train_idx,
+        val_idx=val_idx,
+        adj_short=adj_short,
+        adj_long=adj_long,
+        sector_labels=sector_labels,
+        model_cfg=model_cfg,
+        focal_gamma=focal_gamma,
+        neg_ratio=neg_ratio,
+        history_lags=history_lags,
+        epochs=epochs,
+        lr=lr,
+        weight_decay=weight_decay,
+        save_dir=save_dir,
+        target_w=target_w,
+        rng=rng,
+        device=device,
+    )
+    return [result] if result else []
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -725,7 +752,7 @@ if __name__ == "__main__":
         _, focal_gamma = TARGET_CONFIGS[tw]
 
         model_cfg = dict(
-            in_dim         = 12,
+            in_dim         = 13,
             sage_hidden    = args.embed_dim,
             embed_dim      = args.embed_dim,
             gru_dim        = args.embed_dim,

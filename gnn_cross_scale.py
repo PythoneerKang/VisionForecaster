@@ -72,6 +72,7 @@ N_SECTORS = len(_SECTOR_TO_IDX)   # 11
 def build_node_features(
     sector_labels: List[str],
     adj_snapshot: Optional[np.ndarray] = None,
+    and_snapshot: Optional[np.ndarray] = None,
 ) -> torch.Tensor:
     """
     Build (N, F) node feature matrix for one time step.
@@ -79,8 +80,9 @@ def build_node_features(
     Features
     --------
         Columns 0–10  : GICS sector one-hot  (11 dims)
-        Column  11    : normalised degree in the current snapshot
-                        (0.0 when adj_snapshot is None — useful at init)
+        Column  11    : normalised degree in the current short-scale snapshot
+        Column  12    : normalised degree in the AND-rule snapshot
+                        (A_w35[t] AND A_wlong[t-1])
 
     Parameters
     ----------
@@ -88,12 +90,14 @@ def build_node_features(
                      Must match the stock ordering used in the adjacency matrix.
     adj_snapshot   : (N, N) binary float32 array, or None.
 
+    and_snapshot   : (N, N) binary float32 array of the AND-rule graph, or None.
+
     Returns
     -------
-    torch.Tensor of shape (N, 12), dtype float32.
+    torch.Tensor of shape (N, 13), dtype float32.
     """
     N = len(sector_labels)
-    feats = torch.zeros(N, N_SECTORS + 1, dtype=torch.float32)
+    feats = torch.zeros(N, N_SECTORS + 2, dtype=torch.float32)
 
     for i, name in enumerate(sector_labels):
         idx = _SECTOR_TO_IDX.get(name, 0)
@@ -103,6 +107,11 @@ def build_node_features(
         degree = adj_snapshot.sum(axis=1).astype(np.float32)
         max_deg = max(degree.max(), 1.0)
         feats[:, N_SECTORS] = torch.from_numpy(degree / max_deg)
+
+    if and_snapshot is not None:
+        and_degree = and_snapshot.sum(axis=1).astype(np.float32)
+        max_and_deg = max(and_degree.max(), 1.0)
+        feats[:, N_SECTORS + 1] = torch.from_numpy(and_degree / max_and_deg)
 
     return feats
 
@@ -194,7 +203,7 @@ class GraphSAGEEncoder(nn.Module):
 
     Parameters
     ----------
-    in_dim     : input node feature dimension (12 = 11 sectors + 1 degree)
+    in_dim     : input node feature dimension (13 = 11 sectors + 2 degree stats)
     hidden_dim : intermediate width
     embed_dim  : final node embedding dimension
     dropout    : applied between layers
@@ -202,7 +211,7 @@ class GraphSAGEEncoder(nn.Module):
 
     def __init__(
         self,
-        in_dim:     int = 12,
+        in_dim:     int = 13,
         hidden_dim: int = 64,
         embed_dim:  int = 64,
         dropout:    float = 0.1,
@@ -347,7 +356,7 @@ class CrossScaleGNN(nn.Module):
 
     Parameters
     ----------
-    in_dim         : node feature dimension (default 12)
+    in_dim         : node feature dimension (default 13)
     sage_hidden    : GraphSAGE intermediate width
     embed_dim      : GraphSAGE output / GRU input dimension
     gru_dim        : GRU hidden state dimension
@@ -357,7 +366,7 @@ class CrossScaleGNN(nn.Module):
 
     def __init__(
         self,
-        in_dim:         int   = 12,
+        in_dim:         int   = 13,
         sage_hidden:    int   = 64,
         embed_dim:      int   = 64,
         gru_dim:        int   = 64,

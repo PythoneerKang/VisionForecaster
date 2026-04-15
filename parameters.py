@@ -81,7 +81,7 @@ GNN_HISTORY_LAGS = 4
 # Negative:positive pair sampling ratio during training.
 # 10:1 keeps the training distribution balanced while covering diverse negatives.
 # Reduce to 5 if training is slow on CPU; increase to 20 if precision is low.
-GNN_NEG_RATIO = 10
+GNN_NEG_RATIO = 5
 
 # Focal loss gamma per target scale.
 # Higher gamma → stronger down-weighting of easy negatives.
@@ -89,8 +89,8 @@ GNN_NEG_RATIO = 10
 #   A_w180 target (imbalance ~402:1) → γ=3
 # These are stored in TARGET_CONFIGS inside train_cross_scale.py and
 # check_cross_scale_learnability.py; kept here for reference / override.
-GNN_FOCAL_GAMMA_W120 = 3
-GNN_FOCAL_GAMMA_W180 = 3
+GNN_FOCAL_GAMMA_W120 = 1
+GNN_FOCAL_GAMMA_W180 = 2
 
 # Dropout rate applied inside GraphSAGE layers and after GRU output.
 GNN_DROPOUT = 0.1
