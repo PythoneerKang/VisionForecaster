@@ -212,7 +212,6 @@ def _feature_names(source_ws: List[int], target_w: int, history_lags: int, first
     for k in range(first_lag, first_lag + history_lags):
         names.extend([f"w{target_w}_edge_lag{k}", f"deg{target_w}_i_lag{k}", f"deg{target_w}_j_lag{k}", f"deg{target_w}_absdiff_lag{k}", f"common_nbrs_w{target_w}_lag{k}", f"jaccard_w{target_w}_lag{k}"])
         for ws in source_ws:
-            # v6.3: Replaced 3-hop bridge with strict Local Bridge boolean
             names.extend([f"w{ws}_edge_lag{k}", f"is_local_bridge_w{ws}_lag{k}", f"deg{ws}_i_lag{k}", f"deg{ws}_j_lag{k}", f"deg{ws}_absdiff_lag{k}", f"common_nbrs_w{ws}_lag{k}", f"jaccard_w{ws}_lag{k}"])
             names.extend([f"neckness_w{ws}_i_lag{k}", f"neckness_w{ws}_j_lag{k}", f"cross_sector_deg_w{ws}_i_lag{k}", f"cross_sector_deg_w{ws}_j_lag{k}", f"clust_boundary_diff_w{ws}_lag{k}"])
     return names
@@ -243,7 +242,8 @@ def _build_pair_features_for_t(t, pair_i, pair_j, adj_sources, adj_target, secto
             com_s = s2[pair_i, pair_j]; uni_s = np.clip(deg_s[pair_i] + deg_s[pair_j] - com_s, 1, None)
             
             # v6.3 FIX: True Easley & Kleinberg Local Bridge boolean (O(1), no s3 matrix)
-            is_bridge = float(s[pair_i, pair_j] > 0 and com_s == 0)
+            # FIX: Use element-wise bitwise & instead of Python 'and' to support array pairs
+            is_bridge = ((s[pair_i, pair_j] > 0) & (com_s == 0)).astype(np.float32)
             
             feats.extend([
                 s[pair_i, pair_j],          
@@ -262,7 +262,6 @@ def _build_pair_features_for_t(t, pair_i, pair_j, adj_sources, adj_target, secto
             cross_sec_adj = s * (1.0 - same_sec_mat)
             cross_deg = cross_sec_adj.sum(axis=1)
             
-            # v6.3 FIX: Removed bridge_capacity, keeping 5 clean topological features
             feats.extend([
                 neckness[pair_i],                                         
                 neckness[pair_j],                                         
@@ -291,7 +290,6 @@ def _build_train_matrix(train_idx, adj_sources, adj_target, sector_ids, history_
         x_parts.append(_build_pair_features_for_t(int(t), pairs[:, 0], pairs[:, 1], adj_sources, adj_target, sector_ids, history_lags, first_lag, target_w))
         y_parts.append(labels.astype(np.int32))
     if not x_parts:
-        # v6.3 FIX: 12 features per source scale (down from 13)
         n_feats = 1 + (12 * len(adj_sources) + 6) * history_lags
         return np.zeros((0, n_feats), dtype=np.float32), np.zeros((0,), dtype=np.int32)
     return np.concatenate(x_parts), np.concatenate(y_parts)
@@ -585,7 +583,6 @@ def run_training(source_ws, target_w, pkldir, model_type, neg_ratio, history_lag
     print(f"  CROSS-SCALE GBDT  A_[{src_label}] -> A_w{target_w}")
     print(f"  Model: {chosen_mt}  |  first_lag={first_lag}  |  reg_alpha={reg_alpha}  |  Max Window={max_window_size}w  |  Parallel Folds={parallel_folds}  |  GBDT Threads={gbdt_n_jobs}")
     print(f"  Objective: F2 Early Stopping (patience=150)  |  LR={learning_rate}  |  Max Trees={n_estimators}")
-    # v6.3 FIX: Updated feature count log from 13 to 12
     print(f"  Features: Source+Neck (12/src) + Target (6) = {1 + (12 * len(source_ws) + 6) * history_lags} total")
     print("#" * 68)
     all_ws = list(set(source_ws + [target_w])); adj_dict, sector_labels, tickers_ordered = {}, None, None
