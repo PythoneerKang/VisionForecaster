@@ -3,33 +3,22 @@ train_cross_scale.py
 ====================
 Final production-ready cross-scale GBDT pipeline.
 
-Critical Fixes Applied (v6 — Early Stopping & LR Realignment)
+Critical Fixes Applied (v6.3 — Network Topology Cleanup)
 -------------------------------------------------------------------
-  1. [v6 FIX] F2-Aligned Early Stopping: Replaced binary_logloss with 
-     max-F2 as the primary stopping metric. Prevents premature stopping 
-     on logloss dominated by the negative class.
-  2. [v6 FIX] Increased Learning Rate: LR=0.1 (up from 0.02). Combined 
-     with F2 stopping, trees now learn meaningful splits before stopping.
-  3. [v6 FIX] Increased Patience: 150 iterations (up from 50). F2 is 
-     noisier than logloss and requires more tolerance.
-  4. [v6 FIX] Adjusted Tree Complexity: num_leaves=31, min_child_samples=50.
-     Matches higher LR, prevents overfitting on noise with few trees.
-  5. [v6 FIX] Re-enabled L1 Regularization: reg_alpha=0.1. Prevents 
-     single-feature domination that caused instant early stopping at v5.
-  6. [v5 FIX] Re-introduced Target-Scale features EXCLUSIVELY for ablation.
-  7. [v5 FIX] Memory Evaluation Speedup: O(1) precomputed 2-hop index lookups.
-  8. Exact Zero-Overlap Lag: first_lag = (2 * target_w) // 5.
-  9. F2-Aligned Thresholding: Calibration explicitly searches for best F2 threshold.
- 10. Subplot Timeline: Folds plotted on separate rows for clarity.
- 11. Dual Feature Snapshots: Raw and standardized (z-score) for visualization.
- 12. Fixed PKL Save Bug: Models now save correctly even with forced ablations.
- 13. Increased Holdout Sizes: Default calib/test steps raised to 12.
- 14. Full Interpretability: SHAP, PR baselines, and diagnostics for all variants.
- 15. Multiprocessing: Safely distributes CV folds across multiple CPUs.
- 16. Native Class Imbalance Handling: Uses LightGBM is_unbalance=True.
- 17. Synchronized Snapshots: Raw and standardized plots show identical stock pairs.
- 18. Maximized Temporal Folds: Accurate calculation to fully utilize all time steps.
- 19. Clear Test-Set Plot Labels: Diagnostic plots explicitly labeled.
+  1. [v6.3 FIX] Replaced 3-hop bridge path counting with a strict 
+     Easley & Kleinberg "Local Bridge" boolean (is_local_bridge). 
+     Drops 2 noisy features and eliminates O(N^3) matrix multiplication.
+  2. [v6.3 FIX] Reduced feature count from 13/src to 12/src.
+  3. [v6.2 FIX] Cleaned up redundant argparse boolean flags.
+  4. [v6.2 FIX] Changed --gbdt_n_jobs default to 1. Added auto-throttle 
+     warning to prevent CPU thrashing with --parallel_folds.
+  5. [v6.1 FIX] Training curves plot F1 (instead of Logloss) on the 
+     right axis for easier upward-convergence interpretation.
+  6. [v6 FIX] F2-Aligned Early Stopping, LR=0.1, Patience=150.
+  7. [v5 FIX] Re-introduced Target-Scale features EXCLUSIVELY for ablation.
+  8. [v5 FIX] Memory Evaluation Speedup: O(1) precomputed 2-hop lookups.
+  9. Exact Zero-Overlap Lag: first_lag = (2 * target_w) // 5.
+ 10. F2-Aligned Thresholding & Native Class Imbalance Handling.
 """
 
 import argparse
@@ -98,7 +87,6 @@ def _min_safe_lag(target_w: int) -> int:
     return (2 * target_w) // WEEKLY_STRIDE
 
 def _get_scale_dependent_l1(target_w: int) -> float:
-    # v6 FIX: Re-enabled mild L1 to prevent single-feature domination
     return 0.1
 
 
@@ -216,112 +204,71 @@ def _calibrate_on_calib_eval_on_test(y_true_calib, y_score_calib_raw, y_true_tes
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Feature Construction (v5: Target Ablation + O(1) Eval Speedup)
+# Feature Construction (v6.3: True Local Bridge Boolean)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _feature_names(source_ws: List[int], target_w: int, history_lags: int, first_lag: int) -> List[str]:
     names = ["same_sector"]
     for k in range(first_lag, first_lag + history_lags):
-        names.extend([
-            f"w{target_w}_edge_lag{k}", 
-            f"deg{target_w}_i_lag{k}", 
-            f"deg{target_w}_j_lag{k}", 
-            f"deg{target_w}_absdiff_lag{k}", 
-            f"common_nbrs_w{target_w}_lag{k}", 
-            f"jaccard_w{target_w}_lag{k}"
-        ])
-        
+        names.extend([f"w{target_w}_edge_lag{k}", f"deg{target_w}_i_lag{k}", f"deg{target_w}_j_lag{k}", f"deg{target_w}_absdiff_lag{k}", f"common_nbrs_w{target_w}_lag{k}", f"jaccard_w{target_w}_lag{k}"])
         for ws in source_ws:
-            names.extend([
-                f"w{ws}_edge_lag{k}", 
-                f"w{ws}_3hop_bridge_lag{k}",   
-                f"deg{ws}_i_lag{k}", 
-                f"deg{ws}_j_lag{k}", 
-                f"deg{ws}_absdiff_lag{k}", 
-                f"common_nbrs_w{ws}_lag{k}", 
-                f"jaccard_w{ws}_lag{k}"
-            ])
-            names.extend([
-                f"neckness_w{ws}_i_lag{k}",
-                f"neckness_w{ws}_j_lag{k}",
-                f"cross_sector_deg_w{ws}_i_lag{k}",
-                f"cross_sector_deg_w{ws}_j_lag{k}",
-                f"clust_boundary_diff_w{ws}_lag{k}",
-                f"bridge_capacity_w{ws}_lag{k}"
-            ])
+            # v6.3: Replaced 3-hop bridge with strict Local Bridge boolean
+            names.extend([f"w{ws}_edge_lag{k}", f"is_local_bridge_w{ws}_lag{k}", f"deg{ws}_i_lag{k}", f"deg{ws}_j_lag{k}", f"deg{ws}_absdiff_lag{k}", f"common_nbrs_w{ws}_lag{k}", f"jaccard_w{ws}_lag{k}"])
+            names.extend([f"neckness_w{ws}_i_lag{k}", f"neckness_w{ws}_j_lag{k}", f"cross_sector_deg_w{ws}_i_lag{k}", f"cross_sector_deg_w{ws}_j_lag{k}", f"clust_boundary_diff_w{ws}_lag{k}"])
     return names
 
 def _get_ablation_mask(feature_names: List[str], ablation: str, target_w: int) -> np.ndarray:
-    if ablation == "none":
-        return np.ones(len(feature_names), dtype=bool)
+    if ablation == "none": return np.ones(len(feature_names), dtype=bool)
     elif ablation == "pure_cross_scale":
-        return np.array([
-            not (
-                n.startswith(f"w{target_w}_") or 
-                n.startswith(f"deg{target_w}_") or
-                n.startswith(f"common_nbrs_w{target_w}_") or 
-                n.startswith(f"jaccard_w{target_w}_")
-            ) for n in feature_names
-        ])
+        return np.array([not (n.startswith(f"w{target_w}_") or n.startswith(f"deg{target_w}_") or n.startswith(f"common_nbrs_w{target_w}_") or n.startswith(f"jaccard_w{target_w}_")) for n in feature_names])
     raise ValueError(f"Unknown ablation: {ablation!r}")
 
 def _build_pair_features_for_t(t, pair_i, pair_j, adj_sources, adj_target, sector_ids, history_lags, first_lag, target_w):
     feats = [(sector_ids[pair_i] == sector_ids[pair_j]).astype(np.float32)]
-    
     same_sec_mat = (sector_ids[:, None] == sector_ids[None, :]).astype(np.float32)
     
     for k in range(first_lag, first_lag + history_lags):
         step = max(t - k, 0)
         
-        tgt = adj_target[step]
-        tgt_deg = tgt.sum(axis=1)
-        tgt_s2 = tgt @ tgt
-        tgt_com = tgt_s2[pair_i, pair_j]
-        tgt_uni = np.clip(tgt_deg[pair_i] + tgt_deg[pair_j] - tgt_com, 1, None)
+        # Target-Scale
+        tgt = adj_target[step]; tgt_deg = tgt.sum(axis=1); tgt_s2 = tgt @ tgt
+        tgt_com = tgt_s2[pair_i, pair_j]; tgt_uni = np.clip(tgt_deg[pair_i] + tgt_deg[pair_j] - tgt_com, 1, None)
+        feats.extend([tgt[pair_i, pair_j], tgt_deg[pair_i], tgt_deg[pair_j], np.abs(tgt_deg[pair_i] - tgt_deg[pair_j]), tgt_com, tgt_com / tgt_uni])
         
-        feats.extend([
-            tgt[pair_i, pair_j],                      
-            tgt_deg[pair_i],                          
-            tgt_deg[pair_j],                          
-            np.abs(tgt_deg[pair_i] - tgt_deg[pair_j]),  
-            tgt_com,                                  
-            tgt_com / tgt_uni                           
-        ])
-        
+        # Source-Scale + Neck
         for ws, adj_s in adj_sources.items():
-            s = adj_s[step]
+            s = adj_s[step]; deg_s = s.sum(axis=1); s2 = s @ s
             
-            deg_s = s.sum(axis=1)
-            s2 = s @ s
+            # O(1) Lookups
+            com_s = s2[pair_i, pair_j]; uni_s = np.clip(deg_s[pair_i] + deg_s[pair_j] - com_s, 1, None)
+            
+            # v6.3 FIX: True Easley & Kleinberg Local Bridge boolean (O(1), no s3 matrix)
+            is_bridge = float(s[pair_i, pair_j] > 0 and com_s == 0)
+            
+            feats.extend([
+                s[pair_i, pair_j],          
+                is_bridge,                # Clean boolean replacement for 3hop paths
+                deg_s[pair_i],             
+                deg_s[pair_j],             
+                np.abs(deg_s[pair_i] - deg_s[pair_j]),  
+                com_s,                     
+                com_s / uni_s              
+            ])
+            
+            # Topological (Neck)
             triangles_i = (s * s2).sum(axis=1) / 2.0
             clust_coeff = (2.0 * triangles_i) / (deg_s * (deg_s - 1.0) + 1e-6)
-            
             neckness = 1.0 - clust_coeff
             cross_sec_adj = s * (1.0 - same_sec_mat)
             cross_deg = cross_sec_adj.sum(axis=1)
-            s3 = s2 @ s
-            bridge_paths_3hop = s3 * (1.0 - s) * (1.0 - (s2 > 0).astype(np.float32))
             
-            com_s = s2[pair_i, pair_j]
-            uni_s = np.clip(deg_s[pair_i] + deg_s[pair_j] - com_s, 1, None)
-            
-            feats.extend([
-                s[pair_i, pair_j],                      
-                bridge_paths_3hop[pair_i, pair_j],      
-                deg_s[pair_i],                          
-                deg_s[pair_j],                          
-                np.abs(deg_s[pair_i] - deg_s[pair_j]),  
-                com_s,                                  
-                com_s / uni_s                           
-            ])
-            
+            # v6.3 FIX: Removed bridge_capacity, keeping 5 clean topological features
             feats.extend([
                 neckness[pair_i],                                         
                 neckness[pair_j],                                         
                 cross_deg[pair_i],                                        
                 cross_deg[pair_j],                                        
-                np.abs(clust_coeff[pair_i] - clust_coeff[pair_j]),        
-                bridge_paths_3hop[pair_i, pair_j] / (deg_s[pair_i] + 1e-6) 
+                np.abs(clust_coeff[pair_i] - clust_coeff[pair_j])        
             ])
             
     return np.column_stack(feats).astype(np.float32)
@@ -344,7 +291,8 @@ def _build_train_matrix(train_idx, adj_sources, adj_target, sector_ids, history_
         x_parts.append(_build_pair_features_for_t(int(t), pairs[:, 0], pairs[:, 1], adj_sources, adj_target, sector_ids, history_lags, first_lag, target_w))
         y_parts.append(labels.astype(np.int32))
     if not x_parts:
-        n_feats = 1 + (13 * len(adj_sources) + 6) * history_lags
+        # v6.3 FIX: 12 features per source scale (down from 13)
+        n_feats = 1 + (12 * len(adj_sources) + 6) * history_lags
         return np.zeros((0, n_feats), dtype=np.float32), np.zeros((0,), dtype=np.int32)
     return np.concatenate(x_parts), np.concatenate(y_parts)
 
@@ -362,163 +310,74 @@ def _build_eval_matrix(eval_idx, adj_sources, adj_target, sector_ids, history_la
 
 def _plot_dataset_timeline(all_target_idx, folds, t_w, first_lag, out_dir, prefix):
     if plt is None: return
-    n_folds = len(folds)
-    fig, axes = plt.subplots(n_folds, 1, figsize=(14, 2.5 * n_folds), sharex=True)
+    n_folds = len(folds); fig, axes = plt.subplots(n_folds, 1, figsize=(14, 2.5 * n_folds), sharex=True)
     if n_folds == 1: axes = [axes]
-
-    colors = ["steelblue", "lightblue", "lightgray", "orange", "red"]
-    labels = ["Train (Rolling)", "Train (Tail-Eval)", "Gap", "Calibration", "Test"]
-
+    colors = ["steelblue", "lightblue", "lightgray", "orange", "red"]; labels = ["Train (Rolling)", "Train (Tail-Eval)", "Gap", "Calibration", "Test"]
     for i, (ax, (tr_idx, ca_idx, te_idx)) in enumerate(zip(axes, folds)):
-        tail_n = max(10, int(len(tr_idx) * 0.2))
-        tr_early_end = tr_idx[-tail_n-1] if tail_n < len(tr_idx) else tr_idx[0]
-
-        ax.axvspan(tr_idx[0], tr_early_end, color=colors[0], alpha=0.6)
-        ax.axvspan(tr_idx[-tail_n], tr_idx[-1], color=colors[1], alpha=0.8)
-        ax.axvspan(tr_idx[-1]+1, ca_idx[0]-1, color=colors[2], alpha=0.4)
-        ax.axvspan(ca_idx[0], ca_idx[-1], color=colors[3], alpha=0.6)
-        ax.axvspan(te_idx[0], te_idx[-1], color=colors[4], alpha=0.6)
-
-        ax.set_yticks([])
-        ax.set_ylabel(f"Fold {i+1}", fontsize=10, fontweight='bold', rotation=0, labelpad=25)
-
-        ax.text(0.98, 0.5, f"Tr:{len(tr_idx)} Ca:{len(ca_idx)} Te:{len(te_idx)}",
-                transform=ax.transAxes, ha='right', va='center', fontsize=8, color='black',
-                bbox=dict(facecolor='white', alpha=0.7, edgecolor='none'))
-
+        tail_n = max(10, int(len(tr_idx) * 0.2)); tr_early_end = tr_idx[-tail_n-1] if tail_n < len(tr_idx) else tr_idx[0]
+        ax.axvspan(tr_idx[0], tr_early_end, color=colors[0], alpha=0.6); ax.axvspan(tr_idx[-tail_n], tr_idx[-1], color=colors[1], alpha=0.8)
+        ax.axvspan(tr_idx[-1]+1, ca_idx[0]-1, color=colors[2], alpha=0.4); ax.axvspan(ca_idx[0], ca_idx[-1], color=colors[3], alpha=0.6); ax.axvspan(te_idx[0], te_idx[-1], color=colors[4], alpha=0.6)
+        ax.set_yticks([]); ax.set_ylabel(f"Fold {i+1}", fontsize=10, fontweight='bold', rotation=0, labelpad=25)
+        ax.text(0.98, 0.5, f"Tr:{len(tr_idx)} Ca:{len(ca_idx)} Te:{len(te_idx)}", transform=ax.transAxes, ha='right', va='center', fontsize=8, color='black', bbox=dict(facecolor='white', alpha=0.7, edgecolor='none'))
     legend_elements = [Patch(facecolor=c, alpha=0.7, label=l) for c, l in zip(colors, labels)]
-    axes[0].legend(handles=legend_elements, loc="upper left", ncol=5, fontsize=8)
-
-    axes[-1].set_xlim(0, t_w)
-    axes[-1].set_xlabel("Weekly Snapshot Index (t)")
-    fig.suptitle(f"Temporal Data Split Overview (first_lag={first_lag} weeks)", fontsize=12, y=1.01)
-    fig.tight_layout()
-    fig.savefig(out_dir / f"{prefix}_data_timeline.png", dpi=150, bbox_inches='tight')
-    plt.close(fig)
+    axes[0].legend(handles=legend_elements, loc="upper left", ncol=5, fontsize=8); axes[-1].set_xlim(0, t_w); axes[-1].set_xlabel("Weekly Snapshot Index (t)")
+    fig.suptitle(f"Temporal Data Split Overview (first_lag={first_lag} weeks)", fontsize=12, y=1.01); fig.tight_layout()
+    fig.savefig(out_dir / f"{prefix}_data_timeline.png", dpi=150, bbox_inches='tight'); plt.close(fig)
 
 def _reorder_features_by_category(feature_names, target_w):
-    cat_order = [
-        "Sector Prior", 
-        "Target-Scale Attrs", 
-        "Source-Scale Standard Attrs", 
-        "Source-Scale 3-Hop Bridge", 
-        "Source-Scale Topological (Neck)"
-    ]
+    cat_order = ["Sector Prior", "Target-Scale Attrs", "Source-Scale Standard Attrs", "Source-Scale Topological (Neck/Bridge)"]
     mapping = {k: [] for k in cat_order}
     for i, name in enumerate(feature_names):
-        if "same_sector" in name: 
-            mapping["Sector Prior"].append(i)
-        elif (name.startswith(f"w{target_w}_edge") or 
-              name.startswith(f"deg{target_w}_") or
-              name.startswith(f"common_nbrs_w{target_w}_") or 
-              name.startswith(f"jaccard_w{target_w}_")): 
-            mapping["Target-Scale Attrs"].append(i)
-        elif "neckness" in name or "cross_sector_deg" in name or "clust_boundary" in name or "bridge_capacity" in name: 
-            mapping["Source-Scale Topological (Neck)"].append(i)
-        elif "3hop_bridge" in name: 
-            mapping["Source-Scale 3-Hop Bridge"].append(i)
-        else: 
-            mapping["Source-Scale Standard Attrs"].append(i)
-            
+        if "same_sector" in name: mapping["Sector Prior"].append(i)
+        elif (name.startswith(f"w{target_w}_edge") or name.startswith(f"deg{target_w}_") or name.startswith(f"common_nbrs_w{target_w}_") or name.startswith(f"jaccard_w{target_w}_")): mapping["Target-Scale Attrs"].append(i)
+        elif "neckness" in name or "cross_sector_deg" in name or "clust_boundary" in name or "is_local_bridge" in name: mapping["Source-Scale Topological (Neck/Bridge)"].append(i)
+        else: mapping["Source-Scale Standard Attrs"].append(i)
     ordered_indices, ordered_names, boundaries = [], [], []
     for cat in cat_order:
-        if mapping[cat]:
-            ordered_indices.extend(mapping[cat])
-            ordered_names.extend([feature_names[idx] for idx in mapping[cat]])
-            boundaries.append(len(ordered_names) - 0.5)
+        if mapping[cat]: ordered_indices.extend(mapping[cat]); ordered_names.extend([feature_names[idx] for idx in mapping[cat]]); boundaries.append(len(ordered_names) - 0.5)
     return np.array(ordered_indices, dtype=np.intp), ordered_names, boundaries
 
 def _get_snapshot_indices(y_sample, rng, n_per_class=10):
     pos_idx, neg_idx = np.where(y_sample == 1)[0], np.where(y_sample == 0)[0]
-    if len(pos_idx) > 0 and len(neg_idx) > 0:
-        sampled_pos = rng.choice(pos_idx, size=min(n_per_class, len(pos_idx)), replace=False)
-        sampled_neg = rng.choice(neg_idx, size=min(n_per_class, len(neg_idx)), replace=False)
-        chosen_idx = np.concatenate([sampled_pos, sampled_neg])
-    else:
-        chosen_idx = np.arange(min(20, len(y_sample)))
-    rng.shuffle(chosen_idx)
-    return chosen_idx
+    if len(pos_idx) > 0 and len(neg_idx) > 0: chosen_idx = np.concatenate([rng.choice(pos_idx, size=min(n_per_class, len(pos_idx)), replace=False), rng.choice(neg_idx, size=min(n_per_class, len(neg_idx)), replace=False)])
+    else: chosen_idx = np.arange(min(20, len(y_sample)))
+    rng.shuffle(chosen_idx); return chosen_idx
 
 def _plot_feature_snapshot(x_sample, y_sample, feature_names, out_dir, prefix, tickers=None, chosen_idx=None, target_w=0):
     if plt is None: return
-    if chosen_idx is None:
-        rng = np.random.default_rng(0)
-        chosen_idx = _get_snapshot_indices(y_sample, rng)
-
+    if chosen_idx is None: chosen_idx = _get_snapshot_indices(y_sample, np.random.default_rng(0))
     ordered_idx, ordered_names, boundaries = _reorder_features_by_category(feature_names, target_w)
-    
-    sort_order = np.argsort(y_sample[chosen_idx])
-    sorted_idx = chosen_idx[sort_order]
-    
-    data = x_sample[sorted_idx][:, ordered_idx]
-    y_chosen = y_sample[sorted_idx]; n_rows = len(data)
-
-    fig = plt.figure(figsize=(max(16, len(ordered_names)*0.25), n_rows*0.45))
-    ax = fig.add_axes([0.0, 0.0, 0.75, 1.0])
-    
-    cax = ax.imshow(data, aspect='auto', cmap='viridis')
-    
+    sort_order = np.argsort(y_sample[chosen_idx]); sorted_idx = chosen_idx[sort_order]
+    data = x_sample[sorted_idx][:, ordered_idx]; y_chosen = y_sample[sorted_idx]; n_rows = len(data)
+    fig = plt.figure(figsize=(max(16, len(ordered_names)*0.25), n_rows*0.45)); ax = fig.add_axes([0.0, 0.0, 0.75, 1.0]); cax = ax.imshow(data, aspect='auto', cmap='viridis')
     if tickers is not None:
         triu_i, triu_j = np.triu_indices(N_STOCKS, k=1); n_pairs = len(triu_i)
         ytick_labels = [f"{tickers[triu_i[p % n_pairs]]}-{tickers[triu_j[p % n_pairs]]}" for p in sorted_idx]
     else: ytick_labels = [f"Pair {i}" for i in range(n_rows)]
-        
-    ax.set_yticks(range(n_rows)); ax.set_yticklabels(ytick_labels, fontsize=7)
-    ax.set_xticks(range(len(ordered_names))); ax.set_xticklabels(ordered_names, rotation=90, ha='right', fontsize=5)
+    ax.set_yticks(range(n_rows)); ax.set_yticklabels(ytick_labels, fontsize=7); ax.set_xticks(range(len(ordered_names))); ax.set_xticklabels(ordered_names, rotation=90, ha='right', fontsize=5)
     for b in boundaries[:-1]: ax.axvline(x=b, color='white', linewidth=2.0)
-    
-    cbar = fig.colorbar(cax, ax=ax, location='right', shrink=1.0, pad=0.05)
-    
+    fig.colorbar(cax, ax=ax, location='right', shrink=1.0, pad=0.05)
     label_x = len(ordered_names) + 0.2
-    for i in range(n_rows):
-        ax.text(label_x, i, f"y={int(y_chosen[i])}", va='center', ha='left',
-                color='red' if y_chosen[i]==1 else 'black', fontsize=8, fontweight='bold',
-                clip_on=False)
-    
-    ax.set_title("Feature Matrix Snapshot (Raw Values) - Grouped by y-value", fontsize=10)
-    fig.savefig(out_dir / f"{prefix}_feature_snapshot.png", dpi=150, bbox_inches='tight'); plt.close(fig)
-
+    for i in range(n_rows): ax.text(label_x, i, f"y={int(y_chosen[i])}", va='center', ha='left', color='red' if y_chosen[i]==1 else 'black', fontsize=8, fontweight='bold', clip_on=False)
+    ax.set_title("Feature Matrix Snapshot (Raw Values) - Grouped by y-value", fontsize=10); fig.savefig(out_dir / f"{prefix}_feature_snapshot.png", dpi=150, bbox_inches='tight'); plt.close(fig)
 
 def _plot_feature_snapshot_standardized(x_sample, y_sample, feature_names, out_dir, prefix, tickers=None, chosen_idx=None, target_w=0):
     if plt is None: return
-    if chosen_idx is None:
-        rng = np.random.default_rng(0)
-        chosen_idx = _get_snapshot_indices(y_sample, rng)
-
+    if chosen_idx is None: chosen_idx = _get_snapshot_indices(y_sample, np.random.default_rng(0))
     ordered_idx, ordered_names, boundaries = _reorder_features_by_category(feature_names, target_w)
-    
-    sort_order = np.argsort(y_sample[chosen_idx])
-    sorted_idx = chosen_idx[sort_order]
-    
-    n_rows = len(sorted_idx)
-    y_chosen = y_sample[sorted_idx]
-    
+    sort_order = np.argsort(y_sample[chosen_idx]); sorted_idx = chosen_idx[sort_order]; n_rows = len(sorted_idx); y_chosen = y_sample[sorted_idx]
     vis_data = (x_sample[sorted_idx][:, ordered_idx] - x_sample[sorted_idx][:, ordered_idx].mean(axis=0)) / (x_sample[sorted_idx][:, ordered_idx].std(axis=0) + 1e-6)
-
-    fig = plt.figure(figsize=(max(16, len(ordered_names)*0.25), n_rows*0.45))
-    ax = fig.add_axes([0.0, 0.0, 0.75, 1.0])
-    
-    cax = ax.imshow(vis_data, aspect='auto', cmap='viridis', vmin=-2, vmax=2)
-    
+    fig = plt.figure(figsize=(max(16, len(ordered_names)*0.25), n_rows*0.45)); ax = fig.add_axes([0.0, 0.0, 0.75, 1.0]); cax = ax.imshow(vis_data, aspect='auto', cmap='viridis', vmin=-2, vmax=2)
     if tickers is not None:
         triu_i, triu_j = np.triu_indices(N_STOCKS, k=1); n_pairs = len(triu_i)
         ytick_labels = [f"{tickers[triu_i[p % n_pairs]]}-{tickers[triu_j[p % n_pairs]]}" for p in sorted_idx]
     else: ytick_labels = [f"Pair {i}" for i in range(n_rows)]
-        
-    ax.set_yticks(range(n_rows)); ax.set_yticklabels(ytick_labels, fontsize=7)
-    ax.set_xticks(range(len(ordered_names))); ax.set_xticklabels(ordered_names, rotation=90, ha='right', fontsize=5)
+    ax.set_yticks(range(n_rows)); ax.set_yticklabels(ytick_labels, fontsize=7); ax.set_xticks(range(len(ordered_names))); ax.set_xticklabels(ordered_names, rotation=90, ha='right', fontsize=5)
     for b in boundaries[:-1]: ax.axvline(x=b, color='white', linewidth=2.0)
-    
-    cbar = fig.colorbar(cax, ax=ax, location='right', shrink=1.0, pad=0.05)
-    
+    fig.colorbar(cax, ax=ax, location='right', shrink=1.0, pad=0.05)
     label_x = len(ordered_names) + 0.2
-    for i in range(n_rows):
-        ax.text(label_x, i, f"y={int(y_chosen[i])}", va='center', ha='left',
-                color='red' if y_chosen[i]==1 else 'black', fontsize=8, fontweight='bold',
-                clip_on=False)
-    
-    ax.set_title("Feature Matrix Snapshot (Z-Score Standardized) - Grouped by y-value", fontsize=10)
-    fig.savefig(out_dir / f"{prefix}_feature_snapshot_standardized.png", dpi=150, bbox_inches='tight'); plt.close(fig)
+    for i in range(n_rows): ax.text(label_x, i, f"y={int(y_chosen[i])}", va='center', ha='left', color='red' if y_chosen[i]==1 else 'black', fontsize=8, fontweight='bold', clip_on=False)
+    ax.set_title("Feature Matrix Snapshot (Z-Score Standardized) - Grouped by y-value", fontsize=10); fig.savefig(out_dir / f"{prefix}_feature_snapshot_standardized.png", dpi=150, bbox_inches='tight'); plt.close(fig)
 
 def _plot_baseline_pr_comparison(y_true, scores_dict, out_dir, prefix):
     if plt is None: return
@@ -526,66 +385,41 @@ def _plot_baseline_pr_comparison(y_true, scores_dict, out_dir, prefix):
     colors, linestyles = {"Marginal Prior": "gray", "Oracle": "black", "Full": "steelblue", "Pure Cross-Scale": "crimson"}, {"Marginal Prior": ":", "Oracle": "--", "Full": "-", "Pure Cross-Scale": "-."}
     base_rate = float(y_true.mean())
     for name, y_score in scores_dict.items():
-        if name == "Marginal Prior":
-            ax.plot([0.0, 1.0], [base_rate, base_rate], label=f"{name} (AP={base_rate:.4f})", color=colors.get(name, "blue"), linestyle=linestyles.get(name, "-"), linewidth=2.5)
-            continue
-        try:
-            ap = average_precision_score(y_true, y_score)
-        except ValueError:
-            ap = float("nan")
-
+        if name == "Marginal Prior": ax.plot([0.0, 1.0], [base_rate, base_rate], label=f"{name} (AP={base_rate:.4f})", color=colors.get(name, "blue"), linestyle=linestyles.get(name, "-"), linewidth=2.5); continue
+        try: ap = average_precision_score(y_true, y_score)
+        except ValueError: ap = float("nan")
         sort_idx = np.argsort(-y_score); sorted_scores, sorted_true = y_score[sort_idx], y_true[sort_idx]
         cum_tp = np.cumsum(sorted_true); cum_total = np.arange(1, len(sorted_true) + 1)
         precision, recall = cum_tp / cum_total, cum_tp / max(cum_tp[-1], 1)
         recall, precision = np.concatenate([[0.0], recall]), np.concatenate([[base_rate], precision])
         ax.plot(recall, precision, label=f"{name} (AP={ap:.4f})", color=colors.get(name, "blue"), linestyle=linestyles.get(name, "-"), linewidth=2 if "Prior" not in name else 1.5)
-    ax.set_xlabel("Recall"); ax.set_ylabel("Precision"); ax.set_title("Precision-Recall: Models vs Null Baselines (Final Test Set)")
-    ax.legend(loc="upper right", fontsize=9); ax.grid(True, alpha=0.3); fig.tight_layout(); fig.savefig(out_dir / f"{prefix}_baseline_comparison_pr.png", dpi=150); plt.close(fig)
+    ax.set_xlabel("Recall"); ax.set_ylabel("Precision"); ax.set_title("Precision-Recall: Models vs Null Baselines (Final Test Set)"); ax.legend(loc="upper right", fontsize=9); ax.grid(True, alpha=0.3); fig.tight_layout(); fig.savefig(out_dir / f"{prefix}_baseline_comparison_pr.png", dpi=150); plt.close(fig)
 
 def _plot_training_curves(curves, out_dir, prefix):
     if plt is None or not curves: return
-    palette = {"Full": "steelblue", "pure_cross_scale": "crimson"}
-    fig, ax1 = plt.subplots(figsize=(10, 6))
-    ax2 = ax1.twinx()
-
+    palette = {"Full": "steelblue", "pure_cross_scale": "crimson"}; fig, ax1 = plt.subplots(figsize=(10, 6)); ax2 = ax1.twinx()
     for label, curve, best_iter in curves:
-        c = palette.get(label, "gray")
-        ax1.plot(curve["iterations"], curve["f2"], label=f"{label} F2 (stop)", color=c, linewidth=2)
-        ax1.axvline(best_iter, color=c, linestyle="--", alpha=0.4)
-
-        if "logloss" in curve:
-            ax2.plot(curve["iterations"], curve["logloss"], label=f"{label} Logloss (ref)", color=c, linewidth=2, linestyle=":", alpha=0.8)
-
-    ax1.set_xlabel("Iteration")
-    ax1.set_ylabel("Max-F2 (Stopping Metric)", color="black")
-    ax2.set_ylabel("Logloss (Reference)", color="gray")
-    ax1.set_title("Learning Curves: F2 (Left, Stopping) vs Logloss (Right, Reference)")
-    ax1.grid(True, alpha=0.3)
-
-    (l1, lb1), (l2, lb2) = ax1.get_legend_handles_labels(), ax2.get_legend_handles_labels()
-    ax1.legend(l1+l2, lb1+lb2, fontsize=9, loc="center right")
-    fig.tight_layout()
-    fig.savefig(out_dir / f"{prefix}_training_curve.png", dpi=150)
-    plt.close(fig)
+        c = palette.get(label, "gray"); ax1.plot(curve["iterations"], curve["f2"], label=f"{label} Max-F2 (stop)", color=c, linewidth=2); ax1.axvline(best_iter, color=c, linestyle="--", alpha=0.4)
+        if "f1" in curve: ax2.plot(curve["iterations"], curve["f1"], label=f"{label} Max-F1 (ref)", color=c, linewidth=2, linestyle=":", alpha=0.8)
+    ax1.set_xlabel("Iteration"); ax1.set_ylabel("Max-F2 (Stopping Metric)", color="black"); ax2.set_ylabel("Max-F1 (Reference)", color="gray")
+    ax1.set_title("Learning Curves: F2 (Left, Stopping) vs F1 (Right, Reference)"); ax1.grid(True, alpha=0.3)
+    (l1, lb1), (l2, lb2) = ax1.get_legend_handles_labels(), ax2.get_legend_handles_labels(); ax1.legend(l1+l2, lb1+lb2, fontsize=9, loc="center right"); fig.tight_layout(); fig.savefig(out_dir / f"{prefix}_training_curve.png", dpi=150); plt.close(fig)
 
 def _plot_model_diagnostics(y_true, y_score, threshold, out_dir, prefix):
     if plt is None: return
     pr, rc, th = precision_recall_curve(y_true, y_score)
     fig, ax = plt.subplots(figsize=(6,5)); ax.plot(rc, pr); ax.set_title("PR Curve (Final Test Set)"); fig.tight_layout(); fig.savefig(out_dir / f"{prefix}_pr_curve.png", dpi=150); plt.close(fig)
-    f1 = (2*pr[:-1]*rc[:-1])/(pr[:-1]+rc[:-1]+1e-12)
-    f2 = (5*pr[:-1]*rc[:-1])/(4*pr[:-1]+rc[:-1]+1e-12)
+    f1 = (2*pr[:-1]*rc[:-1])/(pr[:-1]+rc[:-1]+1e-12); f2 = (5*pr[:-1]*rc[:-1])/(4*pr[:-1]+rc[:-1]+1e-12)
     fig, ax = plt.subplots(figsize=(7,5)); ax.plot(th, f1, label="F1"); ax.plot(th, f2, label="F2"); ax.plot(th, pr[:-1], label="Prec"); ax.plot(th, rc[:-1], label="Rec")
     ax.axvline(threshold, linestyle="--", color="black", label=f"thr={threshold:.3f}"); ax.legend(); ax.set_title("Metrics vs Threshold (Final Test Set)"); fig.tight_layout(); fig.savefig(out_dir / f"{prefix}_threshold_curves.png", dpi=150); plt.close(fig)
     cm = confusion_matrix(y_true, (y_score>=threshold).astype(int), labels=[0,1])
-    fig, ax = plt.subplots(figsize=(5,4)); im=ax.imshow(cm, cmap="Blues")
-    ax.set_xticks([0,1]); ax.set_xticklabels(["Pred 0","Pred 1"]); ax.set_yticks([0,1]); ax.set_yticklabels(["True 0","True 1"])
+    fig, ax = plt.subplots(figsize=(5,4)); im=ax.imshow(cm, cmap="Blues"); ax.set_xticks([0,1]); ax.set_xticklabels(["Pred 0","Pred 1"]); ax.set_yticks([0,1]); ax.set_yticklabels(["True 0","True 1"])
     for r in range(2):
         for c in range(2): ax.text(c, r, str(cm[r,c]), ha="center", va="center", color="black")
     ax.set_title("Confusion Matrix (Final Test Set)"); fig.colorbar(im, ax=ax); fig.tight_layout(); fig.savefig(out_dir / f"{prefix}_confusion_matrix.png", dpi=150); plt.close(fig)
     try:
         frac_pos, mean_pred = calibration_curve(y_true, y_score, n_bins=10, strategy="quantile")
-        fig, ax = plt.subplots(figsize=(6,5)); ax.plot(mean_pred, frac_pos, "o-", label="Model"); ax.plot([0,1],[0,1], "--", label="Perfect"); ax.legend(); ax.set_title("Calibration Curve (Final Test Set)")
-        fig.tight_layout(); fig.savefig(out_dir / f"{prefix}_calibration_curve.png", dpi=150); plt.close(fig)
+        fig, ax = plt.subplots(figsize=(6,5)); ax.plot(mean_pred, frac_pos, "o-", label="Model"); ax.plot([0,1],[0,1], "--", label="Perfect"); ax.legend(); ax.set_title("Calibration Curve (Final Test Set)"); fig.tight_layout(); fig.savefig(out_dir / f"{prefix}_calibration_curve.png", dpi=150); plt.close(fig)
     except Exception: pass
     fig, ax = plt.subplots(figsize=(7,4)); ax.hist(y_score[y_true==0], bins=40, alpha=0.6, label="y=0"); ax.hist(y_score[y_true==1], bins=40, alpha=0.6, label="y=1")
     ax.axvline(threshold, linestyle="--", color="black", label=f"thr={threshold:.3f}"); ax.set_xlabel("Predicted Prob"); ax.set_ylabel("Count"); ax.set_title("Score Distribution by Class (Final Test Set)"); ax.legend(); fig.tight_layout(); fig.savefig(out_dir / f"{prefix}_score_histogram.png", dpi=150); plt.close(fig)
@@ -594,46 +428,50 @@ def _plot_feature_importance(model, feature_names, out_dir, prefix):
     if plt is None or not hasattr(model, "feature_importances_"): return
     imp = np.asarray(model.feature_importances_, dtype=np.float64)
     if len(imp) != len(feature_names): return
-    idx = np.argsort(imp)[::-1][:20]
-    fig, ax = plt.subplots(figsize=(10,6)); ax.barh(np.array(feature_names)[idx][::-1], imp[idx][::-1]); ax.set_title("Top-20 Feature Importance"); fig.tight_layout(); fig.savefig(out_dir / f"{prefix}_feature_importance.png", dpi=150); plt.close(fig)
+    idx = np.argsort(imp)[::-1][:20]; fig, ax = plt.subplots(figsize=(10,6)); ax.barh(np.array(feature_names)[idx][::-1], imp[idx][::-1]); ax.set_title("Top-20 Feature Importance"); fig.tight_layout(); fig.savefig(out_dir / f"{prefix}_feature_importance.png", dpi=150); plt.close(fig)
 
 def _plot_shap_summary(model, x_sample, feature_names, out_dir, prefix):
     if plt is None or shap is None: return
     try:
-        explainer = shap.TreeExplainer(model); vals = explainer.shap_values(x_sample)
-        v = vals[1] if isinstance(vals, list) and len(vals)==2 else vals
-        fig = plt.figure(); shap.summary_plot(v, x_sample, feature_names=feature_names, show=False)
-        plt.tight_layout(); fig.savefig(out_dir / f"{prefix}_shap_summary.png", dpi=150, bbox_inches='tight'); plt.close(fig)
+        explainer = shap.TreeExplainer(model); vals = explainer.shap_values(x_sample); v = vals[1] if isinstance(vals, list) and len(vals)==2 else vals
+        fig = plt.figure(); shap.summary_plot(v, x_sample, feature_names=feature_names, show=False); plt.tight_layout(); fig.savefig(out_dir / f"{prefix}_shap_summary.png", dpi=150, bbox_inches='tight'); plt.close(fig)
     except Exception as err: print(f"  SHAP skipped: {err}")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Custom Metrics & Model Fitting (v6: F2 Early Stopping)
+# Custom Metrics & Model Fitting
 # ─────────────────────────────────────────────────────────────────────────────
 
-_f2_subsample_idx = None
-_f2_subsample_n = -1
+_f2_subsample_idx, _f2_subsample_n = None, -1
+_f1_subsample_idx, _f1_subsample_n = None, -1
 
 def _f2_lgb(y_true, y_pred):
-    """Raw max-F2 score — used as primary early stopping metric."""
     global _f2_subsample_idx, _f2_subsample_n
     try:
-        n = len(y_true)
-        SUBSAMPLE_CAP = 50_000
+        n = len(y_true); SUBSAMPLE_CAP = 50_000
         if n > SUBSAMPLE_CAP:
-            if _f2_subsample_n != n:
-                _f2_subsample_idx = np.random.default_rng(0).choice(n, size=SUBSAMPLE_CAP, replace=False)
-                _f2_subsample_n = n
+            if _f2_subsample_n != n: _f2_subsample_idx = np.random.default_rng(0).choice(n, size=SUBSAMPLE_CAP, replace=False); _f2_subsample_n = n
             yt, yp = y_true[_f2_subsample_idx], y_pred[_f2_subsample_idx]
-        else:
-            yt, yp = y_true, y_pred
-
+        else: yt, yp = y_true, y_pred
         precision, recall, thresholds = precision_recall_curve(yt, yp)
         f2_vals = (5.0 * precision[:-1] * recall[:-1]) / (4.0 * precision[:-1] + recall[:-1] + 1e-12)
         raw_f2 = float(np.max(f2_vals)) if len(f2_vals) > 0 else 0.0
         return "f2", raw_f2, True
-    except ValueError:
-        return "f2", 0.0, True
+    except ValueError: return "f2", 0.0, True
+
+def _f1_lgb(y_true, y_pred):
+    global _f1_subsample_idx, _f1_subsample_n
+    try:
+        n = len(y_true); SUBSAMPLE_CAP = 50_000
+        if n > SUBSAMPLE_CAP:
+            if _f1_subsample_n != n: _f1_subsample_idx = np.random.default_rng(1).choice(n, size=SUBSAMPLE_CAP, replace=False); _f1_subsample_n = n
+            yt, yp = y_true[_f1_subsample_idx], y_pred[_f1_subsample_idx]
+        else: yt, yp = y_true, y_pred
+        precision, recall, thresholds = precision_recall_curve(yt, yp)
+        f1_vals = (2.0 * precision[:-1] * recall[:-1]) / (precision[:-1] + recall[:-1] + 1e-12)
+        raw_f1 = float(np.max(f1_vals)) if len(f1_vals) > 0 else 0.0
+        return "f1", raw_f1, True
+    except ValueError: return "f1", 0.0, True
 
 def _resolve_model_type(requested: str) -> str:
     if requested in ("lightgbm",): return requested
@@ -642,82 +480,41 @@ def _resolve_model_type(requested: str) -> str:
         raise ImportError("No GBDT installed.")
     raise ValueError(f"Unknown model type: {requested!r}")
 
-def _fit_gbdt(x_train, y_train, model_type, n_estimators, max_depth, learning_rate, subsample, colsample_bytree, seed, reg_alpha=0.1, x_eval=None, y_eval=None, gbdt_n_jobs=-1):
+def _fit_gbdt(x_train, y_train, model_type, n_estimators, max_depth, learning_rate, subsample, colsample_bytree, seed, reg_alpha=0.1, x_eval=None, y_eval=None, gbdt_n_jobs=1):
     curve, best_iter = None, n_estimators
-
     if model_type == "lightgbm":
         if LGBMClassifier is None: raise ImportError("lightgbm not installed.")
-        evals_result = {}
-        fit_params = {}
-        has_eval = x_eval is not None and y_eval is not None and len(y_eval) > 0
-
-        model = LGBMClassifier(
-            objective="binary", n_estimators=n_estimators, num_leaves=31, max_depth=-1,
-            learning_rate=learning_rate, subsample=subsample, colsample_bytree=colsample_bytree,
-            is_unbalance=True, min_child_samples=50, reg_alpha=reg_alpha, reg_lambda=1.0,
-            random_state=seed, n_jobs=gbdt_n_jobs, verbose=-1
-        )
-
+        evals_result = {}; fit_params = {}; has_eval = x_eval is not None and y_eval is not None and len(y_eval) > 0
+        model = LGBMClassifier(objective="binary", n_estimators=n_estimators, num_leaves=31, max_depth=-1, learning_rate=learning_rate, subsample=subsample, colsample_bytree=colsample_bytree, is_unbalance=True, min_child_samples=50, reg_alpha=reg_alpha, reg_lambda=1.0, random_state=seed, n_jobs=gbdt_n_jobs, verbose=-1)
         if has_eval:
-            fit_params.update({
-                "eval_set": [(x_eval, y_eval)],
-                "eval_metric": ["f2", "auc", "binary_logloss"],
-                "callbacks": [
-                    lgb.early_stopping(150, verbose=False, first_metric_only=True), 
-                    lgb.record_evaluation(evals_result)
-                ]
-            })
-
+            fit_params.update({"eval_set": [(x_eval, y_eval)], "eval_metric": ["f2", "auc", _f1_lgb], "callbacks": [lgb.early_stopping(150, verbose=False, first_metric_only=True), lgb.record_evaluation(evals_result)]})
         model.fit(x_train, y_train, **fit_params)
-
-        if has_eval and evals_result:
-            curve = {
-                "iterations": list(range(1, len(evals_result["valid_0"]["f2"]) + 1)),
-                "f2": evals_result["valid_0"]["f2"],
-                "auc": evals_result["valid_0"]["auc"],
-                "logloss": evals_result["valid_0"]["binary_logloss"],
-            }
-
+        if has_eval and evals_result: curve = {"iterations": list(range(1, len(evals_result["valid_0"]["f2"]) + 1)), "f2": evals_result["valid_0"]["f2"], "auc": evals_result["valid_0"]["auc"], "f1": evals_result["valid_0"]["f1"]}
         best_iter = getattr(model, "best_iteration_", n_estimators)
-
     return model, 0.0, curve, best_iter
 
 def _make_cv_folds(valid_idx, n_folds, first_lag, min_calib=12, min_test=12, max_window_size=120):
-    n_valid = len(valid_idx)
-    required_overhead = first_lag + min_calib + min_test
+    n_valid = len(valid_idx); required_overhead = first_lag + min_calib + min_test
     if n_valid <= required_overhead + 20: return []
     max_W_for_1_fold = n_valid - required_overhead
-
-    if max_W_for_1_fold <= max_window_size:
-        K = 1; W = max_W_for_1_fold
-    else:
-        K = math.ceil((n_valid - max_window_size - first_lag - min_calib) / min_test)
-        W = n_valid - (K * min_test) - first_lag - min_calib
-
-    while K > 1 and W < 20:
-        K -= 1; W = n_valid - (K * min_test) - first_lag - min_calib
+    if max_W_for_1_fold <= max_window_size: K = 1; W = max_W_for_1_fold
+    else: K = math.ceil((n_valid - max_window_size - first_lag - min_calib) / min_test); W = n_valid - (K * min_test) - first_lag - min_calib
+    while K > 1 and W < 20: K -= 1; W = n_valid - (K * min_test) - first_lag - min_calib
     if W < 20: return []
-
     folds = []
     for i in range(K):
         te_end = n_valid - (i * min_test); te_start = n_valid - ((i + 1) * min_test)
-        ca_end = te_start; ca_start = ca_end - min_calib
-        tr_end = ca_start - first_lag; tr_start = tr_end - W
+        ca_end = te_start; ca_start = ca_end - min_calib; tr_end = ca_start - first_lag; tr_start = tr_end - W
         folds.append((valid_idx[tr_start:tr_end], valid_idx[ca_start:ca_end], valid_idx[te_start:te_end]))
-    folds.reverse()
-    print(f"    -> Strict Rolling: {len(folds)} folds, Fixed Window={W}w (100% data utilized)")
-    return folds
+    folds.reverse(); print(f"    -> Strict Rolling: {len(folds)} folds, Fixed Window={W}w (100% data utilized)"); return folds
 
-def train_one_fold(fold, train_idx, calib_idx, test_idx, adj_sources, adj_target, sector_labels, model_type, neg_ratio, history_lags, first_lag, calibration, n_estimators, max_depth, learning_rate, subsample, colsample_bytree, save_dir, target_w, source_ws, seed, save_plots, shap_max_samples, rng, ablation_variants, eval_tail_frac=0.2, t_w=0, gbdt_n_jobs=-1, reg_alpha=0.1, tickers=None):
-    old_stdout = sys.stdout
-    sys.stdout = buffer = io.StringIO()
-
+def train_one_fold(fold, train_idx, calib_idx, test_idx, adj_sources, adj_target, sector_labels, model_type, neg_ratio, history_lags, first_lag, calibration, n_estimators, max_depth, learning_rate, subsample, colsample_bytree, save_dir, target_w, source_ws, seed, save_plots, shap_max_samples, rng, ablation_variants, eval_tail_frac=0.2, t_w=0, gbdt_n_jobs=1, reg_alpha=0.1, tickers=None):
+    old_stdout = sys.stdout; sys.stdout = buffer = io.StringIO()
     try:
         train_idx = train_idx[train_idx >= first_lag]; calib_idx = calib_idx[calib_idx >= first_lag]; test_idx = test_idx[test_idx >= first_lag]
         if len(train_idx) < 20 or len(calib_idx) == 0 or len(test_idx) == 0: return [], [], buffer.getvalue()
         tail_n = max(10, int(len(train_idx) * eval_tail_frac)); train_early_idx, train_tail_idx = train_idx[:-tail_n], train_idx[-tail_n:]
-        sector_to_id = {s: i for i, s in enumerate(sorted(set(sector_labels)))}
-        sector_ids = np.array([sector_to_id[s] for s in sector_labels], dtype=np.int32)
+        sector_to_id = {s: i for i, s in enumerate(sorted(set(sector_labels)))}; sector_ids = np.array([sector_to_id[s] for s in sector_labels], dtype=np.int32)
         feat_names_full = _feature_names(source_ws, target_w, history_lags, first_lag)
         print(f"\n  Fold {fold}  |  tr_early={len(train_early_idx)}  tr_tail={len(train_tail_idx)}  calib={len(calib_idx)}  test={len(test_idx)}  first_lag={first_lag}")
         print("  Building matrices ...", end=" ", flush=True)
@@ -734,14 +531,10 @@ def train_one_fold(fold, train_idx, calib_idx, test_idx, adj_sources, adj_target
         smallest_source_ws = min(source_ws)
         yt_mp, yp_mp = _marginal_prior_baseline(adj_target, train_idx, test_idx)
         yt_ss, yp_ss = _short_scale_oracle_baseline(adj_sources[smallest_source_ws], adj_target, test_idx, first_lag)
-        
         results, training_curves, model_cal_scores = [], [], []
-        
         for abl in ablation_variants:
-            mask, fn = masks[abl], fnames[abl]
-            label = "Full" if abl == "none" else "Pure Cross-Scale"
+            mask, fn = masks[abl], fnames[abl]; label = "Full" if abl == "none" else "Pure Cross-Scale"
             xt_e, xt_t, xt_f, xc, xte = x_early[:, mask], x_tail[:, mask], x_train[:, mask], x_calib[:, mask], x_test[:, mask]
-
             model, spw, curve, best_iter = _fit_gbdt(xt_f, y_train, model_type, n_estimators, max_depth, learning_rate, subsample, colsample_bytree, seed, reg_alpha=reg_alpha, x_eval=xt_t, y_eval=y_tail, gbdt_n_jobs=gbdt_n_jobs)
             print(f"    [{label}]  best_iter={best_iter}  feats={len(fn)}  reg_alpha={reg_alpha}")
             if curve is not None: training_curves.append((label, curve, best_iter))
@@ -749,50 +542,42 @@ def train_one_fold(fold, train_idx, calib_idx, test_idx, adj_sources, adj_target
                 with open(Path(save_dir) / f"best_{model_type}_w{'_'.join(map(str, source_ws))}_to_w{target_w}_fold{fold}.pkl", "wb") as f: pickle.dump(model, f)
             ys_cal_raw, ys_test_raw = model.predict_proba(xc)[:, 1].astype(np.float32), model.predict_proba(xte)[:, 1].astype(np.float32)
             ys_test_cal, cal_method, cal_info = _calibrate_on_calib_eval_on_test(y_calib, ys_cal_raw, y_test, ys_test_raw, calibration)
-            cal_obj, _ = _fit_calibrator(y_calib, ys_cal_raw, cal_method)
-            ys_calib_cal = _apply_calibrator(cal_obj, cal_method, ys_cal_raw)
-
-            best_thr, best_calib_f2 = _best_f2_threshold(y_calib, ys_calib_cal)
-            calib_f2 = _compute_metrics_silent(y_calib, ys_calib_cal, threshold=best_thr)["f2"]
+            cal_obj, _ = _fit_calibrator(y_calib, ys_cal_raw, cal_method); ys_calib_cal = _apply_calibrator(cal_obj, cal_method, ys_cal_raw)
+            best_thr, best_calib_f2 = _best_f2_threshold(y_calib, ys_calib_cal); calib_f2 = _compute_metrics_silent(y_calib, ys_calib_cal, threshold=best_thr)["f2"]
             print(f"    [{label}]  threshold={best_thr:.4f}  F2@thr(calib)={calib_f2:.4f}  method={cal_method}")
             gbdt_m = _compute_metrics(y_test, ys_test_cal, threshold=best_thr, name=f"{model_type.upper()} ({label})")
             baseline_prior, baseline_oracle = None, None
             if abl == ablation_variants[0]:
                 _compute_metrics(yt_mp, yp_mp, threshold=best_thr, name="Marginal prior")
                 _compute_metrics(yt_ss, yp_ss, threshold=best_thr, name=f"Oracle (A_w{smallest_source_ws})")
-                baseline_prior = _compute_metrics_silent(yt_mp, yp_mp, threshold=best_thr)
-                baseline_oracle = _compute_metrics_silent(yt_ss, yp_ss, threshold=best_thr)
+                baseline_prior = _compute_metrics_silent(yt_mp, yp_mp, threshold=best_thr); baseline_oracle = _compute_metrics_silent(yt_ss, yp_ss, threshold=best_thr)
             results.append({"fold": fold, "ablation": abl, "ablation_label": label, "source_ws": ",".join(map(str, source_ws)), "target_w": target_w, "n_features": len(fn), "best_iteration": best_iter, "calibration_method": cal_method, "brier_raw": cal_info["brier_raw"], "brier_calibrated": cal_info["brier_calibrated"], "n_train_steps": len(train_idx), "n_calib_steps": len(calib_idx), "n_test_steps": len(test_idx), "model_type": model_type, "gbdt": gbdt_m, "marginal_prior": baseline_prior, "short_scale_oracle": baseline_oracle})
             model_cal_scores[label] = ys_test_cal
             if save_plots:
                 plots_dir = Path(save_dir) / "plots"; plots_dir.mkdir(parents=True, exist_ok=True)
                 pfx = f"w{'_'.join(map(str, source_ws))}_to_w{target_w}_fold{fold}_{model_type}" + (f"_{abl}" if abl!="none" else "")
-                _plot_feature_importance(model, fn, plots_dir, pfx)
-                _plot_model_diagnostics(y_test, ys_test_cal, best_thr, plots_dir, pfx)
-                if shap_max_samples > 0:
-                    n = min(shap_max_samples, len(xt_f)); shap_idx = rng.choice(len(xt_f), size=n, replace=False)
-                    _plot_shap_summary(model, xt_f[shap_idx], fn, plots_dir, pfx)
+                _plot_feature_importance(model, fn, plots_dir, pfx); _plot_model_diagnostics(y_test, ys_test_cal, best_thr, plots_dir, pfx)
+                if shap_max_samples > 0: n = min(shap_max_samples, len(xt_f)); shap_idx = rng.choice(len(xt_f), size=n, replace=False); _plot_shap_summary(model, xt_f[shap_idx], fn, plots_dir, pfx)
         if save_plots:
-            plots_dir = Path(save_dir) / "plots"; plots_dir.mkdir(parents=True, exist_ok=True)
-            pfx_base = f"w{'_'.join(map(str, source_ws))}_to_w{target_w}_fold{fold}"
-            all_scores = {"Marginal Prior": yp_mp, f"Oracle (A_w{smallest_source_ws})": yp_ss}
-            all_scores.update(model_cal_scores)
-            _plot_baseline_pr_comparison(y_test, all_scores, plots_dir, pfx_base)
+            plots_dir = Path(save_dir) / "plots"; plots_dir.mkdir(parents=True, exist_ok=True); pfx_base = f"w{'_'.join(map(str, source_ws))}_to_w{target_w}_fold{fold}"
+            all_scores = {"Marginal Prior": yp_mp, f"Oracle (A_w{smallest_source_ws})": yp_ss}; all_scores.update(model_cal_scores); _plot_baseline_pr_comparison(y_test, all_scores, plots_dir, pfx_base)
         if save_plots and training_curves:
-            plots_dir = Path(save_dir) / "plots"; plots_dir.mkdir(parents=True, exist_ok=True)
-            _plot_training_curves(training_curves, plots_dir, f"w{'_'.join(map(str, source_ws))}_to_w{target_w}_fold{fold}_{model_type}")
-        gc.collect()
-        return results, training_curves, buffer.getvalue()
-    finally:
-        sys.stdout = old_stdout
+            plots_dir = Path(save_dir) / "plots"; plots_dir.mkdir(parents=True, exist_ok=True); _plot_training_curves(training_curves, plots_dir, f"w{'_'.join(map(str, source_ws))}_to_w{target_w}_fold{fold}_{model_type}")
+        gc.collect(); return results, training_curves, buffer.getvalue()
+    finally: sys.stdout = old_stdout
 
-def run_training(source_ws, target_w, pkldir, model_type, neg_ratio, history_lags, calibration, n_estimators, max_depth, learning_rate, subsample, colsample_bytree, save_dir, seed, save_plots, shap_max_samples, n_folds, min_calib_steps, min_test_steps, do_ablation, eval_tail_frac=0.2, parallel_folds=1, gbdt_n_jobs=-1, max_window_size=120):
+def run_training(source_ws, target_w, pkldir, model_type, neg_ratio, history_lags, calibration, n_estimators, max_depth, learning_rate, subsample, colsample_bytree, save_dir, seed, save_plots, shap_max_samples, n_folds, min_calib_steps, min_test_steps, do_ablation, eval_tail_frac=0.2, parallel_folds=1, gbdt_n_jobs=1, max_window_size=120):
     source_ws = [ws for ws in source_ws if ws != target_w]
     if not source_ws: raise ValueError("source_ws must contain at least one window different from target_w")
     
-    if learning_rate < 0.05:
-        print("\n  ⚠️  WARNING: LR < 0.05 is highly likely to cause premature early stopping with F2 metric.")
-        print("      Recommend passing learning_rate=0.1\n")
+    physical_cores = os.cpu_count() or 1
+    if parallel_folds > 1 and gbdt_n_jobs == -1:
+        print(f"\n  ⚠️  WARNING: --parallel_folds={parallel_folds} with --gbdt_n_jobs=-1 causes CPU thrashing. Auto-setting to 1.\n")
+        gbdt_n_jobs = 1
+    elif parallel_folds > 1 and gbdt_n_jobs > 1 and (parallel_folds * gbdt_n_jobs > physical_cores):
+        print(f"\n  ⚠️  WARNING: {parallel_folds} folds x {gbdt_n_jobs} threads > {physical_cores} cores. Expect CPU thrashing.\n")
+        
+    if learning_rate < 0.05: print("\n  ⚠️  WARNING: LR < 0.05 is highly likely to cause premature early stopping.\n")
         
     chosen_mt = _resolve_model_type(model_type); first_lag = _min_safe_lag(target_w); reg_alpha = _get_scale_dependent_l1(target_w)
     src_label = ",".join(map(str, source_ws))
@@ -800,34 +585,25 @@ def run_training(source_ws, target_w, pkldir, model_type, neg_ratio, history_lag
     print(f"  CROSS-SCALE GBDT  A_[{src_label}] -> A_w{target_w}")
     print(f"  Model: {chosen_mt}  |  first_lag={first_lag}  |  reg_alpha={reg_alpha}  |  Max Window={max_window_size}w  |  Parallel Folds={parallel_folds}  |  GBDT Threads={gbdt_n_jobs}")
     print(f"  Objective: F2 Early Stopping (patience=150)  |  LR={learning_rate}  |  Max Trees={n_estimators}")
-    print(f"  Features: Source+Neck (13/src) + Target (6) = {1 + (13 * len(source_ws) + 6) * history_lags} total")
+    # v6.3 FIX: Updated feature count log from 13 to 12
+    print(f"  Features: Source+Neck (12/src) + Target (6) = {1 + (12 * len(source_ws) + 6) * history_lags} total")
     print("#" * 68)
     all_ws = list(set(source_ws + [target_w])); adj_dict, sector_labels, tickers_ordered = {}, None, None
     for w in all_ws: adj_dict[w], sector_labels, tickers_ordered = _load_adj_weekly(w, pkldir)
     t_w = list(adj_dict.values())[0].shape[0]; adj_sources = {ws: adj_dict[ws] for ws in source_ws}; adj_target = adj_dict[target_w]
-    max_safe_week = t_w - math.ceil(target_w / WEEKLY_STRIDE)
-    all_target_idx = np.arange(first_lag, max_safe_week)
+    max_safe_week = t_w - math.ceil(target_w / WEEKLY_STRIDE); all_target_idx = np.arange(first_lag, max_safe_week)
     folds = _make_cv_folds(all_target_idx, n_folds, first_lag, min_calib_steps, min_test_steps, max_window_size)
     print(f"\n  Temporal CV: {len(folds)} folds (Rolling Window={max_window_size} weeks)")
 
     if save_plots and folds:
-        plots_dir = Path(save_dir) / "plots"; plots_dir.mkdir(parents=True, exist_ok=True)
-        run_label = f"w{'_'.join(map(str, source_ws))}_to_w{target_w}"
-
+        plots_dir = Path(save_dir) / "plots"; plots_dir.mkdir(parents=True, exist_ok=True); run_label = f"w{'_'.join(map(str, source_ws))}_to_w{target_w}"
         _plot_dataset_timeline(all_target_idx, folds, t_w, first_lag, plots_dir, run_label)
-
-        sector_to_id = {s: i for i, s in enumerate(sorted(set(sector_labels)))}
-        sector_ids = np.array([sector_to_id[s] for s in sector_labels], dtype=np.int32)
+        sector_to_id = {s: i for i, s in enumerate(sorted(set(sector_labels)))}; sector_ids = np.array([sector_to_id[s] for s in sector_labels], dtype=np.int32)
         feat_names_full = _feature_names(source_ws, target_w, history_lags, first_lag)
-        x_snap, y_snap = _build_eval_matrix(folds[-1][2], adj_sources, adj_target, sector_ids, history_lags, first_lag, target_w)
-        snapshot_rng = np.random.default_rng(seed)
-
-        chosen_idx = _get_snapshot_indices(y_snap, snapshot_rng)
-        _plot_feature_snapshot(x_snap, y_snap, feat_names_full, plots_dir, run_label, tickers_ordered, chosen_idx, target_w)
-        _plot_feature_snapshot_standardized(x_snap, y_snap, feat_names_full, plots_dir, run_label, tickers_ordered, chosen_idx, target_w)
+        x_snap, y_snap = _build_eval_matrix(folds[-1][2], adj_sources, adj_target, sector_ids, history_lags, first_lag, target_w); snapshot_rng = np.random.default_rng(seed); chosen_idx = _get_snapshot_indices(y_snap, snapshot_rng)
+        _plot_feature_snapshot(x_snap, y_snap, feat_names_full, plots_dir, run_label, tickers_ordered, chosen_idx, target_w); _plot_feature_snapshot_standardized(x_snap, y_snap, feat_names_full, plots_dir, run_label, tickers_ordered, chosen_idx, target_w)
 
     ablation_variants = ["none"] + (["pure_cross_scale"] if do_ablation else [])
-
     all_results = []
     def _run_single_fold(fold_i_tuple):
         fold_i, (tr, ca, te) = fold_i_tuple; local_rng = np.random.default_rng(seed + fold_i)
@@ -839,8 +615,7 @@ def run_training(source_ws, target_w, pkldir, model_type, neg_ratio, history_lag
 
     all_results = []
     for fold_res, _, log_str in fold_results_list:
-        if log_str:
-            print(log_str, end="", flush=True)
+        if log_str: print(log_str, end="", flush=True)
         all_results.extend(fold_res)
     return all_results
 
@@ -849,8 +624,7 @@ def _print_cv_summary(results):
     src_label, tgt_w = results[0]["source_ws"], results[0]["target_w"]; abl_labels = sorted(set(r["ablation_label"] for r in results))
     print("\n" + "=" * 84); print(f"CV SUMMARY  A_[{src_label}] -> A_w{tgt_w}  (F2 Early Stopping, patience=150)"); print("=" * 84)
     for abl in abl_labels:
-        subset = [r for r in results if r["ablation_label"] == abl]
-        print(f"\n  Ablation: {abl} ({subset[0].get('n_features','')} feats)")
+        subset = [r for r in results if r["ablation_label"] == abl]; print(f"\n  Ablation: {abl} ({subset[0].get('n_features','')} feats)")
         print(f"  {'AP':>7}  {'AUC':>7}  {'F1':>7}  {'F2':>7}  {'Prec':>7}  {'Rec':>7}  {'Brier':>10}  {'Iter':>5}")
         ap_l, auc_l, f1_l, f2_l, pr_l, rc_l, br_l, it_l = [], [], [], [], [], [], [], []
         for r in subset:
@@ -865,25 +639,17 @@ def _print_cv_summary(results):
             print(f"  {'Prior':>5s}  {prior['ap']:>7.4f}  {prior['auc']:>7.4f}  {prior['f1']:>7.4f}  {prior['f2']:>7.4f}  {prior['prec']:>7.4f}  {prior['rec']:>7.4f}  {prior['brier']:>10.6f}  {'':>5s}")
             print(f"  {'Oracle':>5s}  {oracle['ap']:>7.4f}  {oracle['auc']:>7.4f}  {oracle['f1']:>7.4f}  {oracle['f2']:>7.4f}  {oracle['prec']:>7.4f}  {oracle['rec']:>7.4f}  {oracle['brier']:>10.6f}  {'':>5s}")
     if len(abl_labels) > 1:
-        print(f"\n  {'═' * 80}\n  ABLATION COMPARISON\n  {'═' * 80}")
-        full_f2 = None
+        print(f"\n  {'═' * 80}\n  ABLATION COMPARISON\n  {'═' * 80}"); full_f2 = None
         for abl in abl_labels:
-            subset = [r for r in results if r["ablation_label"] == abl]
-            f2s = [r["gbdt"]["f2"] for r in subset if not np.isnan(r["gbdt"]["f2"])]
-            if f2s:
-                mean_f2 = np.mean(f2s)
-                print(f"  {abl:<25s}  Mean F2 = {mean_f2:.4f}  (std = {np.std(f2s):.4f})")
-                if abl == "Full":
-                    full_f2 = mean_f2
+            subset = [r for r in results if r["ablation_label"] == abl]; f2s = [r["gbdt"]["f2"] for r in subset if not np.isnan(r["gbdt"]["f2"])]
+            if f2s: mean_f2 = np.mean(f2s); print(f"  {abl:<25s}  Mean F2 = {mean_f2:.4f}  (std = {np.std(f2s):.4f})")
+            if abl == "Full": full_f2 = mean_f2
         if full_f2 is not None:
             pure_f2_list = [r["gbdt"]["f2"] for r in results if r["ablation_label"] == "Pure Cross-Scale" and not np.isnan(r["gbdt"]["f2"])]
             if pure_f2_list:
                 pure_f2 = np.mean(pure_f2_list)
-                if pure_f2 > full_f2:
-                    print("\n  >> WARNING: Pure Cross-Scale OUTPERFORMS Full model! Target features may be noise.")
-                else:
-                    delta = ((full_f2 - pure_f2) / pure_f2) * 100 if pure_f2 > 0 else 0
-                    print(f"\n  >> Full model outperforms Pure Cross-Scale by {delta:.1f}% relative F2.")
+                if pure_f2 > full_f2: print("\n  >> WARNING: Pure Cross-Scale OUTPERFORMS Full model! Target features may be noise.")
+                else: delta = ((full_f2 - pure_f2) / pure_f2) * 100 if pure_f2 > 0 else 0; print(f"\n  >> Full model outperforms Pure Cross-Scale by {delta:.1f}% relative F2.")
 
 def _save_results_to_csv(results, out_path):
     if not results: return
@@ -891,39 +657,30 @@ def _save_results_to_csv(results, out_path):
     for r in results:
         row = {k: v for k, v in r.items() if k not in ("gbdt", "marginal_prior", "short_scale_oracle")}
         for prefix, metrics in [("gbdt", r["gbdt"]), ("prior", r.get("marginal_prior") or {}), ("oracle", r.get("short_scale_oracle") or {})]:
-            for mk, mv in metrics.items():
-                row[f"{prefix}_{mk}"] = mv
+            for mk, mv in metrics.items(): row[f"{prefix}_{mk}"] = mv
         flat_rows.append(row)
     if not flat_rows: return
     fieldnames = list(flat_rows[0].keys())
     with open(out_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
-        writer.writerows(flat_rows)
+        writer = csv.DictWriter(f, fieldnames=fieldnames); writer.writeheader(); writer.writerows(flat_rows)
     print(f"\n  Results saved to {out_path}")
-
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Main Execution & Presets
 # ─────────────────────────────────────────────────────────────────────────────
 
 CROSS_SCALE_PRESETS = [
-    {"source_ws": [35], "target_w": 70},
-    {"source_ws": [35], "target_w": 120},
-    {"source_ws": [35], "target_w": 180},
-    {"source_ws": [70], "target_w": 35},
-    {"source_ws": [70], "target_w": 120},
-    {"source_ws": [120], "target_w": 35},
+    {"source_ws": [35], "target_w": 70}, {"source_ws": [35], "target_w": 120}, {"source_ws": [35], "target_w": 180},
+    {"source_ws": [70], "target_w": 35}, {"source_ws": [70], "target_w": 120}, {"source_ws": [120], "target_w": 35},
 ]
 
 def main():
-    parser = argparse.ArgumentParser(description="Cross-Scale GBDT Link Prediction (v6)")
+    parser = argparse.ArgumentParser(description="Cross-Scale GBDT Link Prediction (v6.3)")
     parser.add_argument("--pkldir", type=str, default=DEFAULT_PKL_DIR)
     parser.add_argument("--save_dir", type=str, default="./cross_scale_results_v6")
     parser.add_argument("--model_type", type=str, default="lightgbm", choices=["lightgbm", "auto"])
     parser.add_argument("--n_estimators", type=int, default=2000)
     parser.add_argument("--max_depth", type=int, default=-1)
-    # v6 FIX: Default learning rate changed from 0.02 to 0.1
     parser.add_argument("--learning_rate", type=float, default=0.1)
     parser.add_argument("--subsample", type=float, default=0.8)
     parser.add_argument("--colsample_bytree", type=float, default=0.8)
@@ -939,88 +696,55 @@ def main():
     parser.add_argument("--save_plots", action="store_true", default=True)
     parser.add_argument("--no_plots", dest="save_plots", action="store_false")
     parser.add_argument("--shap_max_samples", type=int, default=5000)
-    parser.add_argument("--parallel_folds", type=int, default=1)
-    parser.add_argument("--gbdt_n_jobs", type=int, default=-1)
-    parser.add_argument("--do_ablation", action="store_true", default=True)
-    parser.add_argument("--no_ablation", dest="do_ablation", action="store_false")
+    parser.add_argument("--parallel_folds", type=int, default=1, help="Number of CV folds to run in parallel via joblib.")
+    parser.add_argument("--gbdt_n_jobs", type=int, default=1, help="Threads PER LightGBM instance. Keep at 1 when using --parallel_folds > 1.")
+    parser.add_argument("--no_ablation", dest="do_ablation", action="store_false", default=True, help="Disable the Pure Cross-Scale ablation study")
     parser.add_argument("--source_ws", type=int, nargs="+", default=None)
     parser.add_argument("--target_w", type=int, default=None)
+    parser.add_argument("--all", action="store_true", help="Run all possible single-source to single-target scale combinations automatically")
     
     args = parser.parse_args()
 
-    save_base = Path(args.save_dir)
-    save_base.mkdir(parents=True, exist_ok=True)
+    save_base = Path(args.save_dir); save_base.mkdir(parents=True, exist_ok=True)
 
-    if args.source_ws is not None and args.target_w is not None:
+    if args.all:
+        scales = list(EPSILON_CONFIGS.keys())
+        presets = [{"source_ws": [src], "target_w": tgt} for src in scales for tgt in scales if src != tgt]
+        print(f"\n  ⚙️  --all flag detected: Generated {len(presets)} cross-scale presets from {scales}")
+    elif args.source_ws is not None and args.target_w is not None:
         presets = [{"source_ws": args.source_ws, "target_w": args.target_w}]
     else:
         presets = CROSS_SCALE_PRESETS
 
     all_final_results = []
-    
     for preset in presets:
-        src_ws = preset["source_ws"]
-        tgt_w = preset["target_w"]
-        src_label = "_".join(map(str, src_ws))
-        preset_save_dir = save_base / f"w{src_label}_to_w{tgt_w}"
-        preset_save_dir.mkdir(parents=True, exist_ok=True)
+        src_ws = preset["source_ws"]; tgt_w = preset["target_w"]; src_label = "_".join(map(str, src_ws))
+        preset_save_dir = save_base / f"w{src_label}_to_w{tgt_w}"; preset_save_dir.mkdir(parents=True, exist_ok=True)
 
         results = run_training(
-            source_ws=src_ws,
-            target_w=tgt_w,
-            pkldir=args.pkldir,
-            model_type=args.model_type,
-            neg_ratio=args.neg_ratio,
-            history_lags=args.history_lags,
-            calibration=args.calibration,
-            n_estimators=args.n_estimators,
-            max_depth=args.max_depth,
-            learning_rate=args.learning_rate,
-            subsample=args.subsample,
-            colsample_bytree=args.colsample_bytree,
-            save_dir=str(preset_save_dir),
-            seed=args.seed,
-            save_plots=args.save_plots,
-            shap_max_samples=args.shap_max_samples,
-            n_folds=args.n_folds,
-            min_calib_steps=args.min_calib_steps,
-            min_test_steps=args.min_test_steps,
-            do_ablation=args.do_ablation,
-            eval_tail_frac=args.eval_tail_frac,
-            parallel_folds=args.parallel_folds,
-            gbdt_n_jobs=args.gbdt_n_jobs,
-            max_window_size=args.max_window_size,
+            source_ws=src_ws, target_w=tgt_w, pkldir=args.pkldir, model_type=args.model_type,
+            neg_ratio=args.neg_ratio, history_lags=args.history_lags, calibration=args.calibration,
+            n_estimators=args.n_estimators, max_depth=args.max_depth, learning_rate=args.learning_rate,
+            subsample=args.subsample, colsample_bytree=args.colsample_bytree, save_dir=str(preset_save_dir),
+            seed=args.seed, save_plots=args.save_plots, shap_max_samples=args.shap_max_samples,
+            n_folds=args.n_folds, min_calib_steps=args.min_calib_steps, min_test_steps=args.min_test_steps,
+            do_ablation=args.do_ablation, eval_tail_frac=args.eval_tail_frac,
+            parallel_folds=args.parallel_folds, gbdt_n_jobs=args.gbdt_n_jobs, max_window_size=args.max_window_size,
         )
-        
-        _print_cv_summary(results)
-        _save_results_to_csv(results, preset_save_dir / "cv_results.csv")
-        all_final_results.extend(results)
-        
-        # Force cleanup between presets to free memory
-        gc.collect()
+        _print_cv_summary(results); _save_results_to_csv(results, preset_save_dir / "cv_results.csv"); all_final_results.extend(results); gc.collect()
 
     if len(presets) > 1:
-        master_csv = save_base / "all_presets_cv_results.csv"
-        _save_results_to_csv(all_final_results, master_csv)
-        
-        print("\n" + "╔" + "═" * 82 + "╗")
-        print("║" + " MASTER SUMMARY ACROSS ALL PRESETS ".center(82) + "║")
-        print("╚" + "═" * 82 + "╝")
-        
+        master_csv = save_base / "all_presets_cv_results.csv"; _save_results_to_csv(all_final_results, master_csv)
+        print("\n" + "╔" + "═" * 82 + "╗"); print("║" + " MASTER SUMMARY ACROSS ALL PRESETS ".center(82) + "║"); print("╚" + "═" * 82 + "╝")
         grouped = {}
         for r in all_final_results:
             key = f"A_[{r['source_ws']}] -> w{r['target_w']} ({r['ablation_label']})"
-            if key not in grouped:
-                grouped[key] = []
+            if key not in grouped: grouped[key] = []
             f2 = r["gbdt"]["f2"]
-            if not np.isnan(f2):
-                grouped[key].append(f2)
-        
-        print(f"\n  {'Preset':<40s}  {'Mean F2':>8s}  {'Std F2':>8s}  {'Mean Iter':>10s}")
-        print("  " + "-" * 70)
+            if not np.isnan(f2): grouped[key].append(f2)
+        print(f"\n  {'Preset':<40s}  {'Mean F2':>8s}  {'Std F2':>8s}  {'Count':>6s}"); print("  " + "-" * 64)
         for key, f2s in sorted(grouped.items()):
-            if f2s:
-                print(f"  {key:<40s}  {np.mean(f2s):>8.4f}  {np.std(f2s):>8.4f}  (n={len(f2s)})")
+            if f2s: print(f"  {key:<40s}  {np.mean(f2s):>8.4f}  {np.std(f2s):>8.4f}  {len(f2s):>6d}")
 
     print("\n✅ All training complete.")
 

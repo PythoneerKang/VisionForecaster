@@ -7,14 +7,14 @@
 #PBS -P as_spms_cheongsa
 
 ## Queue Name
-#PBS -q qamd_wfly
+#PBS -q qintel_wfly
 
 ## Output and error files
 #PBS -o cross_scale_train.out
 #PBS -e cross_scale_train.err
 
 ## Walltime — 9 folds × up to 100 epochs on CPU; monitor first run to calibrate
-#PBS -l walltime=48:00:00
+#PBS -l walltime=72:00:00
 
 ## 1 CPU-only node, 1 cores, ~100GB memory for Intel HPC training
 ## ncpus must match NUM_CPUS in parameters.py (19).
