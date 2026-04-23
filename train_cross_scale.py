@@ -330,7 +330,7 @@ def _reorder_features_by_category(feature_names, target_w):
         elif (name.startswith(f"w{target_w}_edge") or name.startswith(f"deg{target_w}_") or name.startswith(f"common_nbrs_w{target_w}_") or name.startswith(f"jaccard_w{target_w}_")): mapping["Target-Scale Attrs"].append(i)
         elif "neckness" in name or "cross_sector_deg" in name or "clust_boundary" in name or "is_local_bridge" in name: mapping["Source-Scale Topological (Neck/Boundary)"].append(i)
         else: mapping["Source-Scale Standard Attrs"].append(i)
-    ordered_indices, ordered_names, boundaries = [], [], [], []
+    ordered_indices, ordered_names, boundaries = [], [], []
     for cat in cat_order:
         if mapping[cat]: ordered_indices.extend(mapping[cat]); ordered_names.extend([feature_names[idx] for idx in mapping[cat]]); boundaries.append(len(ordered_names) - 0.5)
     return np.array(ordered_indices, dtype=np.intp), ordered_names, boundaries
