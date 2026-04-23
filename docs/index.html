@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>VisionForecaster — Architecture</title>
+<title>Cross-Scale GBDT Pipeline — Architecture</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet"/>
 <script defer>
   function toggleRoller(id) {
@@ -92,9 +92,9 @@
   }
   .header-link:hover { opacity: 0.8; transform: translateY(-1px); }
   .header-link-gh { background: #1a202c; color: #fff; border-color: #1a202c; }
-  .header-link-email-school { background: #fff; color: #6a1b9a; border-color: #c49de8; }
-  .header-link-email-personal { background: #fff; color: #00695c; border-color: #80cbc4; }
-  .header-link-linkedin { background: #fff; color: #0a66c2; border-color: #7ab8f5; }
+  .header-link-sklearn { background: #fff; color: #f77f00; border-color: #f9c784; }
+  .header-link-shap { background: #fff; color: #00695c; border-color: #80cbc4; }
+  .header-link-joblib { background: #fff; color: #455a64; border-color: #90a4ae; }
 
   /* ── Pills ── */
   .params-row { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 32px; }
@@ -185,14 +185,14 @@
   .roller-gallery.open .roller-chevron { background: #2e7d32; }
   .roller-gallery.open .roller-chevron path { stroke: #fff; }
 
-  /* Presentation Materials specific */
-  .roller-pres .roller-toggle { background: linear-gradient(135deg, #fff8f2 0%, #fffcfa 100%); }
-  .roller-pres .roller-icon { background: #fddba8; color: #bf360c; }
-  .roller-pres .roller-badge { background: #e64a19; color: #fff; }
-  .roller-pres .roller-title { color: #7b3a00; }
-  .roller-pres .roller-chevron { background: #fff0e0; border-color: #f8b97a; }
-  .roller-pres.open .roller-chevron { background: #e64a19; }
-  .roller-pres.open .roller-chevron path { stroke: #fff; }
+  /* Artifacts specific */
+  .roller-art .roller-toggle { background: linear-gradient(135deg, #fff8f2 0%, #fffcfa 100%); }
+  .roller-art .roller-icon { background: #fddba8; color: #bf360c; }
+  .roller-art .roller-badge { background: #e64a19; color: #fff; }
+  .roller-art .roller-title { color: #7b3a00; }
+  .roller-art .roller-chevron { background: #fff0e0; border-color: #f8b97a; }
+  .roller-art.open .roller-chevron { background: #e64a19; }
+  .roller-art.open .roller-chevron path { stroke: #fff; }
 
   /* ── Flow ── */
   .flow { display: flex; flex-direction: column; align-items: center; gap: 0; padding-top: 24px; }
@@ -272,6 +272,7 @@
   .bh-grn { background: #e6f4ea; }
   .bi-grn { background: #b9dfbe; color: #1b5e20; }
   .bb-grn { background: #2e7d32; color: #fff; }
+  .sb-grn { border-color: #93d19b; color: #1b5e20; background: #f0f7f1; }
   .brd-grn { border-color: #93d19b !important; }
 
   .bh-pur { background: #f0e8fc; }
@@ -291,7 +292,6 @@
   .sb-tel { border-color: #70cbd6; color: #006064; background: #e7f9fb; }
   .brd-tel { border-color: #70cbd6 !important; }
 
-  /* new: teal-green for gate */
   .bh-teal { background: #e0f2f1; }
   .bi-teal { background: #a7d7d3; color: #004d40; }
   .bb-teal { background: #00695c; color: #fff; }
@@ -497,6 +497,7 @@
   }
   .code-block .prompt { color: #68d391; }
   .code-block .var    { color: #fbd38d; }
+  .code-block .flag   { color: #90cdf4; }
   .sub-label {
     font-size: 9px; color: var(--dim);
     text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;
@@ -527,6 +528,31 @@
   .copy-btn.copied { background: rgba(104,211,145,0.18); color: #68d391; border-color: rgba(104,211,145,0.4); }
   .copy-btn svg { flex-shrink: 0; }
 
+  /* ── Artifact file rows ── */
+  .art-file-row {
+    display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+    border: 1.5px solid var(--border); border-radius: 9px; background: #fff;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.06);
+    transition: box-shadow 0.2s;
+  }
+  .art-file-row:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.09); }
+  .art-file-icon {
+    width: 38px; height: 38px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .art-file-info { flex: 1; min-width: 0; }
+  .art-file-title {
+    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: #7b3a00;
+  }
+  .art-file-desc { font-size: 10px; color: var(--dim); margin-top: 3px; }
+  .art-file-pattern {
+    font-size: 9px; font-family: 'JetBrains Mono', monospace;
+    color: #bf360c; background: #fff8f2; border: 1px solid #f8b97a;
+    padding: 5px 10px; border-radius: 5px; white-space: nowrap;
+    max-width: 320px; overflow: hidden; text-overflow: ellipsis;
+  }
+
   @keyframes fadeUp {
     from { opacity:0; transform: translateY(12px); }
     to   { opacity:1; transform: translateY(0); }
@@ -545,31 +571,35 @@
   .flow > *:nth-child(11) { animation-delay:0.54s; }
   .flow > *:nth-child(12) { animation-delay:0.59s; }
   .flow > *:nth-child(13) { animation-delay:0.64s; }
+  .flow > *:nth-child(14) { animation-delay:0.69s; }
+  .flow > *:nth-child(15) { animation-delay:0.74s; }
+  .flow > *:nth-child(16) { animation-delay:0.79s; }
+  .flow > *:nth-child(17) { animation-delay:0.84s; }
 </style>
 </head>
 <body>
 <div class="page">
 
   <header>
-    <div class="tag">// Small High-Resolution Vision Transformer</div>
-    <h1>Vision<span>Forecaster</span></h1>
-    <div class="subtitle">Decoder-only ViT with Conv Patch Embed · Sector-GPSA · LayerScale · DropPath — tuned for ~500 samples</div>
+    <div class="tag">// Cross-Scale Graph Prediction</div>
+    <h1>Cross-Scale <span>GBDT Pipeline</span></h1>
+    <div class="subtitle">LightGBM on multi-scale topological features · O(1) pair lookup · F2-calibrated thresholds · Temporal rolling CV — 457 S&amp;P 500 stocks</div>
     <div class="header-links">
-      <a class="header-link header-link-gh" href="https://github.com/PythoneerKang/VisionForecaster" target="_blank" rel="noopener">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-        View on GitHub
+      <a class="header-link header-link-gh" href="https://lightgbm.readthedocs.io/" target="_blank" rel="noopener">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        LightGBM
       </a>
-      <a class="header-link header-link-email-school" href="mailto:s230047@e.ntu.edu.sg">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-        s230047@e.ntu.edu.sg
+      <a class="header-link header-link-sklearn" href="https://scikit-learn.org/" target="_blank" rel="noopener">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l2-6 2 6"/><path d="M14 12l2-6 2 6"/></svg>
+        scikit-learn
       </a>
-      <a class="header-link header-link-email-personal" href="mailto:zt.kang@gmail.com">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-        zt.kang@gmail.com
+      <a class="header-link header-link-shap" href="https://shap.readthedocs.io/" target="_blank" rel="noopener">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        SHAP
       </a>
-      <a class="header-link header-link-linkedin" href="https://www.linkedin.com/in/zheng-tien-kang-782b13248/" target="_blank" rel="noopener">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-        LinkedIn
+      <a class="header-link header-link-joblib" href="https://joblib.readthedocs.io/" target="_blank" rel="noopener">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        joblib
       </a>
     </div>
   </header>
@@ -581,10 +611,10 @@
     <button class="roller-toggle" onclick="toggleRoller('roller-arch')" aria-expanded="false">
       <div class="roller-icon">🏗</div>
       <div class="roller-title-wrap">
-        <span class="roller-title">Architecture Diagram</span>
-        <span class="roller-subtitle">Full forward-pass flow — input → Conv Patch Embed → positional embed → 1× DecoderBlock (Sector-GPSA) → head → output</span>
+        <span class="roller-title">Pipeline Architecture</span>
+        <span class="roller-subtitle">Full data flow — PKL input → adjacency binarization → temporal folds → feature construction → ablation → GBDT → calibration → evaluation</span>
       </div>
-      <span class="roller-badge">forward pass</span>
+      <span class="roller-badge">data flow</span>
       <div class="roller-chevron">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1565c0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M6 9l6 6 6-6"/>
@@ -594,222 +624,418 @@
     <div class="roller-body" id="roller-arch-body">
       <div class="roller-body-inner">
 
+        <div style="margin-top:20px;margin-bottom:6px;">
+          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#1565c0;font-weight:700;margin-bottom:10px;">Pipeline Configuration</div>
+          <div class="params-row" style="margin-bottom:0">
+            <div class="pill">source_ws <b>[35]</b></div>
+            <div class="pill">target_w <b>70 / 120 / 180</b></div>
+            <div class="pill">N_STOCKS <b>451</b></div>
+            <div class="pill">N pairs <b>104,016</b></div>
+            <div class="pill">features/lag <b>19</b> <span style="color:var(--dim);">(6+7+6)</span></div>
+            <div class="pill">n_estimators <b>2000</b></div>
+            <div class="pill">num_leaves <b>63</b></div>
+            <div class="pill">learning_rate <b>0.02</b></div>
+            <div class="pill">reg_alpha <b>0.0</b></div>
+            <div class="pill">early_stop <b>logloss</b></div>
+            <div class="pill">patience <b>50</b></div>
+            <div class="pill">is_unbalance <b>True</b></div>
+            <div class="pill">neg_ratio <b>1:1</b></div>
+          </div>
+        </div>
+
         <div class="flow">
 
           <!-- INPUT -->
           <div class="block brd-blue">
             <div class="block-header bh-blue">
-              <div class="block-icon bi-blue">⬛</div>
-              <div class="block-title">Input Tensor</div>
+              <div class="block-icon bi-blue">💾</div>
+              <div class="block-title">Input — PKL Distance Matrices</div>
               <div class="block-badge bb-blue">entry point</div>
             </div>
             <div class="block-body">
               <div class="sub-row">
-                <div class="sub-block sb-blue">B × 1 × 457 × 457</div>
-                <div class="sub-arrow">→</div>
-                <div class="formula">float32 &nbsp;fold-standardised GICS-reordered distance matrix D_t</div>
+                <div class="sub-block sb-blue">IQDw{35}.pkl</div>
+                <div class="sub-block sb-blue">IQDw{70}.pkl</div>
+                <div class="sub-block sb-blue">IQDw{120}.pkl</div>
+                <div class="sub-block sb-blue">IQDw{180}.pkl</div>
+              </div>
+              <div class="sub-row" style="margin-top:3px">
+                <div class="formula">Quasi-differentiation correlation matrices — shape (T_daily, 457, 457) float32 per window</div>
               </div>
             </div>
           </div>
 
           <div class="arrow" style="position:relative">
-            <span class="arrow-label">reflect pad 457 → 464</span>
+            <span class="arrow-label">pickle.load() per scale</span>
           </div>
 
-          <!-- CONV PATCH EMBED -->
+          <!-- LOAD & BINARIZE -->
           <div class="block brd-grn">
             <div class="block-header bh-grn">
-              <div class="block-icon bi-grn">🔲</div>
-              <div class="block-title">Convolutional Patch Embedding</div>
-              <div class="block-badge bb-grn">conv + norm</div>
+              <div class="block-icon bi-grn">🗄</div>
+              <div class="block-title">Load &amp; Binarize Adjacency</div>
+              <div class="block-badge bb-grn">preprocess</div>
             </div>
             <div class="block-body">
               <div class="sub-row">
-                <div class="formula">Conv2d(1, 64, kernel=16, stride=16) → (B, 64, 29, 29) → flatten → (B, 841, 64)</div>
-              </div>
-              <div class="sub-row">
-                <div class="sub-block">LayerNorm(64)</div>
+                <div class="sub-block">clip [-1, 1]</div>
                 <div class="sub-arrow">→</div>
-                <div class="formula">16,576 params total</div>
+                <div class="sub-block">dist = √(2(1−ρ))</div>
+                <div class="sub-arrow">→</div>
+                <div class="sub-block sb-grn">adj = (dist ≤ ε)</div>
+                <div class="sub-arrow">→</div>
+                <div class="sub-block">zero diagonal</div>
               </div>
               <div class="sub-row">
-                <div class="formula">output: (B, 841, 64)</div>
+                <div class="sub-block">delete [6,111,128,169,170,225]</div>
+                <div class="sub-arrow">→</div>
+                <div class="sub-block">reorder_by_gics()</div>
+                <div class="sub-arrow">→</div>
+                <div class="formula">stride ÷5 → weekly snapshots · (T_weekly, 451, 451) float32</div>
+              </div>
+              <div class="sub-row">
+                <div class="formula">EPSILON_CONFIGS = {35: 0.1, 70: 0.25, 120: 0.4, 180: 0.6}</div>
               </div>
             </div>
           </div>
 
           <div class="arrow" style="position:relative">
-            <span class="arrow-label">element-wise add</span>
+            <span class="arrow-label">compute valid indices</span>
           </div>
 
-          <!-- POS EMBED -->
+          <!-- TEMPORAL CV FOLDS -->
           <div class="block brd-pur">
             <div class="block-header bh-pur">
-              <div class="block-icon bi-pur">📍</div>
-              <div class="block-title">Positional Embedding</div>
-              <div class="block-badge bb-pur">learned</div>
+              <div class="block-icon bi-pur">✂</div>
+              <div class="block-title">Temporal Rolling-Window CV</div>
+              <div class="block-badge bb-pur">fold split</div>
             </div>
             <div class="block-body">
               <div class="sub-row">
-                <div class="sub-block sb-pur">nn.Parameter (1, 841, 64)</div>
+                <div class="sub-block sb-pur">Train (W weeks)</div>
                 <div class="sub-arrow">→</div>
-                <div class="formula">init: trunc_normal(std=0.02)</div>
+                <div class="sub-block" style="border-color:var(--border-md);background:#f4f6f8;">Gap (first_lag)</div>
+                <div class="sub-arrow">→</div>
+                <div class="sub-block" style="border-color:#f8b97a;background:#fef8f0;color:#bf360c;">Calib (12w)</div>
+                <div class="sub-arrow">→</div>
+                <div class="sub-block" style="border-color:#ef5350;background:#fef2f2;color:#c62828;">Test (12w)</div>
               </div>
               <div class="sub-row">
-                <div class="formula">tokens = tokens + pos_embed &nbsp;→&nbsp; (B, 841, 64)</div>
+                <div class="formula">first_lag = (2 × target_w) // 5 &nbsp;·&nbsp; K = ceil((n − max_W − overhead) / min_test) &nbsp;·&nbsp; max_window = 120w</div>
+              </div>
+              <div class="sub-row">
+                <div class="formula">Train tail 20% used for early stopping only — never touches calib or test</div>
               </div>
             </div>
           </div>
 
-          <div class="arrow"></div>
+          <div class="arrow" style="position:relative">
+            <span class="arrow-label">per pair (i,j) × per lag k</span>
+          </div>
 
-          <!-- ×1 DECODER BLOCK -->
+          <!-- × history_lags FEATURE CONSTRUCTION -->
           <div class="repeat-wrapper">
             <div class="repeat-bracket">
-              <div class="repeat-label">× 1 block</div>
+              <div class="repeat-label">× history_lags</div>
             </div>
             <div class="repeat-content">
-              <div class="block brd-org" style="max-width:100%">
-                <div class="block-header bh-org">
-                  <div class="block-icon bi-org">🔷</div>
-                  <div class="block-title">
-                    DecoderBlock
-                    <span style="color:#9e4a00;font-size:10px;font-weight:400"> &nbsp;(drop_path=0.05)</span>
-                  </div>
-                  <div class="block-badge bb-org">Sector-GPSA + FFN</div>
+              <div class="block brd-teal" style="max-width:100%">
+                <div class="block-header bh-teal">
+                  <div class="block-icon bi-teal">🧩</div>
+                  <div class="block-title">Feature Construction</div>
+                  <div class="block-badge bb-teal">O(1) lookup</div>
                 </div>
                 <div class="block-body">
+                  <div class="sub-row">
+                    <div class="sub-block sb-teal">same_sector &nbsp;(1 feat)</div>
+                    <div class="sub-arrow">→</div>
+                    <div class="formula">sector_ids[i] == sector_ids[j] &nbsp;·&nbsp; computed once, prepended to all lags</div>
+                  </div>
                   <div class="inner-row">
 
-                    <!-- Attention branch -->
+                    <!-- Target-Scale column -->
                     <div class="inner-col">
-                      <div class="inner-col-header" style="color:#004d40;background:#e0f2f1;">
-                        Attention Branch — Sector-GPSA
+                      <div class="inner-col-header" style="color:#7b1fa2;background:#f3e5f5;">
+                        Target-Scale Attrs <span style="font-weight:400;opacity:0.7">(6 / lag)</span>
                       </div>
                       <div class="inner-col-body">
-                        <div class="mini-block">
-                          LayerNorm <span style="color:var(--dim)">(64)</span>
-                        </div>
-                        <div class="mini-arrow">↓</div>
-
-                        <!-- Sector-GPSA detail box -->
-                        <div class="mini-block" style="border-color:#4db6ac;background:#e0f2f1;">
-                          <span style="color:#004d40;font-weight:700;">Sector-Gated Positional Self-Attention</span>
-                          <div style="margin-top:6px;color:#555;font-size:8.5px;line-height:1.9;text-align:justify;">
-                            <b style="color:#004d40;">QKV proj:</b> 64 → 3×64 (bias=True) · heads=2 · head_dim=32<br>
-
-                            <b style="color:#004d40;">A_content</b> = softmax(Q·Kᵀ / √32) &nbsp; (B, H, N, N)<br>
-
-                            <b style="color:#004d40;">A_pos</b> = sector-pair membership matrix &nbsp; (N, N)<br>
-                            &nbsp;&nbsp;group = frozenset({row_sector, col_sector}) per patch<br>
-                            &nbsp;&nbsp;A_pos[i,j] = 1/|group(i)| if same group, else 0<br>
-                            &nbsp;&nbsp;Each row sums to 1 — uniform within-group prior<br>
-
-                            <b style="color:#004d40;">g_h</b> = sigmoid(λ_h) per head · shape (H,) · init λ=0 → g=0.5<br>
-
-                            <b style="color:#004d40;">output_h</b> = g_h·(A_pos @ V) + (1−g_h)·(A_content @ V)<br>
-
-                            out proj: 64 → 64
-                          </div>
-                        </div>
-
-                        <div class="mini-arrow">↓</div>
-                        <div class="mini-block" style="border-color:#c49de8;background:#f9f2ff;">
-                          <span style="color:#5b1a8a;font-weight:700;">LayerScale γ₁</span>
-                          <span style="color:var(--dim);font-size:8px;"> (init 1e-2, shape 64)</span>
-                        </div>
-                        <div class="mini-arrow">↓</div>
-                        <div class="mini-block" style="border-color:#90b8f8;background:#f0f5ff;">
-                          DropPath <span style="color:var(--dim)">(p=0.05)</span>
-                        </div>
-                        <div class="mini-arrow">↓</div>
-                        <div class="residual-note">⤷ residual add to input x</div>
+                        <div class="mini-block sb-pur">w{tgt}_edge</div>
+                        <div class="mini-block sb-pur">deg{tgt}_i</div>
+                        <div class="mini-block sb-pur">deg{tgt}_j</div>
+                        <div class="mini-block sb-pur">deg{tgt}_absdiff</div>
+                        <div class="mini-block sb-pur">common_nbrs_w{tgt}</div>
+                        <div class="mini-block sb-pur">jaccard_w{tgt}</div>
+                        <div class="residual-note" style="border-color:#c49de8;color:#7b1fa2;">kept for ablation comparison only — expected to be auto-correlation noise</div>
                       </div>
                     </div>
 
-                    <!-- FFN branch -->
+                    <!-- Source-Scale Standard column -->
                     <div class="inner-col">
                       <div class="inner-col-header" style="color:#1b5e20;background:#e8f5e9;">
-                        Feed-Forward Branch
+                        Source-Scale Standard <span style="font-weight:400;opacity:0.7">(7 / lag)</span>
                       </div>
                       <div class="inner-col-body">
-                        <div class="mini-block">
-                          LayerNorm <span style="color:var(--dim)">(64)</span>
-                        </div>
-                        <div class="mini-arrow">↓</div>
-                        <div class="mini-block" style="border-color:#93d19b;background:#f4fbf5;">
-                          <span style="color:#1b5e20;font-weight:700;">FeedForward MLP</span>
-                          <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;text-align:justify;">
-                            Linear 64 → 256 (mlp_ratio=4×)<br>
-                            GELU<br>
-                            Dropout (0.1)<br>
-                            Linear 256 → 64<br>
-                            Dropout (0.1)
+                        <div class="mini-block sb-grn">w{src}_edge</div>
+                        <div class="mini-block sb-grn">w{src}_3hop_bridge</div>
+                        <div class="mini-block sb-grn">deg{src}_i</div>
+                        <div class="mini-block sb-grn">deg{src}_j</div>
+                        <div class="mini-block sb-grn">deg{src}_absdiff</div>
+                        <div class="mini-block sb-grn">common_nbrs_w{src}</div>
+                        <div class="mini-block sb-grn">jaccard_w{src}</div>
+                        <div class="mini-arrow" style="margin-top:2px">↓</div>
+                        <div class="mini-block" style="border-color:#4db6ac;background:#e0f2f1;">
+                          <span style="color:#004d40;font-weight:700;">O(1) Pair Lookup</span>
+                          <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.9;text-align:justify;">
+                            <b style="color:#004d40;">Precompute once:</b> s2 = adj @ adj &nbsp;(O(N³))<br>
+                            <b style="color:#004d40;">Per pair O(1):</b><br>
+                            &nbsp;&nbsp;com = s2[i, j]<br>
+                            &nbsp;&nbsp;uni = clip(deg_i + deg_j − com, 1, ∞)<br>
+                            &nbsp;&nbsp;jaccard = com / uni<br>
+                            <b style="color:#004d40;">3-hop bridge:</b><br>
+                            &nbsp;&nbsp;s3 = s2 @ s<br>
+                            &nbsp;&nbsp;bridge = s3·(1−s)·(1−(s2&gt;0))
                           </div>
                         </div>
-                        <div class="mini-arrow">↓</div>
-                        <div class="mini-block" style="border-color:#c49de8;background:#f9f2ff;">
-                          <span style="color:#5b1a8a;font-weight:700;">LayerScale γ₂</span>
-                          <span style="color:var(--dim);font-size:8px;"> (init 1e-2, shape 64)</span>
+                      </div>
+                    </div>
+
+                    <!-- Source-Scale Neck column -->
+                    <div class="inner-col">
+                      <div class="inner-col-header" style="color:#004d40;background:#e0f2f1;">
+                        Source-Scale Neck <span style="font-weight:400;opacity:0.7">(6 / lag)</span>
+                      </div>
+                      <div class="inner-col-body">
+                        <div class="mini-block sb-teal">neckness_i <span style="color:var(--dim);font-size:8px">(1−CC)</span></div>
+                        <div class="mini-block sb-teal">neckness_j</div>
+                        <div class="mini-block sb-teal">cross_sector_deg_i</div>
+                        <div class="mini-block sb-teal">cross_sector_deg_j</div>
+                        <div class="mini-block sb-teal">clust_boundary_diff</div>
+                        <div class="mini-block sb-teal">bridge_capacity</div>
+                        <div class="mini-arrow" style="margin-top:2px">↓</div>
+                        <div class="mini-block" style="border-color:#4db6ac;background:#e0f2f1;">
+                          <span style="color:#004d40;font-weight:700;">Neck Topology</span>
+                          <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.9;text-align:justify;">
+                            <b style="color:#004d40;">neckness</b> = 1 − 2·tri/(d(d−1)+ε)<br>
+                            &nbsp;&nbsp;Low clustering = inter-sector bridge<br>
+                            <b style="color:#004d40;">cross_sec_deg</b> = sum(adj · (1−same_sec))<br>
+                            &nbsp;&nbsp;Direct cross-sector adjacency count<br>
+                            <b style="color:#004d40;">bridge_cap</b> = bridge_3hop[i,j]/(deg_i+ε)<br>
+                            &nbsp;&nbsp;Normalised structural-hole capacity
+                          </div>
                         </div>
-                        <div class="mini-arrow">↓</div>
-                        <div class="mini-block" style="border-color:#90b8f8;background:#f0f5ff;">
-                          DropPath <span style="color:var(--dim)">(p=0.05)</span>
-                        </div>
-                        <div class="mini-arrow">↓</div>
-                        <div class="residual-note">⤷ residual add to post-attn x</div>
                       </div>
                     </div>
 
                   </div>
                   <div class="sub-row" style="margin-top:9px">
-                    <div class="formula">output shape unchanged: (B, 841, 64)</div>
+                    <div class="formula">output per lag: (N_pairs, 19) &nbsp;·&nbsp; total = 1 + (13×n_src + 6) × history_lags features</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="arrow"></div>
+          <div class="arrow" style="position:relative">
+            <span class="arrow-label">boolean mask</span>
+          </div>
 
-          <!-- FINAL NORM -->
+          <!-- ABLATION MASK -->
           <div class="block brd-pur">
             <div class="block-header bh-pur">
-              <div class="block-icon bi-pur" style="font-style:normal;">≈</div>
-              <div class="block-title">Final LayerNorm</div>
-              <div class="block-badge bb-pur">post-transformer</div>
+              <div class="block-icon bi-pur">🔬</div>
+              <div class="block-title">Ablation Feature Mask</div>
+              <div class="block-badge bb-pur">variant split</div>
             </div>
             <div class="block-body">
-              <div class="sub-row">
-                <div class="sub-block sb-pur">LayerNorm (64)</div>
-                <div class="sub-arrow">→</div>
-                <div class="formula">(B, 841, 64)</div>
+              <div class="inner-row">
+                <div class="inner-col">
+                  <div class="inner-col-header" style="color:#0d47a1;background:#e8f0fe;">
+                    Full Model — mask = all True
+                  </div>
+                  <div class="inner-col-body">
+                    <div class="mini-block sb-blue">Sector Prior ✓</div>
+                    <div class="mini-block sb-pur">Target-Scale (6) ✓</div>
+                    <div class="mini-block sb-grn">Source-Scale Std (7) ✓</div>
+                    <div class="mini-block sb-teal">Source-Scale Neck (6) ✓</div>
+                    <div class="formula" style="margin-top:4px;">1 + (13×n_src + 6) × H feats</div>
+                  </div>
+                </div>
+                <div class="inner-col">
+                  <div class="inner-col-header" style="color:#bf360c;background:#fef3e2;">
+                    Pure Cross-Scale — target removed
+                  </div>
+                  <div class="inner-col-body">
+                    <div class="mini-block sb-blue">Sector Prior ✓</div>
+                    <div class="mini-block" style="border-color:#ef9a9a;background:#fef2f2;color:#c62828;">Target-Scale (6) ✗</div>
+                    <div class="mini-block sb-grn">Source-Scale Std (7) ✓</div>
+                    <div class="mini-block sb-teal">Source-Scale Neck (6) ✓</div>
+                    <div class="formula" style="margin-top:4px;">1 + (13×n_src) × H feats</div>
+                  </div>
+                </div>
+              </div>
+              <div class="sub-row" style="margin-top:9px">
+                <div class="formula">filter: n.startswith(f"w{tgt}_") — prevents substring collision (w35 vs w135)</div>
               </div>
             </div>
           </div>
 
-          <div class="arrow"></div>
+          <div class="arrow" style="position:relative">
+            <span class="arrow-label">concat early + tail · fit</span>
+          </div>
 
-          <!-- PIXEL HEAD -->
-          <div class="block brd-tel">
-            <div class="block-header bh-tel">
-              <div class="block-icon bi-tel">🖼</div>
-              <div class="block-title">Pixel Reconstruction Head</div>
-              <div class="block-badge bb-tel">single linear</div>
+          <!-- LIGHTGBM TRAINING -->
+          <div class="block brd-org" style="max-width:730px">
+            <div class="block-header bh-org">
+              <div class="block-icon bi-org">⚡</div>
+              <div class="block-title">
+                LightGBM Training
+                <span style="color:#9e4a00;font-size:10px;font-weight:400"> &nbsp;(per fold × per variant)</span>
+              </div>
+              <div class="block-badge bb-org">GBDT + early stop</div>
+            </div>
+            <div class="block-body">
+              <div class="inner-row">
+
+                <!-- Training config branch -->
+                <div class="inner-col">
+                  <div class="inner-col-header" style="color:#bf360c;background:#fef3e2;">
+                    Model Configuration
+                  </div>
+                  <div class="inner-col-body">
+                    <div class="mini-block">
+                      objective <span style="color:var(--dim)">binary</span><br>
+                      n_estimators <span style="color:var(--dim)">2000</span><br>
+                      num_leaves <span style="color:var(--dim)">63</span> (unshackled)<br>
+                      max_depth <span style="color:var(--dim)">-1</span> (no limit)<br>
+                      learning_rate <span style="color:var(--dim)">0.02</span><br>
+                      subsample <span style="color:var(--dim)">0.8</span><br>
+                      colsample_bytree <span style="color:var(--dim)">0.8</span>
+                    </div>
+                    <div class="mini-arrow">↓</div>
+                    <div class="mini-block" style="border-color:#f8b97a;background:#fef8f0;">
+                      <span style="color:#bf360c;font-weight:700;">Imbalance &amp; Regularisation</span>
+                      <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;text-align:justify;">
+                        <b style="color:#bf360c;">is_unbalance=True</b><br>
+                        &nbsp;&nbsp;Native LightGBM class reweighting<br>
+                        <b style="color:#bf360c;">reg_alpha=0.0</b> (unshackled)<br>
+                        &nbsp;&nbsp;Allows cross-scale features to contribute freely<br>
+                        <b style="color:#bf360c;">min_child_samples=20</b><br>
+                        &nbsp;&nbsp;Relaxed leaf constraint
+                      </div>
+                    </div>
+                    <div class="mini-arrow">↓</div>
+                    <div class="mini-block">
+                      fit(x_train, y_train)
+                    </div>
+                    <div class="mini-arrow">↓</div>
+                    <div class="residual-note">output: raw probabilities on calib + test</div>
+                  </div>
+                </div>
+
+                <!-- Early stopping branch -->
+                <div class="inner-col">
+                  <div class="inner-col-header" style="color:#004d40;background:#e0f2f1;">
+                    Early Stopping Strategy
+                  </div>
+                  <div class="inner-col-body">
+                    <div class="mini-block">
+                      Validation set <span style="color:var(--dim)">(train tail 20%)</span>
+                    </div>
+                    <div class="mini-arrow">↓</div>
+                    <div class="mini-block" style="border-color:#ef5350;background:#fef2f2;">
+                      <span style="color:#c62828;font-weight:700;">Stopping Metric: binary_logloss</span>
+                      <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;text-align:justify;">
+                        Decreases reliably during training. AUC is <b>monotonically non-decreasing</b> → never triggers stopping → always times out at 2000 iter.
+                      </div>
+                    </div>
+                    <div class="mini-arrow">↓</div>
+                    <div class="mini-block" style="border-color:#f8b97a;background:#fef8f0;">
+                      <span style="color:#bf360c;font-weight:700;">Patience: 50 iterations</span>
+                      <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;text-align:justify;">
+                        Triggers reliably with logloss. Combined with lr=0.02, effective tree count is typically well below 2000.
+                      </div>
+                    </div>
+                    <div class="mini-arrow">↓</div>
+                    <div class="mini-block" style="border-color:#90b8f8;background:#f0f5ff;">
+                      <span style="color:#0d47a1;font-weight:700;">Reference Metrics (not for stopping)</span>
+                      <div style="margin-top:5px;color:#555;font-size:8.5px;line-height:1.75;text-align:justify;">
+                        <b style="color:#0d47a1;">AUC</b> — diagnostic only<br>
+                        <b style="color:#0d47a1;">Max-F2</b> — PR scan on 50K subsample<br>
+                        Both tracked as reference curves in training plot.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+              <div class="sub-row" style="margin-top:9px">
+                <div class="formula">save: best_lightgbm_w{src}_to_w{tgt}_fold{F}.pkl &nbsp;·&nbsp; training curves: logloss + AUC + F2 vs iteration</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="arrow" style="position:relative">
+            <span class="arrow-label">fit calibrator · scan PR curve</span>
+          </div>
+
+          <!-- CALIBRATION -->
+          <div class="block brd-teal">
+            <div class="block-header bh-teal">
+              <div class="block-icon bi-teal">🎯</div>
+              <div class="block-title">Calibration &amp; F2 Threshold</div>
+              <div class="block-badge bb-teal">threshold search</div>
             </div>
             <div class="block-body">
               <div class="sub-row">
-                <div class="sub-block">Linear 64→256</div>
+                <div class="sub-block sb-teal">Platt scaling</div>
                 <div class="sub-arrow">→</div>
-                <div class="formula">single linear — direct gradient path from loss to transformer</div>
+                <div class="sub-block sb-teal">Isotonic regression</div>
+                <div class="sub-arrow">→</div>
+                <div class="formula">auto-select by minimum Brier score on calibration set</div>
               </div>
               <div class="sub-row">
-                <div class="formula">patch_dim = 1×16×16 = 256 &nbsp;→&nbsp; (B, 841, 256)</div>
+                <div class="formula">F2 = 5·P·R / (4P + R) &nbsp;·&nbsp; scan all PR thresholds on calibrated calib scores → pick max F2</div>
+              </div>
+              <div class="sub-row">
+                <div class="formula">apply chosen calibrator to test raw scores → apply F2 threshold → binary predictions</div>
+              </div>
+              <div class="sub-row">
+                <div class="formula">report: brier_raw, brier_calibrated, brier_platt, brier_isotonic (all on test set)</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="arrow" style="position:relative">
+            <span class="arrow-label">apply threshold · compute metrics</span>
+          </div>
+
+          <!-- EVALUATION -->
+          <div class="block brd-grn">
+            <div class="block-header bh-grn">
+              <div class="block-icon bi-grn">📊</div>
+              <div class="block-title">Evaluation &amp; Diagnostics</div>
+              <div class="block-badge bb-grn">test set</div>
+            </div>
+            <div class="block-body">
+              <div class="sub-row">
+                <div class="sub-block sb-grn">AUC</div>
+                <div class="sub-block sb-grn">AP</div>
+                <div class="sub-block sb-grn">F1</div>
+                <div class="sub-block" style="border-color:#f8b97a;background:#fef8f0;color:#bf360c;font-weight:700;">F2</div>
+                <div class="sub-block sb-grn">Prec</div>
+                <div class="sub-block sb-grn">Rec</div>
+                <div class="sub-block sb-grn">Brier</div>
               </div>
               <div class="sub-row" style="margin-top:3px">
-                <div class="sub-block sb-tel">unpatchify</div>
-                <div class="sub-arrow">→</div>
-                <div class="formula">(B, 1, 464, 464) &nbsp;then crop&nbsp; → &nbsp;(B, 1, 457, 457)</div>
+                <div class="formula">Null baselines at same F2 threshold: Marginal Prior (constant pos rate) · Short-Scale Oracle (lagged w=35 adj)</div>
+              </div>
+              <div class="sub-row">
+                <div class="sub-block">PR curve + baseline comparison</div>
+                <div class="sub-block">Confusion matrix</div>
+                <div class="sub-block">Calibration curve</div>
+                <div class="sub-block">Score histogram</div>
+                <div class="sub-block">Top-20 feat importance</div>
+                <div class="sub-block">SHAP summary</div>
               </div>
             </div>
           </div>
@@ -820,14 +1046,18 @@
           <div class="block brd-blue">
             <div class="block-header bh-blue">
               <div class="block-icon bi-blue" style="font-style:normal;">✦</div>
-              <div class="block-title">Output Tensor</div>
-              <div class="block-badge bb-blue">prediction t+1</div>
+              <div class="block-title">Output Artifacts</div>
+              <div class="block-badge bb-blue">per fold</div>
             </div>
             <div class="block-body">
               <div class="sub-row">
-                <div class="sub-block sb-blue">B × 1 × 457 × 457</div>
+                <div class="sub-block sb-blue">best_*.pkl</div>
                 <div class="sub-arrow">→</div>
-                <div class="formula">predicted change ΔD̂_t = D_{t+1} − D_t &nbsp;·&nbsp; MSE loss vs ground-truth ΔD_t</div>
+                <div class="sub-block sb-blue">*_pr_curve.png</div>
+                <div class="sub-arrow">→</div>
+                <div class="sub-block sb-blue">*_shap_summary.png</div>
+                <div class="sub-arrow">→</div>
+                <div class="formula">CV summary table (Mean ± Std across folds) · ablation comparison</div>
               </div>
             </div>
           </div>
@@ -837,28 +1067,28 @@
         <!-- Legend -->
         <div class="legend">
           <div class="legend-item" style="border-top:3px solid #2e7d32;">
-            <b style="color:#1b5e20;">Convolutional Patch Embedding</b>
-            <p>Conv2d(1, 64, kernel=16, stride=16) extracts and projects each patch in one step, followed by LayerNorm(64). The norm operates in embed_dim space (128 params fixed) rather than patch space, making it cheaper than a flat linear embedding. Total: 16,576 params.</p>
-          </div>
-          <div class="legend-item" style="border-top:3px solid #00695c;">
-            <b style="color:#004d40;">Sector-GPSA Gate</b>
-            <p>g_h = sigmoid(λ_h) per head. g→1: head relies on the GICS sector prior. g→0: head is fully content-driven. Initialised at λ=0 (g=0.5) so both streams contribute equally from the first epoch.</p>
-          </div>
-          <div class="legend-item" style="border-top:3px solid #00695c;">
-            <b style="color:#004d40;">Sector Positional Prior A_pos</b>
-            <p>Row-normalised sector-pair membership matrix. Each patch at grid (r,c) is assigned group frozenset({row_sector, col_sector}), so (r,c) and (c,r) share the same group, preserving distance matrix symmetry. Directly encodes the block-diagonal structure of the GICS-reordered distance matrix.</p>
+            <b style="color:#1b5e20;">O(1) Evaluation Speedup</b>
+            <p>Replaced massive 1.2M × 451 matrix multiplications with precomputed 2-hop index lookups. s2 = adj @ adj is computed once per time step (O(N³)), then all pair features use direct index access s2[i,j] in O(1). Reduces eval time by orders of magnitude.</p>
           </div>
           <div class="legend-item" style="border-top:3px solid #6a1b9a;">
-            <b style="color:#4a148c;">LayerScale</b>
-            <p>Per-channel scalar γ on each residual branch, initialised at 1e-2. Provides meaningful gradient signal through the residual branches from the first epoch while stabilising early training on small datasets.</p>
+            <b style="color:#4a148c;">Exact Zero-Overlap Lag</b>
+            <p>first_lag = (2 × target_w) // 5 ensures the source-scale observation window at lag k predates the target-scale prediction window by at least 2 full target windows. Eliminates any temporal information leakage between features and labels.</p>
           </div>
-          <div class="legend-item" style="border-top:3px solid #0288d1;">
-            <b style="color:#01579b;">DropPath (Stoch. Depth)</b>
-            <p>Fixed rate of 0.05 (no linear schedule with only 1 block). Light regularisation — drops the entire block at training time.</p>
+          <div class="legend-item" style="border-top:3px solid #00695c;">
+            <b style="color:#004d40;">F2-Aligned Thresholding</b>
+            <p>Instead of default 0.5, the pipeline scans the full precision-recall curve on calibration scores to find the threshold maximising F2 = 5·P·R / (4P + R). Calibration (Platt/Isotonic) is fit on a separate holdout before threshold search, ensuring no test-set contamination.</p>
+          </div>
+          <div class="legend-item" style="border-top:3px solid #e64a19;">
+            <b style="color:#bf360c;">Logloss Early Stopping</b>
+            <p>AUC is monotonically non-decreasing during GBDT training, causing early stopping to never trigger (always timeouts at 2000 iterations). Switched to binary_logloss which decreases reliably. AUC and F2 are tracked as reference curves only, not for stopping decisions.</p>
+          </div>
+          <div class="legend-item" style="border-top:3px solid #1565c0;">
+            <b style="color:#0d47a1;">Native Class Imbalance Handling</b>
+            <p>LightGBM's is_unbalance=True automatically adjusts sample weights for binary classification. Combined with 1:1 negative ratio sampling during training (all positives kept, negatives downsampled to match), this handles the extreme class imbalance in adjacency matrices without manual tuning.</p>
           </div>
           <div class="legend-item" style="border-top:3px solid #546e7a;">
-            <b style="color:#37474f;">Padding &amp; Crop</b>
-            <p>457 is not divisible by 16. Reflect-pad to 464 = 29 × 16 before tokenisation, then crop back to 457×457 after reconstruction.</p>
+            <b style="color:#37474f;">Ablation Study Design</b>
+            <p>Two variants per fold: Full (all features) vs Pure Cross-Scale (target-scale features removed via startswith filter). If Pure Cross-Scale matches or exceeds Full, it proves multi-scale topological transfer carries genuine non-redundant signal beyond target-scale auto-correlation. The startswith filter prevents substring collision (e.g., w35 features when target_w=135).</p>
           </div>
         </div>
 
@@ -873,8 +1103,8 @@
     <button class="roller-toggle" onclick="toggleRoller('roller-gallery')" aria-expanded="false">
       <div class="roller-icon">🖼</div>
       <div class="roller-title-wrap">
-        <span class="roller-title">Gallery</span>
-        <span class="roller-subtitle">Training results · loss curves · predictions vs ground truth · gate values · attention maps</span>
+        <span class="roller-title">Diagnostic Gallery</span>
+        <span class="roller-subtitle">Training curves · PR baselines · confusion matrices · calibration curves · SHAP summaries · feature snapshots</span>
       </div>
       <span class="roller-badge">results</span>
       <div class="roller-chevron">
@@ -887,33 +1117,32 @@
       <div class="roller-body-inner">
 
         <div style="margin-top:20px;margin-bottom:6px;">
-          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#2e7d32;font-weight:700;margin-bottom:10px;">Hyperparameters used</div>
+          <div style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#2e7d32;font-weight:700;margin-bottom:10px;">Training Hyperparameters</div>
           <div class="params-row" style="margin-bottom:0">
-            <div class="pill">in_channels <b>1</b></div>
-            <div class="pill">img_size <b>457</b></div>
-            <div class="pill">padded_size <b>464</b></div>
-            <div class="pill">patch_size <b>16</b></div>
-            <div class="pill">grid <b>29 × 29</b></div>
-            <div class="pill">N patches <b>841</b></div>
-            <div class="pill">embed_dim <b>64</b></div>
-            <div class="pill">depth <b>1</b></div>
-            <div class="pill">num_heads <b>2</b></div>
-            <div class="pill">head_dim <b>32</b></div>
-            <div class="pill">mlp_ratio <b>4×</b></div>
-            <div class="pill">attn_drop <b>0.1</b></div>
-            <div class="pill">proj_drop <b>0.1</b></div>
-            <div class="pill">drop_path_rate <b>0.05</b></div>
-            <div class="pill">ls_init <b>1e-2</b></div>
-            <div class="pill">gate_init λ <b>0.0</b></div>
-            <div class="pill">gate_init g <b>0.50</b></div>
-            <div class="pill">total params <b>137,282</b></div>
+            <div class="pill">source_ws <b>[35]</b></div>
+            <div class="pill">target_w <b>70</b></div>
+            <div class="pill">history_lags <b>varies</b></div>
+            <div class="pill">neg_ratio <b>1:1</b></div>
+            <div class="pill">n_estimators <b>2000</b></div>
+            <div class="pill">num_leaves <b>63</b></div>
+            <div class="pill">learning_rate <b>0.02</b></div>
+            <div class="pill">subsample <b>0.8</b></div>
+            <div class="pill">colsample <b>0.8</b></div>
+            <div class="pill">reg_alpha <b>0.0</b></div>
+            <div class="pill">reg_lambda <b>1.0</b></div>
+            <div class="pill">min_child <b>20</b></div>
+            <div class="pill">drop_path <b>0.05</b></div>
+            <div class="pill">patience <b>50</b></div>
+            <div class="pill">calibration <b>auto</b></div>
+            <div class="pill">do_ablation <b>True</b></div>
+            <div class="pill">shap_samples <b>5000</b></div>
           </div>
         </div>
 
         <div class="gallery-empty">
           <span class="empty-icon">📂</span>
-          No images added yet.<br>
-          Place your training result PNGs in the same folder as <code style="background:#eef2f7;padding:1px 5px;border-radius:3px;font-size:10px;color:#bf360c;">index.html</code><br>
+          No diagnostic images added yet.<br>
+          Place your training output PNGs in the same folder as <code style="background:#eef2f7;padding:1px 5px;border-radius:3px;font-size:10px;color:#bf360c;">index.html</code><br>
           then add <code style="background:#eef2f7;padding:1px 5px;border-radius:3px;font-size:10px;color:#bf360c;">&lt;div class="gallery-card"&gt;</code> blocks inside the <code style="background:#eef2f7;padding:1px 5px;border-radius:3px;font-size:10px;color:#bf360c;">.gallery-grid</code> below.
         </div>
 
@@ -926,77 +1155,73 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════
-       ROLLER 3 — Presentation Materials
+       ROLLER 3 — Output Artifacts
   ════════════════════════════════════════════════════ -->
-  <div class="roller roller-pres" id="roller-pres">
-    <button class="roller-toggle" onclick="toggleRoller('roller-pres')" aria-expanded="false">
-      <div class="roller-icon">📎</div>
+  <div class="roller roller-art" id="roller-art">
+    <button class="roller-toggle" onclick="toggleRoller('roller-art')" aria-expanded="false">
+      <div class="roller-icon">📦</div>
       <div class="roller-title-wrap">
-        <span class="roller-title">Presentation Materials</span>
-        <span class="roller-subtitle">Slides and supplementary documents for download</span>
+        <span class="roller-title">Output Artifacts</span>
+        <span class="roller-subtitle">Saved models, diagnostic plots, and metrics — naming conventions and file structure</span>
       </div>
-      <span class="roller-badge">downloads</span>
+      <span class="roller-badge">artifacts</span>
       <div class="roller-chevron">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#e64a19" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M6 9l6 6 6-6"/>
         </svg>
       </div>
     </button>
-    <div class="roller-body" id="roller-pres-body">
+    <div class="roller-body" id="roller-art-body">
       <div class="roller-body-inner">
 
         <div style="display:flex; flex-direction:column; gap:10px; padding-top:20px;">
 
-          <!-- File row: Understanding Transformers -->
-          <div style="display:flex; align-items:center; gap:14px; padding:14px 16px;
-                      border:1.5px solid #f8b97a; border-radius:9px; background:#fff8f2;
-                      box-shadow:0 1px 5px rgba(0,0,0,0.06);">
-            <div style="width:38px;height:38px;border-radius:8px;background:#fddba8;
-                        display:flex;align-items:center;justify-content:center;
-                        font-size:20px;flex-shrink:0;">📊</div>
-            <div style="flex:1; min-width:0;">
-              <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
-                          color:#7b3a00;">Understanding Transformers</div>
+          <!-- Model Checkpoints -->
+          <div class="art-file-row">
+            <div class="art-file-icon" style="background:#e8f0fe;color:#0d47a1;">💾</div>
+            <div class="art-file-info">
+              <div class="art-file-title">Model Checkpoints</div>
               <div style="font-size:10px;color:var(--dim);margin-top:3px;">
-                PowerPoint presentation &nbsp;·&nbsp; <code class="inline">.pptx</code>
+                Serialised LightGBM classifier &nbsp;·&nbsp; <code class="inline">.pkl</code> &nbsp;·&nbsp; Full variant only (one per fold)
               </div>
             </div>
-            <div style="display:flex;gap:8px;flex-shrink:0;">
-              <a href="https://raw.githubusercontent.com/PythoneerKang/VisionForecaster/main/docs/Understanding%20Transformers.pptx"
-                 download="Understanding Transformers.pptx"
-                 style="display:inline-flex;align-items:center;gap:6px;
-                        font-size:10px;padding:6px 13px;border-radius:5px;
-                        text-decoration:none;font-weight:600;letter-spacing:0.5px;
-                        background:#e64a19;color:#fff;border:1.5px solid #e64a19;
-                        transition:opacity 0.15s,transform 0.1s;"
-                 onmouseover="this.style.opacity='0.85';this.style.transform='translateY(-1px)'"
-                 onmouseout="this.style.opacity='1';this.style.transform='translateY(0)'">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                Download
-              </a>
-              <a href="https://github.com/PythoneerKang/VisionForecaster/blob/main/docs/Understanding%20Transformers.pptx"
-                 target="_blank" rel="noopener"
-                 style="display:inline-flex;align-items:center;gap:6px;
-                        font-size:10px;padding:6px 13px;border-radius:5px;
-                        text-decoration:none;font-weight:600;letter-spacing:0.5px;
-                        background:#fff;color:#bf360c;border:1.5px solid #f8b97a;
-                        transition:opacity 0.15s,transform 0.1s;"
-                 onmouseover="this.style.opacity='0.85';this.style.transform='translateY(-1px)'"
-                 onmouseout="this.style.opacity='1';this.style.transform='translateY(0)'">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-                  <polyline points="15 3 21 3 21 9"/>
-                  <line x1="10" y1="14" x2="21" y2="3"/>
-                </svg>
-                View on GitHub
-              </a>
+            <div class="art-file-pattern">best_lightgbm_w{src}_to_w{tgt}_fold{F}.pkl</div>
+          </div>
+
+          <!-- Per-Fold Diagnostics -->
+          <div class="art-file-row">
+            <div class="art-file-icon" style="background:#e6f4ea;color:#1b5e20;">📊</div>
+            <div class="art-file-info">
+              <div class="art-file-title">Per-Fold Diagnostic Plots</div>
+              <div style="font-size:10px;color:var(--dim);margin-top:3px;">
+                PR curve, threshold scan, confusion matrix, calibration curve, score histogram, feature importance, SHAP summary &nbsp;·&nbsp; <code class="inline">.png</code> &nbsp;·&nbsp; per fold per variant
+              </div>
             </div>
+            <div class="art-file-pattern">w{src}_to_w{tgt}_fold{F}_{model}_{abl}_{plot}.png</div>
+          </div>
+
+          <!-- Global Visualizations -->
+          <div class="art-file-row">
+            <div class="art-file-icon" style="background:#e0f2f1;color:#004d40;">🗺</div>
+            <div class="art-file-info">
+              <div class="art-file-title">Global Visualizations</div>
+              <div style="font-size:10px;color:var(--dim);margin-top:3px;">
+                Data timeline, feature snapshots (raw + z-score), PR baseline comparison, training curves &nbsp;·&nbsp; <code class="inline">.png</code> &nbsp;·&nbsp; one per run
+              </div>
+            </div>
+            <div class="art-file-pattern">w{src}_to_w{tgt}_{timeline|feature_snapshot|...}.png</div>
+          </div>
+
+          <!-- Console Output -->
+          <div class="art-file-row">
+            <div class="art-file-icon" style="background:#f0e8fc;color:#4a148c;">📋</div>
+            <div class="art-file-info">
+              <div class="art-file-title">CV Summary Table</div>
+              <div style="font-size:10px;color:var(--dim);margin-top:3px;">
+                Per-fold metrics (AUC, AP, F1, F2, Brier) with Mean ± Std, baselines, and ablation comparison &nbsp;·&nbsp; printed to stdout
+              </div>
+            </div>
+            <div class="art-file-pattern">stdout — CV SUMMARY A_[{src}] → A_w{tgt}</div>
           </div>
 
         </div>
@@ -1004,9 +1229,9 @@
         <div style="margin-top:14px;font-size:9px;color:var(--dim);line-height:1.8;
                     border:1px dashed var(--border-md);border-radius:6px;padding:8px 12px;
                     background:#fafbfc;">
-          💡 If the <b>Download</b> button doesn't trigger a file save, use <b>View on GitHub</b>
-          and click the download icon on that page instead.
-          GitHub's raw server occasionally blocks direct binary downloads.
+          💡 All artifacts are saved under the <b>save_dir</b> directory. Per-fold plots go into
+          <code class="inline">save_dir/plots/</code>. Global plots and model PKLs go into <code class="inline">save_dir/</code> directly.
+          Ablation variants append <code class="inline">_pure_cross_scale</code> to filenames.
         </div>
 
       </div>
@@ -1022,19 +1247,29 @@
         <div class="prereq-req-label">Required</div>
         <div class="prereq-req-item">
           <span style="font-size:14px;">🐍</span>
-          <a href="https://www.python.org/downloads/release/python-31312/" target="_blank" rel="noopener" class="prereq-req-name prereq-req-link">Python</a>
-          <span class="prereq-version">3.13.12</span>
+          <a href="https://www.python.org/" target="_blank" rel="noopener" class="prereq-req-name prereq-req-link">Python</a>
+          <span class="prereq-version">≥ 3.9</span>
         </div>
         <div class="prereq-req-item">
-          <span style="font-size:14px;">📦</span>
-          <a href="https://python-poetry.org/docs/" target="_blank" rel="noopener" class="prereq-req-name prereq-req-link">Poetry</a>
-          <span class="prereq-version">2.3.2</span>
+          <span style="font-size:14px;">⚡</span>
+          <a href="https://lightgbm.readthedocs.io/en/stable/Installation-Guide.html" target="_blank" rel="noopener" class="prereq-req-name prereq-req-link">lightgbm</a>
+          <span class="prereq-version">≥ 4.0</span>
+        </div>
+        <div class="prereq-req-item">
+          <span style="font-size:14px;">🔧</span>
+          <a href="https://scikit-learn.org/stable/install.html" target="_blank" rel="noopener" class="prereq-req-name prereq-req-link">scikit-learn</a>
+          <span class="prereq-version">≥ 1.3</span>
+        </div>
+        <div class="prereq-req-item">
+          <span style="font-size:14px;">⭐</span>
+          <a href="https://shap.readthedocs.io/en/latest/install.html" target="_blank" rel="noopener" class="prereq-req-name prereq-req-link">shap</a>
+          <span class="prereq-version">≥ 0.43</span>
         </div>
       </div>
       <div class="prereq-notes-card">
         <div class="prereq-notes-label">Notes</div>
         <div class="prereq-notes-text">
-          The package is not ready yet. Section under construction.
+          SHAP and matplotlib are optional — the pipeline runs without them but skips SHAP summary plots and all diagnostic visualisations respectively. joblib is required for multi-fold parallelism. The <code class="inline">parameters.py</code> module and <code class="inline">extract_distance_matrices.py</code> (providing <code class="inline">SP500_TICKERS_457</code> and <code class="inline">reorder_by_gics</code>) must be importable from the working directory.
         </div>
       </div>
     </div>
@@ -1044,21 +1279,14 @@
       <div class="prereq-step">
         <div class="prereq-step-header">
           <div class="step-num">1</div>
-          <div class="step-title">Clone repo</div>
+          <div class="step-title">Install dependencies</div>
         </div>
         <div class="prereq-step-body">
           <div class="code-wrap">
             <div class="code-block">
-              <span class="prompt">$</span> git clone https://github.com/PythoneerKang/VisionForecaster.git
+              <span class="prompt">$</span> pip install lightgbm scikit-learn numpy matplotlib shap joblib
             </div>
-            <button class="copy-btn" onclick="copyCode(this, 'git clone https://github.com/PythoneerKang/VisionForecaster.git')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
-          </div>
-          <div class="prereq-warning">
-            ⚠&nbsp; <b>Git</b> is required. It is pre-installed on most Linux systems by default —
-            if not, install it <a href="https://git-scm.com/install/linux" target="_blank" rel="noopener" style="color:#bf360c;text-decoration:none;border-bottom:1px dashed #f8b97a;">here</a>.
-            For <a href="https://git-scm.com/download/win" target="_blank" rel="noopener" style="color:#bf360c;text-decoration:none;border-bottom:1px dashed #f8b97a;">Windows</a>
-            or <a href="https://git-scm.com/download/mac" target="_blank" rel="noopener" style="color:#bf360c;text-decoration:none;border-bottom:1px dashed #f8b97a;">macOS</a>,
-            click the respective link to install Git first.
+            <button class="copy-btn" onclick="copyCode(this, 'pip install lightgbm scikit-learn numpy matplotlib shap joblib')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
           </div>
         </div>
       </div>
@@ -1066,15 +1294,19 @@
       <div class="prereq-step">
         <div class="prereq-step-header">
           <div class="step-num">2</div>
-          <div class="step-title">Install dependencies</div>
+          <div class="step-title">Prepare PKL directory</div>
         </div>
         <div class="prereq-step-body">
+          <div style="font-size:10px;color:var(--text-md);line-height:1.6;">
+            Ensure the PKL files exist at the expected path (default shown below), or pass <code class="inline">--pkldir</code> to override:
+          </div>
           <div class="code-wrap">
             <div class="code-block">
-              <span class="prompt">$</span> cd VisionForecaster<br>
-              <span class="prompt">$</span> poetry install
+              <span class="var">DEFAULT_PKL_DIR</span> = <span style="color:#c3e88d;">"../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file"</span><br><br>
+              <span class="cmt" style="color:#546e7a;"># Expected files:</span><br>
+              <span class="cmt" style="color:#546e7a;">#   IQDw35.pkl  IQDw70.pkl  IQDw120.pkl  IQDw180.pkl</span>
             </div>
-            <button class="copy-btn" onclick="copyCode(this, 'cd VisionForecaster\npoetry install')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <button class="copy-btn" onclick="copyCode(this, 'DEFAULT_PKL_DIR = &quot;../Quasi_Differentiation_...&quot;')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
           </div>
         </div>
       </div>
@@ -1082,23 +1314,33 @@
       <div class="prereq-step">
         <div class="prereq-step-header">
           <div class="step-num">3</div>
-          <div class="step-title">Activate virtual environment &amp; run</div>
+          <div class="step-title">Run training</div>
         </div>
         <div class="prereq-step-body">
-          <div class="sub-label">Option A — activate shell</div>
+          <div class="sub-label">Minimal — single source→target scale</div>
           <div class="code-wrap">
             <div class="code-block">
-              <span class="prompt">$</span> poetry shell<br>
-              <span class="prompt">$</span> python main.py
+              <span class="prompt">$</span> python train_cross_scale.py \<br>
+              &nbsp;&nbsp;<span class="flag">--source_ws</span> <span class="var">35</span> \<br>
+              &nbsp;&nbsp;<span class="flag">--target_w</span> <span class="var">70</span> \<br>
+              &nbsp;&nbsp;<span class="flag">--save_dir</span> <span style="color:#c3e88d;">./output_w35_to_w70</span> \<br>
+              &nbsp;&nbsp;<span class="flag">--save_plots</span>
             </div>
-            <button class="copy-btn" onclick="copyCode(this, 'poetry shell\npython main.py')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <button class="copy-btn" onclick="copyCode(this, 'python train_cross_scale.py --source_ws 35 --target_w 70 --save_dir ./output_w35_to_w70 --save_plots')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
           </div>
-          <div class="sub-label" style="margin-top:2px;">Option B — run directly within virtual environment</div>
+          <div class="sub-label" style="margin-top:2px;">Full — with ablation and parallel folds</div>
           <div class="code-wrap">
             <div class="code-block">
-              <span class="prompt">$</span> poetry run python main.py
+              <span class="prompt">$</span> python train_cross_scale.py \<br>
+              &nbsp;&nbsp;<span class="flag">--source_ws</span> <span class="var">35</span> \<br>
+              &nbsp;&nbsp;<span class="flag">--target_w</span> <span class="var">70</span> \<br>
+              &nbsp;&nbsp;<span class="flag">--do_ablation</span> \<br>
+              &nbsp;&nbsp;<span class="flag">--parallel_folds</span> <span class="var">4</span> \<br>
+              &nbsp;&nbsp;<span class="flag">--gbdt_n_jobs</span> <span class="var">-1</span> \<br>
+              &nbsp;&nbsp;<span class="flag">--save_plots</span> \<br>
+              &nbsp;&nbsp;<span class="flag">--shap_max_samples</span> <span class="var">5000</span>
             </div>
-            <button class="copy-btn" onclick="copyCode(this, 'poetry run python main.py')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <button class="copy-btn" onclick="copyCode(this, 'python train_cross_scale.py --source_ws 35 --target_w 70 --do_ablation --parallel_folds 4 --gbdt_n_jobs -1 --save_plots --shap_max_samples 5000')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
           </div>
         </div>
       </div>
@@ -1106,21 +1348,25 @@
       <div class="prereq-step hpc">
         <div class="prereq-step-header">
           <div class="step-num">4</div>
-          <div class="step-title">HPC execution (PBS workload manager)</div>
-          <div class="step-optional">optional</div>
+          <div class="step-title">Additional CLI flags</div>
+          <div class="step-optional">reference</div>
         </div>
         <div class="prereq-step-body">
-          <div style="font-size:10px;color:var(--text-md);line-height:1.6;">
-            Modify <code class="inline">script.pbs</code> to match your cluster's resource requirements, then submit the job:
-          </div>
-          <div class="code-wrap">
-            <div class="code-block">
-              <span class="prompt">$</span> qsub script.pbs
-            </div>
-            <button class="copy-btn" onclick="copyCode(this, 'qsub script.pbs')"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+          <div class="code-block" style="font-size:10px;line-height:2;">
+            <span class="flag">--neg_ratio</span> <span class="var">1</span>          <span class="cmt" style="color:#546e7a;">  # neg:pos sampling ratio (default 1)</span><br>
+            <span class="flag">--history_lags</span> <span class="var">1</span>       <span class="cmt" style="color:#546e7a;">  # number of lagged snapshots</span><br>
+            <span class="flag">--n_folds</span> <span class="var">0</span>            <span class="cmt" style="color:#546e7a;">  # 0 = auto-compute max folds</span><br>
+            <span class="flag">--min_calib_steps</span> <span class="var">12</span>   <span class="cmt" style="color:#546e7a;">  # calibration holdout (weeks)</span><br>
+            <span class="flag">--min_test_steps</span> <span class="var">12</span>    <span class="cmt" style="color:#546e7a;">  # test holdout (weeks)</span><br>
+            <span class="flag">--max_window_size</span> <span class="var">120</span>  <span class="cmt" style="color:#546e7a;">  # max rolling train window (weeks)</span><br>
+            <span class="flag">--calibration</span> <span class="var">auto</span>      <span class="cmt" style="color:#546e7a;">  # auto | platt | isotonic | none</span><br>
+            <span class="flag">--eval_tail_frac</span> <span class="var">0.2</span>    <span class="cmt" style="color:#546e7a;">  # fraction of train for early stopping</span><br>
+            <span class="flag">--seed</span> <span class="var">42</span>               <span class="cmt" style="color:#546e7a;">  # master RNG seed</span>
           </div>
           <div class="prereq-warning">
-            ⚠&nbsp; Code is optimized for CPU-only executions, on a HPC server. Additional changes are required to enable CUDA acceleration.
+            ⚠&nbsp; <b>Memory:</b> Full evaluation uses all 104,016 pairs per time step per fold.
+            For large target windows with many folds, peak RAM can exceed 32 GB.
+            Reduce <code class="inline">--max_window_size</code> or use fewer folds if memory-constrained.
           </div>
         </div>
       </div>
@@ -1128,36 +1374,23 @@
     </div>
   </div>
 
-  <!-- Citations -->
+  <!-- References -->
   <div class="citation-box">
-    <div class="cite-label">// Primary Reference — Attention Mechanism</div>
-    <div class="cite-title">ConViT: Improving Vision Transformers with Soft Convolutional Inductive Biases</div>
+    <div class="cite-label">// Primary Dependency — Gradient Boosting</div>
+    <div class="cite-title">LightGBM: A Highly Efficient Gradient Boosting Decision Tree</div>
     <div class="cite-authors">
-      Stéphane d'Ascoli, Hugo Touvron, Matthew Lerer, Armand Joulin, Piotr Bojanowski, Julien Garrigue &nbsp;·&nbsp; ICML 2021
+      Guolin Ke, Qi Meng, Thomas Finley, Taifeng Wang, Wei Chen, Weidong Ma, Qiwei Ye, Tie-Yan Liu &nbsp;·&nbsp; NeurIPS 2017
     </div>
-    <span class="cite-badge">arXiv: 2103.10697</span>
-    The Sector-GPSA gating mechanism is adapted from this work. The positional prior is replaced with a sector-membership matrix derived from GICS sector assignments, making the inductive bias domain-specific rather than relying on Euclidean grid distance.
-    &nbsp;<a href="https://arxiv.org/abs/2103.10697" target="_blank" rel="noopener">→ View on arXiv</a>
+    <span class="cite-badge">NeurIPS 2017</span>
+    The core learning algorithm. Leaf-wise tree growth with histogram-based splitting provides fast training on the high-dimensional pair feature matrices. The is_unbalance flag provides native class imbalance handling without manual sample weighting.
+    &nbsp;<a href="https://papers.nips.cc/paper/6907-lightgbm-a-highly-efficient-gradient-boosting-decision-tree" target="_blank" rel="noopener">→ View on NeurIPS</a>
   </div>
 
   <div class="citation-box" style="margin-top:10px;">
-    <div class="cite-label">// Inspiration — Small-Data ViT</div>
-    <div class="cite-title">Vision Transformer for Small-Size Datasets</div>
+    <div class="cite-label">// Interpretability — SHAP Values</div>
+    <div class="cite-title">A Unified Approach to Interpreting Model Predictions</div>
     <div class="cite-authors">
-      Seung Hoon Lee, Seunghyun Lee, Byung Cheol Song &nbsp;·&nbsp; IEEE Access, 2022
+      Scott M. Lundberg, Su-In Lee &nbsp;·&nbsp; NeurIPS 2017
     </div>
-    <span class="cite-badge">DOI: 10.1109/ACCESS.2022.3220167</span>
-    Small-data motivation: LayerScale, DropPath, and the overall architecture scale follow this work, which demonstrated ViTs can train effectively on small datasets without large-scale pre-training.
-    &nbsp;<a href="https://ieeexplore.ieee.org/document/9957006" target="_blank" rel="noopener">→ View on IEEE Xplore</a>
-  </div>
-
-</div><!-- /page -->
-
-<!-- Lightbox -->
-<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
-  <button class="lightbox-close" onclick="closeLightbox(null, true)" title="Close">✕</button>
-  <img id="lightbox-img" src="" alt="Gallery image">
-</div>
-
-</body>
-</html>
+    <span class="cite-badge">NeurIPS 2017</span>
+    TreeExplainer computes

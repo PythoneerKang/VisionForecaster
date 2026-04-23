@@ -64,24 +64,24 @@ BATCH_SIZE = 16
 
 
 # =============================================================================
-# GNN cross-scale prediction hyperparameters
-# (used by gnn_cross_scale.py and train_cross_scale.py)
+# Cross-scale prediction hyperparameters
+# (used by train_cross_scale.py)
 # =============================================================================
 
 # Node embedding dimension shared by GraphSAGE encoder and GRU hidden state.
 # 64 gives a good capacity / overfitting trade-off at ~220 weekly training steps.
 # Reduce to 32 for a quick smoke test; increase to 128 only with GPU.
-GNN_EMBED_DIM = 64
+CROSS_SCALE_EMBED_DIM = 64
 
 # Number of weekly history snapshots fed to the GRU.
 # 4 steps = 20 trading days of short-scale memory.
 # Increasing beyond 8 rarely helps given the regime stability of A_w120/A_w180.
-GNN_HISTORY_LAGS = 4
+CROSS_SCALE_HISTORY_LAGS = 4
 
 # Negative:positive pair sampling ratio during training.
 # 10:1 keeps the training distribution balanced while covering diverse negatives.
 # Reduce to 5 if training is slow on CPU; increase to 20 if precision is low.
-GNN_NEG_RATIO = 5
+CROSS_SCALE_NEG_RATIO = 5
 
 # Focal loss gamma per target scale.
 # Higher gamma → stronger down-weighting of easy negatives.
@@ -92,22 +92,22 @@ GNN_NEG_RATIO = 5
 # increase substantially.
 # These are stored in TARGET_CONFIGS inside train_cross_scale.py and
 # check_cross_scale_learnability.py; kept here for reference / override.
-GNN_FOCAL_GAMMA_W120 = 1
-GNN_FOCAL_GAMMA_W180 = 2
+CROSS_SCALE_FOCAL_GAMMA_W120 = 1
+CROSS_SCALE_FOCAL_GAMMA_W180 = 2
 
 # Dropout rate applied inside GraphSAGE layers and after GRU output.
-GNN_DROPOUT = 0.1
+CROSS_SCALE_DROPOUT = 0.1
 
 # Training epochs per fold.
 # 100 is the default; early stopping (patience=15) will typically fire
 # at 30–60 epochs once the model has converged.
-GNN_EPOCHS = 100
+CROSS_SCALE_EPOCHS = 100
 
-# AdamW hyperparameters for the GNN optimizer.
-GNN_LR           = 3e-4
-GNN_WEIGHT_DECAY = 1e-3
+# Optimizer hyperparameters retained for cross-scale experiments.
+CROSS_SCALE_LR           = 3e-4
+CROSS_SCALE_WEIGHT_DECAY = 1e-3
 
 # Holdout fraction for the expanding-window evaluation split.
 # 1/6 ≈ 0.167 gives ~52 holdout steps with 315 weekly snapshots,
 # matching the last fold of the previous 5-fold TimeSeriesSplit scheme.
-GNN_HOLDOUT_FRAC = 1.0 / 6.0
+CROSS_SCALE_HOLDOUT_FRAC = 1.0 / 6.0

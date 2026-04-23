@@ -7,7 +7,7 @@
 #PBS -P as_spms_cheongsa
 
 ## Queue Name
-#PBS -q qintel_wfly
+#PBS -q qamd_wfly
 
 ## Output and error files
 #PBS -o cross_scale_train.out
@@ -18,7 +18,7 @@
 
 ## 1 CPU-only node, 1 cores, ~100GB memory for Intel HPC training
 ## ncpus must match NUM_CPUS in parameters.py (19).
-#PBS -l select=1:ncpus=6:mem=500gb
+#PBS -l select=1:ncpus=7:mem=500gb
 
 ## Load application environment (uncomment if conda is available on this node)
 #module load anaconda2025/2025
@@ -26,7 +26,7 @@
 #conda activate my-own-conda-env
 
 ## Capture number of allocated cores
-NCPUS=${PBS_NP:-6}
+NCPUS=${PBS_NP:-7}
 echo "Using $NCPUS CPU cores on this node."
 
 ## OpenMP / BLAS threading for NumPy operations (extract_distance_matrices.py)
@@ -48,6 +48,7 @@ poetry env use 3.13
 #poetry run python main.py
 #poetry run python test_gate_update.py
 #poetry run python check_weekly_flip_rate.py --all
+#poetry run python blackbox_autocorr_test.py
 poetry run python train_cross_scale.py --all
 #cd test
 #poetry run python test_one_fold.py --pth best_model_fold_1.pt --dm-pkl "../../Quasi_Differentiation_High_Temporal_Resolution_Cross_Correlations/Codes/Extract distance matrix (2017-2022) from pkl file/IQDw35.pkl"
