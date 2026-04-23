@@ -492,7 +492,7 @@ def _fit_gbdt(x_train, y_train, model_type, n_estimators, max_depth, learning_ra
         evals_result = {}; fit_params = {}; has_eval = x_eval is not None and y_eval is not None and len(y_eval) > 0
         model = LGBMClassifier(objective="binary", n_estimators=n_estimators, num_leaves=31, max_depth=-1, learning_rate=learning_rate, subsample=subsample, colsample_bytree=colsample_bytree, is_unbalance=True, min_child_samples=50, reg_alpha=reg_alpha, reg_lambda=1.0, random_state=seed, n_jobs=gbdt_n_jobs, verbose=-1)
         if has_eval:
-            fit_params.update({"eval_set": [(x_eval, y_eval)], "eval_metric": ["f2", "auc", _f1_lgb], "callbacks": [lgb.early_stopping(150, verbose=False, first_metric_only=True), lgb.record_evaluation(evals_result)]})
+            fit_params.update({"eval_set": [(x_eval, y_eval)], "eval_metric": [_f2_lgb, "auc", _f1_lgb], "callbacks": [lgb.early_stopping(150, verbose=False, first_metric_only=True), lgb.record_evaluation(evals_result)]})
         model.fit(x_train, y_train, **fit_params)
         if has_eval and evals_result: curve = {"iterations": list(range(1, len(evals_result["valid_0"]["f2"]) + 1)), "f2": evals_result["valid_0"]["f2"], "auc": evals_result["valid_0"]["auc"], "f1": evals_result["valid_0"]["f1"]}
         best_iter = getattr(model, "best_iteration_", n_estimators)
