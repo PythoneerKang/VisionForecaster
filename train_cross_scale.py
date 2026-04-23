@@ -456,10 +456,10 @@ def _f2_lgb(y_true, y_pred):
         precision, recall, thresholds = precision_recall_curve(yt, yp)
         f2_vals = (5.0 * precision[:-1] * recall[:-1]) / (4.0 * precision[:-1] + recall[:-1] + 1e-12)
         raw_f2 = float(np.max(f2_vals)) if len(f2_vals) > 0 else 0.0
-        # v6.5 FIX: Strictly return (name, value) tuple for LightGBM custom metrics
-        return "f2", raw_f2
+        # Fix: Return (name, value, is_higher_better) for installed LightGBM version
+        return "f2", raw_f2, True
     except ValueError:
-        return "f2", 0.0
+        return "f2", 0.0, True
 
 def _f1_lgb(y_true, y_pred):
     """Raw max-F1 score — used as a visual reference metric."""
@@ -473,10 +473,10 @@ def _f1_lgb(y_true, y_pred):
         precision, recall, thresholds = precision_recall_curve(yt, yp)
         f1_vals = (2.0 * precision[:-1] * recall[:-1]) / (precision[:-1] + recall[:-1] + 1e-12)
         raw_f1 = float(np.max(f1_vals)) if len(f1_vals) > 0 else 0.0
-        # v6.5 FIX: Strictly return (name, value) tuple for LightGBM custom metrics
-        return "f1", raw_f1
+        # Fix: Return (name, value, is_higher_better) for installed LightGBM version
+        return "f1", raw_f1, True
     except ValueError:
-        return "f1", 0.0
+        return "f1", 0.0, True
 
 def _resolve_model_type(requested: str) -> str:
     if requested in ("lightgbm",): return requested
