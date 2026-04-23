@@ -630,7 +630,7 @@ def _print_cv_summary(results):
     for abl in abl_labels:
         subset = [r for r in results if r["ablation_label"] == abl]; print(f"\n  Ablation: {abl} ({subset[0].get('n_features','')} feats)")
         print(f"  {'AP':>7}  {'AUC':>7}  {'F1':>7}  {'F2':>7}  {'Prec':>7}  {'Rec':>7}  {'Brier':>10}  {'Iter':>5}")
-        ap_l, auc_l, f1_l, f2_l, pr_l, rc_l, br_l, it_l = [], [], [], [], [], [], [], [], []
+        ap_l, auc_l, f1_l, f2_l, pr_l, rc_l, br_l, it_l = [], [], [], [], [], [], [], []
         for r in subset:
             m = r["gbdt"]; print(f"  F{r['fold']:>2d}  {m['ap']:>7.4f}  {m['auc']:>7.4f}  {m['f1']:>7.4f}  {m['f2']:>7.4f}  {m['prec']:>7.4f}  {m['rec']:>7.4f}  {m['brier']:>10.6f}  {r['best_iteration']:>5d}")
             ap_l.append(m["ap"]); auc_l.append(m["auc"]); f1_l.append(m["f1"]); f2_l.append(m["f2"]); pr_l.append(m["prec"]); rc_l.append(m["rec"]); br_l.append(m["brier"]); it_l.append(r["best_iteration"])
