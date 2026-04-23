@@ -3,22 +3,23 @@ train_cross_scale.py
 ====================
 Final production-ready cross-scale GBDT pipeline.
 
-Critical Fixes Applied (v6.3 — Network Topology Cleanup)
+Critical Fixes Applied (v6.5 — Custom Metric Signature Fix)
 -------------------------------------------------------------------
-  1. [v6.3 FIX] Replaced 3-hop bridge path counting with a strict 
+  1. [v6.5 FIX] Fixed LightGBM KeyError by removing the boolean 3rd return 
+     value from custom metric functions (_f2_lgb, _f1_lgb). LightGBM 
+     expects strictly (name_string, value_float), and 3-element tuples break it.
+  2. [v6.4 FIX] Adjusted default threading for 7-core nodes: 
+     --parallel_folds 3 and --gbdt_n_jobs 2 (6 cores total, 1 for OS).
+  3. [v6.3 FIX] Replaced 3-hop bridge path counting with a strict 
      Easley & Kleinberg "Local Bridge" boolean (is_local_bridge). 
-     Drops 2 noisy features and eliminates O(N^3) matrix multiplication.
-  2. [v6.3 FIX] Reduced feature count from 13/src to 12/src.
-  3. [v6.2 FIX] Cleaned up redundant argparse boolean flags.
-  4. [v6.2 FIX] Changed --gbdt_n_jobs default to 1. Added auto-throttle 
-     warning to prevent CPU thrashing with --parallel_folds.
-  5. [v6.1 FIX] Training curves plot F1 (instead of Logloss) on the 
-     right axis for easier upward-convergence interpretation.
-  6. [v6 FIX] F2-Aligned Early Stopping, LR=0.1, Patience=150.
-  7. [v5 FIX] Re-introduced Target-Scale features EXCLUSIVELY for ablation.
-  8. [v5 FIX] Memory Evaluation Speedup: O(1) precomputed 2-hop lookups.
-  9. Exact Zero-Overlap Lag: first_lag = (2 * target_w) // 5.
- 10. F2-Aligned Thresholding & Native Class Imbalance Handling.
+  4. [v6.3 FIX] Reduced feature count from 13/src to 12/src.
+  5. [v6.2 FIX] Cleaned up redundant argparse boolean flags.
+  6. [v6.1 FIX] Training curves plot F1 on right axis for interpretation.
+  7. [v6 FIX] F2 Early Stopping, LR=0.1, Patience=150.
+  8. [v5 FIX] Re-introduced Target-Scale features for ablation.
+  9. [v5 FIX] Memory Evaluation Speedup: O(1) precomputed 2-hop lookups.
+ 10. Exact Zero-Overlap Lag: first_lag = (2 * target_w) // 5.
+ 11. F2-Aligned Thresholding & Native Class Imbalance Handling.
 """
 
 import argparse
@@ -178,7 +179,7 @@ def _fit_calibrator(y_true_calib, y_score_calib, method):
         candidates["platt"] = (lr, float(brier_score_loss(y_true_calib, lr.predict_proba(logits)[:, 1])))
     if method in ("auto", "isotonic"):
         iso = IsotonicRegression(out_of_bounds="clip"); iso.fit(y_score_calib, y_true_calib)
-        candidates["isotonic"] = (iso, float(brier_score_loss(y_true_calib, iso.predict(y_score_calib)))
+        candidates["isotonic"] = (iso, float(brier_score_loss(y_true_calib, iso.predict(y_score_calib))))
     if not candidates: return None, "none"
     chosen = min(candidates, key=lambda k: candidates[k][1]) if method == "auto" else method
     return candidates[chosen][0], chosen
@@ -241,13 +242,12 @@ def _build_pair_features_for_t(t, pair_i, pair_j, adj_sources, adj_target, secto
             # O(1) Lookups
             com_s = s2[pair_i, pair_j]; uni_s = np.clip(deg_s[pair_i] + deg_s[pair_j] - com_s, 1, None)
             
-            # v6.3 FIX: True Easley & Kleinberg Local Bridge boolean (O(1), no s3 matrix)
-            # FIX: Use element-wise bitwise & instead of Python 'and' to support array pairs
+            # True Easley & Kleinberg Local Bridge boolean (Array-safe)
             is_bridge = ((s[pair_i, pair_j] > 0) & (com_s == 0)).astype(np.float32)
             
             feats.extend([
                 s[pair_i, pair_j],          
-                is_bridge,                # Clean boolean replacement for 3hop paths
+                is_bridge,                
                 deg_s[pair_i],             
                 deg_s[pair_j],             
                 np.abs(deg_s[pair_i] - deg_s[pair_j]),  
@@ -255,7 +255,7 @@ def _build_pair_features_for_t(t, pair_i, pair_j, adj_sources, adj_target, secto
                 com_s / uni_s              
             ])
             
-            # Topological (Neck)
+            # Topological Features
             triangles_i = (s * s2).sum(axis=1) / 2.0
             clust_coeff = (2.0 * triangles_i) / (deg_s * (deg_s - 1.0) + 1e-6)
             neckness = 1.0 - clust_coeff
@@ -323,21 +323,22 @@ def _plot_dataset_timeline(all_target_idx, folds, t_w, first_lag, out_dir, prefi
     fig.savefig(out_dir / f"{prefix}_data_timeline.png", dpi=150, bbox_inches='tight'); plt.close(fig)
 
 def _reorder_features_by_category(feature_names, target_w):
-    cat_order = ["Sector Prior", "Target-Scale Attrs", "Source-Scale Standard Attrs", "Source-Scale Topological (Neck/Bridge)"]
+    cat_order = ["Sector Prior", "Target-Scale Attrs", "Source-Scale Standard Attrs", "Source-Scale Topological (Neck/Boundary)"]
     mapping = {k: [] for k in cat_order}
     for i, name in enumerate(feature_names):
         if "same_sector" in name: mapping["Sector Prior"].append(i)
         elif (name.startswith(f"w{target_w}_edge") or name.startswith(f"deg{target_w}_") or name.startswith(f"common_nbrs_w{target_w}_") or name.startswith(f"jaccard_w{target_w}_")): mapping["Target-Scale Attrs"].append(i)
-        elif "neckness" in name or "cross_sector_deg" in name or "clust_boundary" in name or "is_local_bridge" in name: mapping["Source-Scale Topological (Neck/Bridge)"].append(i)
+        elif "neckness" in name or "cross_sector_deg" in name or "clust_boundary" in name or "is_local_bridge" in name: mapping["Source-Scale Topological (Neck/Boundary)"].append(i)
         else: mapping["Source-Scale Standard Attrs"].append(i)
-    ordered_indices, ordered_names, boundaries = [], [], []
+    ordered_indices, ordered_names, boundaries = [], [], [], []
     for cat in cat_order:
         if mapping[cat]: ordered_indices.extend(mapping[cat]); ordered_names.extend([feature_names[idx] for idx in mapping[cat]]); boundaries.append(len(ordered_names) - 0.5)
     return np.array(ordered_indices, dtype=np.intp), ordered_names, boundaries
 
 def _get_snapshot_indices(y_sample, rng, n_per_class=10):
     pos_idx, neg_idx = np.where(y_sample == 1)[0], np.where(y_sample == 0)[0]
-    if len(pos_idx) > 0 and len(neg_idx) > 0: chosen_idx = np.concatenate([rng.choice(pos_idx, size=min(n_per_class, len(pos_idx)), replace=False), rng.choice(neg_idx, size=min(n_per_class, len(neg_idx)), replace=False)])
+    if len(pos_idx) > 0 and len(neg_idx) > 0: 
+        chosen_idx = np.concatenate([rng.choice(pos_idx, size=min(n_per_class, len(pos_idx)), replace=False), rng.choice(neg_idx, size=min(n_per_class, len(neg_idx)), replace=False)])
     else: chosen_idx = np.arange(min(20, len(y_sample)))
     rng.shuffle(chosen_idx); return chosen_idx
 
@@ -444,6 +445,7 @@ _f2_subsample_idx, _f2_subsample_n = None, -1
 _f1_subsample_idx, _f1_subsample_n = None, -1
 
 def _f2_lgb(y_true, y_pred):
+    """Raw max-F2 score — used as primary early stopping metric."""
     global _f2_subsample_idx, _f2_subsample_n
     try:
         n = len(y_true); SUBSAMPLE_CAP = 50_000
@@ -454,10 +456,13 @@ def _f2_lgb(y_true, y_pred):
         precision, recall, thresholds = precision_recall_curve(yt, yp)
         f2_vals = (5.0 * precision[:-1] * recall[:-1]) / (4.0 * precision[:-1] + recall[:-1] + 1e-12)
         raw_f2 = float(np.max(f2_vals)) if len(f2_vals) > 0 else 0.0
-        return "f2", raw_f2, True
-    except ValueError: return "f2", 0.0, True
+        # v6.5 FIX: Strictly return (name, value) tuple for LightGBM custom metrics
+        return "f2", raw_f2
+    except ValueError:
+        return "f2", 0.0
 
 def _f1_lgb(y_true, y_pred):
+    """Raw max-F1 score — used as a visual reference metric."""
     global _f1_subsample_idx, _f1_subsample_n
     try:
         n = len(y_true); SUBSAMPLE_CAP = 50_000
@@ -468,17 +473,19 @@ def _f1_lgb(y_true, y_pred):
         precision, recall, thresholds = precision_recall_curve(yt, yp)
         f1_vals = (2.0 * precision[:-1] * recall[:-1]) / (precision[:-1] + recall[:-1] + 1e-12)
         raw_f1 = float(np.max(f1_vals)) if len(f1_vals) > 0 else 0.0
-        return "f1", raw_f1, True
-    except ValueError: return "f1", 0.0, True
+        # v6.5 FIX: Strictly return (name, value) tuple for LightGBM custom metrics
+        return "f1", raw_f1
+    except ValueError:
+        return "f1", 0.0
 
 def _resolve_model_type(requested: str) -> str:
     if requested in ("lightgbm",): return requested
     if requested == "auto":
         if LGBMClassifier is not None: return "lightgbm"
-        raise ImportError("No GBDT installed.")
+        raise ImportError("No GGBT installed.")
     raise ValueError(f"Unknown model type: {requested!r}")
 
-def _fit_gbdt(x_train, y_train, model_type, n_estimators, max_depth, learning_rate, subsample, colsample_bytree, seed, reg_alpha=0.1, x_eval=None, y_eval=None, gbdt_n_jobs=1):
+def _fit_gbdt(x_train, y_train, model_type, n_estimators, max_depth, learning_rate, subsample, colsample_bytree, seed, reg_alpha=0.1, x_eval=None, y_eval=None, gbdt_n_jobs=2):
     curve, best_iter = None, n_estimators
     if model_type == "lightgbm":
         if LGBMClassifier is None: raise ImportError("lightgbm not installed.")
@@ -506,7 +513,7 @@ def _make_cv_folds(valid_idx, n_folds, first_lag, min_calib=12, min_test=12, max
         folds.append((valid_idx[tr_start:tr_end], valid_idx[ca_start:ca_end], valid_idx[te_start:te_end]))
     folds.reverse(); print(f"    -> Strict Rolling: {len(folds)} folds, Fixed Window={W}w (100% data utilized)"); return folds
 
-def train_one_fold(fold, train_idx, calib_idx, test_idx, adj_sources, adj_target, sector_labels, model_type, neg_ratio, history_lags, first_lag, calibration, n_estimators, max_depth, learning_rate, subsample, colsample_bytree, save_dir, target_w, source_ws, seed, save_plots, shap_max_samples, rng, ablation_variants, eval_tail_frac=0.2, t_w=0, gbdt_n_jobs=1, reg_alpha=0.1, tickers=None):
+def train_one_fold(fold, train_idx, calib_idx, test_idx, adj_sources, adj_target, sector_labels, model_type, neg_ratio, history_lags, first_lag, calibration, n_estimators, max_depth, learning_rate, subsample, colsample_bytree, save_dir, target_w, source_ws, seed, save_plots, shap_max_samples, rng, ablation_variants, eval_tail_frac=0.2, t_w=0, gbdt_n_jobs=2, reg_alpha=0.1, tickers=None):
     old_stdout = sys.stdout; sys.stdout = buffer = io.StringIO()
     try:
         train_idx = train_idx[train_idx >= first_lag]; calib_idx = calib_idx[calib_idx >= first_lag]; test_idx = test_idx[test_idx >= first_lag]
@@ -529,7 +536,7 @@ def train_one_fold(fold, train_idx, calib_idx, test_idx, adj_sources, adj_target
         smallest_source_ws = min(source_ws)
         yt_mp, yp_mp = _marginal_prior_baseline(adj_target, train_idx, test_idx)
         yt_ss, yp_ss = _short_scale_oracle_baseline(adj_sources[smallest_source_ws], adj_target, test_idx, first_lag)
-        results, training_curves, model_cal_scores = [], [], []
+        results, training_curves, model_cal_scores = [], [], [], []
         for abl in ablation_variants:
             mask, fn = masks[abl], fnames[abl]; label = "Full" if abl == "none" else "Pure Cross-Scale"
             xt_e, xt_t, xt_f, xc, xte = x_early[:, mask], x_tail[:, mask], x_train[:, mask], x_calib[:, mask], x_test[:, mask]
@@ -564,7 +571,7 @@ def train_one_fold(fold, train_idx, calib_idx, test_idx, adj_sources, adj_target
         gc.collect(); return results, training_curves, buffer.getvalue()
     finally: sys.stdout = old_stdout
 
-def run_training(source_ws, target_w, pkldir, model_type, neg_ratio, history_lags, calibration, n_estimators, max_depth, learning_rate, subsample, colsample_bytree, save_dir, seed, save_plots, shap_max_samples, n_folds, min_calib_steps, min_test_steps, do_ablation, eval_tail_frac=0.2, parallel_folds=1, gbdt_n_jobs=1, max_window_size=120):
+def run_training(source_ws, target_w, pkldir, model_type, neg_ratio, history_lags, calibration, n_estimators, max_depth, learning_rate, subsample, colsample_bytree, save_dir, seed, save_plots, shap_max_samples, n_folds, min_calib_steps, min_test_steps, do_ablation, eval_tail_frac=0.2, parallel_folds=3, gbdt_n_jobs=2, max_window_size=120):
     source_ws = [ws for ws in source_ws if ws != target_w]
     if not source_ws: raise ValueError("source_ws must contain at least one window different from target_w")
     
@@ -623,7 +630,7 @@ def _print_cv_summary(results):
     for abl in abl_labels:
         subset = [r for r in results if r["ablation_label"] == abl]; print(f"\n  Ablation: {abl} ({subset[0].get('n_features','')} feats)")
         print(f"  {'AP':>7}  {'AUC':>7}  {'F1':>7}  {'F2':>7}  {'Prec':>7}  {'Rec':>7}  {'Brier':>10}  {'Iter':>5}")
-        ap_l, auc_l, f1_l, f2_l, pr_l, rc_l, br_l, it_l = [], [], [], [], [], [], [], []
+        ap_l, auc_l, f1_l, f2_l, pr_l, rc_l, br_l, it_l = [], [], [], [], [], [], [], [], []
         for r in subset:
             m = r["gbdt"]; print(f"  F{r['fold']:>2d}  {m['ap']:>7.4f}  {m['auc']:>7.4f}  {m['f1']:>7.4f}  {m['f2']:>7.4f}  {m['prec']:>7.4f}  {m['rec']:>7.4f}  {m['brier']:>10.6f}  {r['best_iteration']:>5d}")
             ap_l.append(m["ap"]); auc_l.append(m["auc"]); f1_l.append(m["f1"]); f2_l.append(m["f2"]); pr_l.append(m["prec"]); rc_l.append(m["rec"]); br_l.append(m["brier"]); it_l.append(r["best_iteration"])
@@ -662,7 +669,7 @@ def _save_results_to_csv(results, out_path):
         writer = csv.DictWriter(f, fieldnames=fieldnames); writer.writeheader(); writer.writerows(flat_rows)
     print(f"\n  Results saved to {out_path}")
 
-# ─────────────────────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────────────
 # Main Execution & Presets
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -672,7 +679,7 @@ CROSS_SCALE_PRESETS = [
 ]
 
 def main():
-    parser = argparse.ArgumentParser(description="Cross-Scale GBDT Link Prediction (v6.3)")
+    parser = argparse.ArgumentParser(description="Cross-Scale GBDT Link Prediction (v6.5)")
     parser.add_argument("--pkldir", type=str, default=DEFAULT_PKL_DIR)
     parser.add_argument("--save_dir", type=str, default="./cross_scale_results_v6")
     parser.add_argument("--model_type", type=str, default="lightgbm", choices=["lightgbm", "auto"])
@@ -693,8 +700,10 @@ def main():
     parser.add_argument("--save_plots", action="store_true", default=True)
     parser.add_argument("--no_plots", dest="save_plots", action="store_false")
     parser.add_argument("--shap_max_samples", type=int, default=5000)
-    parser.add_argument("--parallel_folds", type=int, default=1, help="Number of CV folds to run in parallel via joblib.")
-    parser.add_argument("--gbdt_n_jobs", type=int, default=1, help="Threads PER LightGBM instance. Keep at 1 when using --parallel_folds > 1.")
+    
+    # v6.4 FIX: Option C (Hybrid) -> 3 folds x 2 threads = 6 cores total
+    parser.add_argument("--parallel_folds", type=int, default=3, help="Number of CV folds to run in parallel via joblib.")
+    parser.add_argument("--gbdt_n_jobs", type=int, default=2, help="Threads PER LightGBM instance. Keep at 1 when using --parallel_folds > 1.")
     parser.add_argument("--no_ablation", dest="do_ablation", action="store_false", default=True, help="Disable the Pure Cross-Scale ablation study")
     parser.add_argument("--source_ws", type=int, nargs="+", default=None)
     parser.add_argument("--target_w", type=int, default=None)
