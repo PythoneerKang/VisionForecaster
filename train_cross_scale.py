@@ -701,9 +701,9 @@ def main():
     parser.add_argument("--no_plots", dest="save_plots", action="store_false")
     parser.add_argument("--shap_max_samples", type=int, default=5000)
     
-    # v6.4 FIX: Option C (Hybrid) -> 3 folds x 2 threads = 6 cores total
-    parser.add_argument("--parallel_folds", type=int, default=3, help="Number of CV folds to run in parallel via joblib.")
-    parser.add_argument("--gbdt_n_jobs", type=int, default=2, help="Threads PER LightGBM instance. Keep at 1 when using --parallel_folds > 1.")
+    # v6.4 FIX: Option C (Hybrid) -> 2 folds x 3 threads = 6 cores total
+    parser.add_argument("--parallel_folds", type=int, default=2, help="Number of CV folds to run in parallel via joblib.")
+    parser.add_argument("--gbdt_n_jobs", type=int, default=3, help="Threads PER LightGBM instance. Keep at 1 when using --parallel_folds > 1.")
     parser.add_argument("--no_ablation", dest="do_ablation", action="store_false", default=True, help="Disable the Pure Cross-Scale ablation study")
     parser.add_argument("--source_ws", type=int, nargs="+", default=None)
     parser.add_argument("--target_w", type=int, default=None)
