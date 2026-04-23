@@ -536,7 +536,7 @@ def train_one_fold(fold, train_idx, calib_idx, test_idx, adj_sources, adj_target
         smallest_source_ws = min(source_ws)
         yt_mp, yp_mp = _marginal_prior_baseline(adj_target, train_idx, test_idx)
         yt_ss, yp_ss = _short_scale_oracle_baseline(adj_sources[smallest_source_ws], adj_target, test_idx, first_lag)
-        results, training_curves, model_cal_scores = [], [], [], []
+        results, training_curves, model_cal_scores = [], [], {}
         for abl in ablation_variants:
             mask, fn = masks[abl], fnames[abl]; label = "Full" if abl == "none" else "Pure Cross-Scale"
             xt_e, xt_t, xt_f, xc, xte = x_early[:, mask], x_tail[:, mask], x_train[:, mask], x_calib[:, mask], x_test[:, mask]
