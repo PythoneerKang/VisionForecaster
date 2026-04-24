@@ -82,9 +82,9 @@ DEFAULT_PKL_DIR = (
     "Extract distance matrix (2017-2022) from pkl file"
 )
 
-def _min_safe_lag(target_w: int) -> int:
-    assert target_w % WEEKLY_STRIDE == 0
-    return (2 * target_w) // WEEKLY_STRIDE
+# def _min_safe_lag(target_w: int) -> int:
+#     assert target_w % WEEKLY_STRIDE == 0
+#     return (2 * target_w) // WEEKLY_STRIDE
 
 def _get_scale_dependent_l1(target_w: int) -> float:
     return 0.1
@@ -321,7 +321,7 @@ def _plot_dataset_timeline(all_target_idx, folds, t_w, first_lag, out_dir, prefi
     legend_elements = [Patch(facecolor=c, alpha=0.7, label=l) for c, l in zip(colors, labels)]
     # CHANGED: Reduced legend columns from 5 to 4
     axes[0].legend(handles=legend_elements, loc="upper left", ncol=4, fontsize=8); axes[-1].set_xlim(0, t_w); axes[-1].set_xlabel("Weekly Snapshot Index (t)")
-    fig.suptitle(f"Temporal Data Split Overview (Gap Disabled)", fontsize=12, y=1.01); fig.tight_layout()
+    fig.suptitle(f"Temporal Data Split Overview", fontsize=12, y=1.01); fig.tight_layout()
     fig.savefig(out_dir / f"{prefix}_data_timeline.png", dpi=150, bbox_inches='tight'); plt.close(fig)
 
 def _reorder_features_by_category(feature_names, target_w):
@@ -502,23 +502,23 @@ def _fit_gbdt(x_train, y_train, model_type, n_estimators, max_depth, learning_ra
 
 def _make_cv_folds(valid_idx, n_folds, first_lag, min_calib=12, min_test=12, max_window_size=120):
     n_valid = len(valid_idx)
-    # CHANGED: Removed the extra 'first_lag' from the required overhead calculation
-    required_overhead = first_lag + min_calib + min_test
+    # CHANGED: Removed 'first_lag' from required_overhead. The 1-week offset is already handled by all_target_idx.
+    required_overhead = min_calib + min_test
     if n_valid <= required_overhead + 20: return []
     max_W_for_1_fold = n_valid - required_overhead
     if max_W_for_1_fold <= max_window_size: K = 1; W = max_W_for_1_fold
-    else: K = math.ceil((n_valid - max_window_size - first_lag - min_calib) / min_test); W = n_valid - (K * min_test) - first_lag - min_calib
-    while K > 1 and W < 20: K -= 1; W = n_valid - (K * min_test) - first_lag - min_calib
+    # CHANGED: Removed 'first_lag' from K and W rolling window calculations
+    else: K = math.ceil((n_valid - max_window_size - min_calib) / min_test); W = n_valid - (K * min_test) - min_calib
+    while K > 1 and W < 20: K -= 1; W = n_valid - (K * min_test) - min_calib
     if W < 20: return []
     folds = []
     for i in range(K):
         te_end = n_valid - (i * min_test); te_start = n_valid - ((i + 1) * min_test)
         ca_end = te_start; ca_start = ca_end - min_calib
-        # CHANGED: Removed the gap subtraction here
         tr_end = ca_start
         tr_start = tr_end - W
         folds.append((valid_idx[tr_start:tr_end], valid_idx[ca_start:ca_end], valid_idx[te_start:te_end]))
-    folds.reverse(); print(f"    -> Strict Rolling: {len(folds)} folds, Fixed Window={W}w"); return folds
+    folds.reverse(); print(f"    -> Strict Rolling: {len(folds)} folds, Fixed Window={W}w (Uniform Lag, No Gap)"); return folds
 
 def train_one_fold(fold, train_idx, calib_idx, test_idx, adj_sources, adj_target, sector_labels, model_type, neg_ratio, history_lags, first_lag, calibration, n_estimators, max_depth, learning_rate, subsample, colsample_bytree, save_dir, target_w, source_ws, seed, save_plots, shap_max_samples, rng, ablation_variants, eval_tail_frac=0.2, t_w=0, gbdt_n_jobs=2, reg_alpha=0.1, tickers=None):
     old_stdout = sys.stdout; sys.stdout = buffer = io.StringIO()
@@ -591,18 +591,21 @@ def run_training(source_ws, target_w, pkldir, model_type, neg_ratio, history_lag
         
     if learning_rate < 0.05: print("\n  ⚠️  WARNING: LR < 0.05 is highly likely to cause premature early stopping.\n")
         
-    chosen_mt = _resolve_model_type(model_type); first_lag = _min_safe_lag(target_w); reg_alpha = _get_scale_dependent_l1(target_w)
+    chosen_mt = _resolve_model_type(model_type); first_lag = 1; reg_alpha = _get_scale_dependent_l1(target_w)
     src_label = ",".join(map(str, source_ws))
     print("\n" + "#" * 68)
     print(f"  CROSS-SCALE GBDT  A_[{src_label}] -> A_w{target_w}")
-    print(f"  Model: {chosen_mt}  |  first_lag={first_lag}  |  reg_alpha={reg_alpha}  |  Max Window={max_window_size}w  |  Parallel Folds={parallel_folds}  |  GBDT Threads={gbdt_n_jobs}")
+    # CHANGED: Updated print to reflect uniform lag and no data assumptions
+    print(f"  Model: {chosen_mt}  |  first_lag={first_lag} (uniform)  |  reg_alpha={reg_alpha}  |  Max Window={max_window_size}w  |  Parallel Folds={parallel_folds}  |  GBDT Threads={gbdt_n_jobs}")
     print(f"  Objective: F2 Early Stopping (patience=150)  |  LR={learning_rate}  |  Max Trees={n_estimators}")
     print(f"  Features: Source+Neck (12/src) + Target (6) = {1 + (12 * len(source_ws) + 6) * history_lags} total")
     print("#" * 68)
     all_ws = list(set(source_ws + [target_w])); adj_dict, sector_labels, tickers_ordered = {}, None, None
     for w in all_ws: adj_dict[w], sector_labels, tickers_ordered = _load_adj_weekly(w, pkldir)
     t_w = list(adj_dict.values())[0].shape[0]; adj_sources = {ws: adj_dict[ws] for ws in source_ws}; adj_target = adj_dict[target_w]
-    max_safe_week = t_w - math.ceil(target_w / WEEKLY_STRIDE); all_target_idx = np.arange(first_lag, max_safe_week)
+    
+    # CHANGED: Removed max_safe_week calculation. Now uses ALL available weeks up to t_w.
+    all_target_idx = np.arange(first_lag, t_w)
     folds = _make_cv_folds(all_target_idx, n_folds, first_lag, min_calib_steps, min_test_steps, max_window_size)
     print(f"\n  Temporal CV: {len(folds)} folds (Rolling Window={max_window_size} weeks)")
 
@@ -700,7 +703,7 @@ def main():
     parser.add_argument("--calibration", type=str, default="auto", choices=["none", "platt", "isotonic", "auto"])
     parser.add_argument("--n_folds", type=int, default=10)
     parser.add_argument("--min_calib_steps", type=int, default=12)
-    parser.add_argument("--min_test_steps", type=int, default=12)
+    parser.add_argument("--min_test_steps", type=int, default=24)
     parser.add_argument("--max_window_size", type=int, default=120)
     parser.add_argument("--eval_tail_frac", type=float, default=0.2)
     parser.add_argument("--seed", type=int, default=42)
