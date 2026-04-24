@@ -18,8 +18,7 @@ Critical Fixes Applied (v6.5 — Custom Metric Signature Fix)
   7. [v6 FIX] F2 Early Stopping, LR=0.1, Patience=150.
   8. [v5 FIX] Re-introduced Target-Scale features for ablation.
   9. [v5 FIX] Memory Evaluation Speedup: O(1) precomputed 2-hop lookups.
- 10. Exact Zero-Overlap Lag: first_lag = (2 * target_w) // 5.
- 11. F2-Aligned Thresholding & Native Class Imbalance Handling.
+ 10. F2-Aligned Thresholding & Native Class Imbalance Handling.
 """
 
 import argparse
@@ -310,16 +309,19 @@ def _plot_dataset_timeline(all_target_idx, folds, t_w, first_lag, out_dir, prefi
     if plt is None: return
     n_folds = len(folds); fig, axes = plt.subplots(n_folds, 1, figsize=(14, 2.5 * n_folds), sharex=True)
     if n_folds == 1: axes = [axes]
-    colors = ["steelblue", "lightblue", "lightgray", "orange", "red"]; labels = ["Train (Rolling)", "Train (Tail-Eval)", "Gap", "Calibration", "Test"]
+    # CHANGED: Removed "lightgray" and "Gap" from the lists
+    colors = ["steelblue", "lightblue", "orange", "red"]; labels = ["Train (Rolling)", "Train (Tail-Eval)", "Calibration", "Test"]
     for i, (ax, (tr_idx, ca_idx, te_idx)) in enumerate(zip(axes, folds)):
         tail_n = max(10, int(len(tr_idx) * 0.2)); tr_early_end = tr_idx[-tail_n-1] if tail_n < len(tr_idx) else tr_idx[0]
         ax.axvspan(tr_idx[0], tr_early_end, color=colors[0], alpha=0.6); ax.axvspan(tr_idx[-tail_n], tr_idx[-1], color=colors[1], alpha=0.8)
-        ax.axvspan(tr_idx[-1]+1, ca_idx[0]-1, color=colors[2], alpha=0.4); ax.axvspan(ca_idx[0], ca_idx[-1], color=colors[3], alpha=0.6); ax.axvspan(te_idx[0], te_idx[-1], color=colors[4], alpha=0.6)
+        # CHANGED: Completely removed the line that drew the gap: ax.axvspan(tr_idx[-1]+1, ca_idx[0]-1, color=colors[2], alpha=0.4)
+        ax.axvspan(ca_idx[0], ca_idx[-1], color=colors[2], alpha=0.6); ax.axvspan(te_idx[0], te_idx[-1], color=colors[3], alpha=0.6)
         ax.set_yticks([]); ax.set_ylabel(f"Fold {i+1}", fontsize=10, fontweight='bold', rotation=0, labelpad=25)
         ax.text(0.98, 0.5, f"Tr:{len(tr_idx)} Ca:{len(ca_idx)} Te:{len(te_idx)}", transform=ax.transAxes, ha='right', va='center', fontsize=8, color='black', bbox=dict(facecolor='white', alpha=0.7, edgecolor='none'))
     legend_elements = [Patch(facecolor=c, alpha=0.7, label=l) for c, l in zip(colors, labels)]
-    axes[0].legend(handles=legend_elements, loc="upper left", ncol=5, fontsize=8); axes[-1].set_xlim(0, t_w); axes[-1].set_xlabel("Weekly Snapshot Index (t)")
-    fig.suptitle(f"Temporal Data Split Overview (first_lag={first_lag} weeks)", fontsize=12, y=1.01); fig.tight_layout()
+    # CHANGED: Reduced legend columns from 5 to 4
+    axes[0].legend(handles=legend_elements, loc="upper left", ncol=4, fontsize=8); axes[-1].set_xlim(0, t_w); axes[-1].set_xlabel("Weekly Snapshot Index (t)")
+    fig.suptitle(f"Temporal Data Split Overview (Gap Disabled)", fontsize=12, y=1.01); fig.tight_layout()
     fig.savefig(out_dir / f"{prefix}_data_timeline.png", dpi=150, bbox_inches='tight'); plt.close(fig)
 
 def _reorder_features_by_category(feature_names, target_w):
@@ -499,7 +501,9 @@ def _fit_gbdt(x_train, y_train, model_type, n_estimators, max_depth, learning_ra
     return model, 0.0, curve, best_iter
 
 def _make_cv_folds(valid_idx, n_folds, first_lag, min_calib=12, min_test=12, max_window_size=120):
-    n_valid = len(valid_idx); required_overhead = first_lag + min_calib + min_test
+    n_valid = len(valid_idx)
+    # CHANGED: Removed the extra 'first_lag' from the required overhead calculation
+    required_overhead = first_lag + min_calib + min_test
     if n_valid <= required_overhead + 20: return []
     max_W_for_1_fold = n_valid - required_overhead
     if max_W_for_1_fold <= max_window_size: K = 1; W = max_W_for_1_fold
@@ -509,9 +513,12 @@ def _make_cv_folds(valid_idx, n_folds, first_lag, min_calib=12, min_test=12, max
     folds = []
     for i in range(K):
         te_end = n_valid - (i * min_test); te_start = n_valid - ((i + 1) * min_test)
-        ca_end = te_start; ca_start = ca_end - min_calib; tr_end = ca_start - first_lag; tr_start = tr_end - W
+        ca_end = te_start; ca_start = ca_end - min_calib
+        # CHANGED: Removed the gap subtraction here
+        tr_end = ca_start
+        tr_start = tr_end - W
         folds.append((valid_idx[tr_start:tr_end], valid_idx[ca_start:ca_end], valid_idx[te_start:te_end]))
-    folds.reverse(); print(f"    -> Strict Rolling: {len(folds)} folds, Fixed Window={W}w (100% data utilized)"); return folds
+    folds.reverse(); print(f"    -> Strict Rolling: {len(folds)} folds, Fixed Window={W}w"); return folds
 
 def train_one_fold(fold, train_idx, calib_idx, test_idx, adj_sources, adj_target, sector_labels, model_type, neg_ratio, history_lags, first_lag, calibration, n_estimators, max_depth, learning_rate, subsample, colsample_bytree, save_dir, target_w, source_ws, seed, save_plots, shap_max_samples, rng, ablation_variants, eval_tail_frac=0.2, t_w=0, gbdt_n_jobs=2, reg_alpha=0.1, tickers=None):
     old_stdout = sys.stdout; sys.stdout = buffer = io.StringIO()
